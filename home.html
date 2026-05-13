@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BM Vocab - Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Nunito', sans-serif; }
+    .pack-card { transition: transform .18s, box-shadow .18s; cursor: pointer; }
+    .pack-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.13); }
+    @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation: fade-up .5s ease both; }
+    .avatar { width:38px; height:38px; border-radius:99px; background:linear-gradient(135deg,#16a34a,#4ade80); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:16px; }
+    .stats-card { background: linear-gradient(135deg,#16a34a,#4ade80); color:white; }
+    .guest-banner { background: linear-gradient(135deg,#fef3c7,#fde68a); border: 2px solid #fcd34d; }
+    .pack-green  { background:linear-gradient(135deg,#dcfce7,#bbf7d0); border-color:#86efac; }
+    .pack-blue   { background:linear-gradient(135deg,#dbeafe,#bfdbfe); border-color:#93c5fd; }
+    .pack-yellow { background:linear-gradient(135deg,#fef9c3,#fde68a); border-color:#fcd34d; }
+    .pack-pink   { background:linear-gradient(135deg,#fce7f3,#fbcfe8); border-color:#f9a8d4; }
+    .pack-purple { background:linear-gradient(135deg,#ede9fe,#ddd6fe); border-color:#c4b5fd; }
+    .pack-orange { background:linear-gradient(135deg,#ffedd5,#fed7aa); border-color:#fdba74; }
+    .pack-teal   { background:linear-gradient(135deg,#ccfbf1,#99f6e4); border-color:#5eead4; }
+    .pack-red    { background:linear-gradient(135deg,#fee2e2,#fecaca); border-color:#fca5a5; }
+    .pack-lime   { background:linear-gradient(135deg,#ecfccb,#d9f99d); border-color:#bef264; }
+    .pack-sky    { background:linear-gradient(135deg,#e0f2fe,#bae6fd); border-color:#7dd3fc; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow-sm sticky top-0 z-10">
+    <div class="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">🇲🇾</span>
+        <h1 class="text-xl font-black text-green-700">BM Vocab</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="avatar" id="userAvatar">?</div>
+        <button id="logoutBtn" class="text-sm text-gray-400 hover:text-red-400 font-semibold transition-colors">
+          Logout
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-2xl mx-auto px-5 py-6">
+
+    <!-- Guest banner (hidden by default) -->
+    <div id="guestBanner" class="guest-banner hidden rounded-2xl px-5 py-4 mb-5 flex items-start gap-3 fade-up">
+      <span class="text-2xl">👤</span>
+      <div>
+        <p class="font-black text-yellow-800 text-sm">You're in Guest Mode</p>
+        <p class="text-yellow-700 text-xs mt-0.5">Your progress won't be saved. <a href="index.html" class="underline font-bold">Sign in</a> to track your learning!</p>
+      </div>
+    </div>
+
+    <!-- Welcome stats -->
+    <div class="stats-card rounded-3xl p-6 mb-7 shadow-md fade-up">
+      <p class="text-green-100 font-semibold text-sm mb-1">Selamat datang,</p>
+      <h2 class="text-white font-black text-2xl mb-4" id="userName">...</h2>
+      <div class="grid grid-cols-3 gap-3">
+        <div class="bg-white/20 rounded-2xl p-3 text-center">
+          <p class="text-white font-black text-xl" id="statWords">—</p>
+          <p class="text-green-100 text-xs font-semibold">Words Known</p>
+        </div>
+        <div class="bg-white/20 rounded-2xl p-3 text-center">
+          <p class="text-white font-black text-xl" id="statPacks">—</p>
+          <p class="text-green-100 text-xs font-semibold">Packs</p>
+        </div>
+        <div class="bg-white/20 rounded-2xl p-3 text-center">
+          <p class="text-white font-black text-xl" id="statStreak">🔥 0</p>
+          <p class="text-green-100 text-xs font-semibold">Day Streak</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Packs heading -->
+    <div class="flex items-center justify-between mb-4 fade-up" style="animation-delay:.1s">
+      <h3 class="text-lg font-black text-gray-700">📚 Word Packs</h3>
+      <span class="text-sm text-gray-400 font-semibold" id="packCount">Loading...</span>
+    </div>
+
+    <!-- Skeleton -->
+    <div id="loadingState" class="grid grid-cols-2 gap-4">
+      <div class="bg-gray-200 rounded-3xl h-40 animate-pulse"></div>
+      <div class="bg-gray-200 rounded-3xl h-40 animate-pulse"></div>
+      <div class="bg-gray-200 rounded-3xl h-40 animate-pulse"></div>
+      <div class="bg-gray-200 rounded-3xl h-40 animate-pulse"></div>
+    </div>
+
+    <!-- Packs grid -->
+    <div id="packsGrid" class="grid grid-cols-2 gap-4 hidden"></div>
+
+    <!-- Empty state -->
+    <div id="emptyState" class="hidden text-center py-16">
+      <div class="text-6xl mb-4">📭</div>
+      <h3 class="font-black text-gray-600 text-lg mb-2">No packs yet!</h3>
+      <p class="text-gray-400 text-sm mb-4">Run seed.html to import 300 words across 10 packs.</p>
+      <a href="https://console.firebase.google.com" target="_blank"
+        class="inline-block bg-green-500 text-white font-bold py-2 px-5 rounded-full text-sm">
+        Open Firebase Console →
+      </a>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { collection, getDocs }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const COLORS = ["pack-green","pack-blue","pack-yellow","pack-pink","pack-purple","pack-orange","pack-teal","pack-red","pack-lime","pack-sky"];
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = "index.html"; return; }
+
+      const isGuest = user.isAnonymous;
+
+      // Show guest banner
+      if (isGuest) {
+        document.getElementById("guestBanner").classList.remove("hidden");
+        document.getElementById("userName").textContent = "Guest";
+        document.getElementById("userAvatar").textContent = "👤";
+        document.getElementById("statWords").textContent = "—";
+        document.getElementById("statStreak").textContent = "—";
+      } else {
+        const name = user.displayName || user.email || "Student";
+        document.getElementById("userName").textContent = name.split(" ")[0];
+        document.getElementById("userAvatar").textContent = name.charAt(0).toUpperCase();
+        loadUserStats(user.uid);
+      }
+
+      await loadPacks();
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "index.html";
+    });
+
+    async function loadPacks() {
+      try {
+        const snapshot = await getDocs(collection(db, "packs"));
+        const packs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Sort by order field if present, else by name
+        packs.sort((a, b) => (a.order || 99) - (b.order || 99));
+
+        document.getElementById("loadingState").classList.add("hidden");
+        document.getElementById("statPacks").textContent = packs.length;
+        document.getElementById("packCount").textContent = `${packs.length} pack${packs.length !== 1 ? "s" : ""}`;
+
+        if (packs.length === 0) {
+          document.getElementById("emptyState").classList.remove("hidden");
+          return;
+        }
+
+        const grid = document.getElementById("packsGrid");
+        grid.classList.remove("hidden");
+        grid.innerHTML = "";
+
+        packs.forEach((pack, i) => {
+          const color = COLORS[i % COLORS.length];
+          const delay = (i * 0.06).toFixed(2);
+          grid.innerHTML += `
+            <div class="pack-card ${color} border-2 rounded-3xl p-5 shadow-sm fade-up" style="animation-delay:${delay}s">
+              <div class="text-4xl mb-3">${pack.emoji || "📖"}</div>
+              <h4 class="font-black text-gray-800 text-base leading-tight mb-0.5">${pack.name}</h4>
+              <p class="text-gray-500 text-xs font-semibold mb-3">${pack.wordCount || "?"} words</p>
+              <div class="flex gap-2">
+                <a href="study.html?pack=${pack.id}"
+                  class="flex-1 bg-white/70 hover:bg-white text-gray-700 text-xs font-bold py-2 rounded-xl text-center transition-colors">
+                  📚 Study
+                </a>
+                <a href="quiz.html?pack=${pack.id}"
+                  class="flex-1 bg-white/70 hover:bg-white text-gray-700 text-xs font-bold py-2 rounded-xl text-center transition-colors">
+                  🎯 Quiz
+                </a>
+              </div>
+            </div>`;
+        });
+
+      } catch (err) {
+        document.getElementById("loadingState").innerHTML =
+          `<p class="text-red-400 text-sm col-span-2 text-center py-8">Failed to load packs. Check Firestore rules.</p>`;
+      }
+    }
+
+    async function loadUserStats(uid) {
+      try {
+        const snap = await getDocs(collection(db, "users", uid, "progress"));
+        const known = snap.docs.filter(d => d.data().status === "known").length;
+        document.getElementById("statWords").textContent = known;
+      } catch {
+        document.getElementById("statWords").textContent = "0";
+      }
+    }
+  </script>
+</body>
+</html>

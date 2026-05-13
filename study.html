@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BM Vocab - Study</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Nunito', sans-serif; }
+
+    /* Flip card */
+    .flip-container { perspective: 1000px; }
+    .flip-card {
+      position: relative;
+      width: 100%;
+      height: 280px;
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(.4,2,.6,1);
+      cursor: pointer;
+    }
+    .flip-card.flipped { transform: rotateY(180deg); }
+    .flip-front, .flip-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .flip-front {
+      background: linear-gradient(135deg, #16a34a, #4ade80);
+      color: white;
+    }
+    .flip-back {
+      background: linear-gradient(135deg, #1d4ed8, #60a5fa);
+      color: white;
+      transform: rotateY(180deg);
+    }
+
+    /* Swipe buttons */
+    .btn-know {
+      background: linear-gradient(135deg, #16a34a, #4ade80);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-know:hover { transform: translateY(-2px); box-shadow: 0 8px 20px #16a34a55; }
+    .btn-skip {
+      background: linear-gradient(135deg, #dc2626, #f87171);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-skip:hover { transform: translateY(-2px); box-shadow: 0 8px 20px #dc262655; }
+
+    /* Progress bar */
+    .progress-bar {
+      height: 8px;
+      border-radius: 99px;
+      background: #dcfce7;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #16a34a, #4ade80);
+      transition: width .4s ease;
+    }
+
+    /* Tap hint pulse */
+    @keyframes pulse-hint {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .tap-hint { animation: pulse-hint 2s infinite; }
+
+    /* Complete screen */
+    @keyframes pop-in {
+      0% { transform: scale(.7); opacity: 0; }
+      80% { transform: scale(1.05); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .pop-in { animation: pop-in .5s forwards; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
+    <a href="home.html" class="text-green-600 font-bold text-lg flex items-center gap-2">
+      ← <span>Back</span>
+    </a>
+    <h1 class="font-extrabold text-green-700 text-lg" id="packTitle">Loading...</h1>
+    <span class="text-sm text-gray-400" id="cardCounter">0 / 0</span>
+  </nav>
+
+  <div class="max-w-md mx-auto px-4 py-6">
+
+    <!-- Progress bar -->
+    <div class="progress-bar mb-6">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+
+    <!-- Loading state -->
+    <div id="loadingState" class="text-center py-20 text-gray-400">
+      <div class="text-5xl mb-4">⏳</div>
+      <p>Loading flashcards...</p>
+    </div>
+
+    <!-- Study screen -->
+    <div id="studyScreen" class="hidden">
+
+      <!-- Flip Card -->
+      <div class="flip-container mb-6" id="flipContainer">
+        <div class="flip-card" id="flipCard" onclick="flipCard()">
+
+          <!-- Front: BM word -->
+          <div class="flip-front">
+            <p class="text-white/70 text-sm font-semibold uppercase tracking-widest mb-4">Bahasa Malaysia</p>
+            <p class="text-4xl font-black" id="bmWord">—</p>
+            <p class="mt-6 tap-hint text-white/60 text-sm">👆 Tap to see meaning</p>
+          </div>
+
+          <!-- Back: English meaning -->
+          <div class="flip-back">
+            <p class="text-white/70 text-sm font-semibold uppercase tracking-widest mb-4">English</p>
+            <p class="text-4xl font-black" id="enWord">—</p>
+            <p class="mt-4 text-white/80 text-sm text-center italic" id="exampleSentence"></p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Action buttons (shown after flip) -->
+      <div id="actionButtons" class="hidden flex gap-4 mb-6">
+        <button onclick="markWord('skip')"
+          class="btn-skip flex-1 text-white font-bold py-4 rounded-2xl text-lg shadow-md">
+          ❌ Not Yet
+        </button>
+        <button onclick="markWord('know')"
+          class="btn-know flex-1 text-white font-bold py-4 rounded-2xl text-lg shadow-md">
+          ✅ I Know It!
+        </button>
+      </div>
+
+      <!-- Stats row -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-white rounded-2xl p-4 text-center shadow-sm">
+          <p class="text-2xl font-black text-green-500" id="knownCount">0</p>
+          <p class="text-xs text-gray-400 font-semibold mt-1">I Know It ✅</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 text-center shadow-sm">
+          <p class="text-2xl font-black text-red-400" id="skipCount">0</p>
+          <p class="text-xs text-gray-400 font-semibold mt-1">Not Yet ❌</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Complete screen -->
+    <div id="completeScreen" class="hidden text-center py-10">
+      <div class="pop-in bg-white rounded-3xl shadow-lg p-8">
+        <div class="text-6xl mb-4">🎉</div>
+        <h2 class="text-2xl font-black text-green-700 mb-2">Pack Complete!</h2>
+        <p class="text-gray-500 mb-6">Great job studying this pack!</p>
+
+        <div class="grid grid-cols-2 gap-4 mb-8">
+          <div class="bg-green-50 rounded-2xl p-4">
+            <p class="text-3xl font-black text-green-600" id="finalKnown">0</p>
+            <p class="text-sm text-gray-500">Words Known</p>
+          </div>
+          <div class="bg-red-50 rounded-2xl p-4">
+            <p class="text-3xl font-black text-red-400" id="finalSkip">0</p>
+            <p class="text-sm text-gray-500">To Review</p>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <button onclick="restartStudy()"
+            class="btn-know text-white font-bold py-3 rounded-2xl shadow">
+            🔁 Study Again
+          </button>
+          <a href="quiz.html" id="quizLink"
+            class="block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-2xl shadow text-center">
+            🎯 Take a Quiz
+          </a>
+          <a href="home.html"
+            class="block bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3 rounded-2xl text-center">
+            🏠 Back to Home
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { collection, query, where, getDocs, doc, setDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // --- State ---
+    let words = [];
+    let currentIndex = 0;
+    let isFlipped = false;
+    let known = 0;
+    let skipped = 0;
+    let currentUser = null;
+
+    const params = new URLSearchParams(window.location.search);
+    const packId = params.get("pack") || "";
+
+    // Pass pack to quiz page
+    document.getElementById("quizLink").href = `quiz.html?pack=${packId}`;
+
+    // Auth guard
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = "index.html"; return; }
+      currentUser = user;
+      await loadWords();
+    });
+
+    async function loadWords() {
+      try {
+        const q = query(collection(db, "words"), where("pack", "==", packId));
+        const snapshot = await getDocs(q);
+        words = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        shuffle(words);
+
+        document.getElementById("packTitle").textContent =
+          packId.charAt(0).toUpperCase() + packId.slice(1);
+
+        document.getElementById("loadingState").classList.add("hidden");
+        document.getElementById("studyScreen").classList.remove("hidden");
+
+        showCard();
+      } catch (err) {
+        document.getElementById("loadingState").innerHTML =
+          `<p class="text-red-400">Failed to load words. Check Firestore rules.</p>`;
+      }
+    }
+
+    function showCard() {
+      if (currentIndex >= words.length) {
+        showComplete();
+        return;
+      }
+
+      isFlipped = false;
+      document.getElementById("flipCard").classList.remove("flipped");
+      document.getElementById("actionButtons").classList.add("hidden");
+
+      const word = words[currentIndex];
+      document.getElementById("bmWord").textContent = word.bm;
+      document.getElementById("enWord").textContent = word.en;
+      document.getElementById("exampleSentence").textContent = word.example_bm || "";
+
+      updateProgress();
+    }
+
+    window.flipCard = function () {
+      if (isFlipped) return;
+      isFlipped = true;
+      document.getElementById("flipCard").classList.add("flipped");
+      setTimeout(() => {
+        document.getElementById("actionButtons").classList.remove("hidden");
+      }, 300);
+    };
+
+    window.markWord = async function (result) {
+      if (result === "know") {
+        known++;
+        document.getElementById("knownCount").textContent = known;
+        // Save progress to Firestore
+        if (currentUser) {
+          const wordId = words[currentIndex].id;
+          await setDoc(
+            doc(db, "users", currentUser.uid, "progress", wordId),
+            { status: "known", updatedAt: serverTimestamp() },
+            { merge: true }
+          );
+        }
+      } else {
+        skipped++;
+        document.getElementById("skipCount").textContent = skipped;
+      }
+      currentIndex++;
+      showCard();
+    };
+
+    function updateProgress() {
+      const pct = words.length ? (currentIndex / words.length) * 100 : 0;
+      document.getElementById("progressFill").style.width = pct + "%";
+      document.getElementById("cardCounter").textContent =
+        `${currentIndex + 1} / ${words.length}`;
+    }
+
+    function showComplete() {
+      document.getElementById("studyScreen").classList.add("hidden");
+      document.getElementById("completeScreen").classList.remove("hidden");
+      document.getElementById("finalKnown").textContent = known;
+      document.getElementById("finalSkip").textContent = skipped;
+      document.getElementById("progressFill").style.width = "100%";
+    }
+
+    window.restartStudy = function () {
+      currentIndex = 0; known = 0; skipped = 0;
+      shuffle(words);
+      document.getElementById("knownCount").textContent = 0;
+      document.getElementById("skipCount").textContent = 0;
+      document.getElementById("completeScreen").classList.add("hidden");
+      document.getElementById("studyScreen").classList.remove("hidden");
+      showCard();
+    };
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+  </script>
+
+</body>
+</html>
