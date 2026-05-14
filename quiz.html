@@ -7,132 +7,107 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    body { font-family: 'Nunito', sans-serif; }
-
-    /* Option buttons */
-    .option-btn {
-      transition: transform .12s, box-shadow .12s, background .15s;
-      border: 2.5px solid transparent;
-    }
-    .option-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-    }
-    .option-correct {
-      background: #dcfce7 !important;
-      border-color: #16a34a !important;
-      color: #15803d !important;
-    }
-    .option-wrong {
-      background: #fee2e2 !important;
-      border-color: #dc2626 !important;
-      color: #b91c1c !important;
-    }
-
-    /* Score bar */
-    .score-bar {
-      height: 8px; border-radius: 99px;
-      background: #e0e7ff; overflow: hidden;
-    }
-    .score-fill {
-      height: 100%; border-radius: 99px;
-      background: linear-gradient(90deg, #4f46e5, #818cf8);
-      transition: width .4s ease;
-    }
-
-    /* Mode tabs */
-    .mode-tab { transition: background .2s, color .2s; }
-    .mode-tab.active {
-      background: #4f46e5;
-      color: white;
-    }
-
-    /* Shake animation for wrong answer */
-    @keyframes shake {
-      0%,100%{transform:translateX(0)}
-      20%{transform:translateX(-8px)}
-      40%{transform:translateX(8px)}
-      60%{transform:translateX(-5px)}
-      80%{transform:translateX(5px)}
-    }
+    body { font-family: 'Nunito', sans-serif; padding-bottom: 80px; }
+    .option-btn { transition:transform .12s,box-shadow .12s,background .15s; border:2.5px solid transparent; }
+    .option-btn:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.1); }
+    .option-correct { background:#dcfce7 !important; border-color:#16a34a !important; color:#15803d !important; }
+    .option-wrong   { background:#fee2e2 !important; border-color:#dc2626 !important; color:#b91c1c !important; }
+    .score-bar { height:8px; border-radius:99px; background:#e0e7ff; overflow:hidden; }
+    .score-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,#4f46e5,#818cf8); transition:width .4s ease; }
+    .mode-tab { transition:background .2s,color .2s; }
+    .mode-tab.active { background:#4f46e5; color:white; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
     .shake { animation: shake .4s; }
-
-    /* Bounce for correct */
-    @keyframes bounce-in {
-      0%{transform:scale(.95)}
-      60%{transform:scale(1.04)}
-      100%{transform:scale(1)}
-    }
+    @keyframes bounce-in { 0%{transform:scale(.95)} 60%{transform:scale(1.04)} 100%{transform:scale(1)} }
     .bounce-in { animation: bounce-in .3s; }
-
-    /* Result card pop */
-    @keyframes pop-in {
-      0%{transform:scale(.7);opacity:0}
-      80%{transform:scale(1.05)}
-      100%{transform:scale(1);opacity:1}
-    }
+    @keyframes pop-in { 0%{transform:scale(.7);opacity:0} 80%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
     .pop-in { animation: pop-in .5s forwards; }
+    .feedback-correct { background:#dcfce7; border-left:5px solid #16a34a; }
+    .feedback-wrong   { background:#fee2e2; border-left:5px solid #dc2626; }
+    #typeInput:focus  { outline:none; border-color:#4f46e5; box-shadow:0 0 0 3px #c7d2fe; }
 
-    /* Feedback overlay */
-    .feedback-correct { background: #dcfce7; border-left: 5px solid #16a34a; }
-    .feedback-wrong   { background: #fee2e2; border-left: 5px solid #dc2626; }
+    /* XP Float animation */
+    @keyframes xp-float {
+      0%   { opacity:1; transform:translateY(0) scale(1); }
+      100% { opacity:0; transform:translateY(-60px) scale(1.3); }
+    }
+    .xp-float { animation: xp-float .9s ease forwards; pointer-events:none; }
 
-    /* Type input */
-    #typeInput:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px #c7d2fe; }
+    /* Level-up overlay */
+    .levelup-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.6);
+      display:flex; align-items:center; justify-content:center; z-index:100;
+    }
+    @keyframes levelup-pop { 0%{transform:scale(.5);opacity:0} 70%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+    .levelup-card { animation: levelup-pop .5s forwards; }
+
+    /* Bottom nav */
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #f3f4f6; padding:8px 0 max(8px,env(safe-area-inset-bottom)); z-index:50; }
+    .nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; flex:1; font-size:11px; font-weight:800; color:#9ca3af; text-decoration:none; transition:color .2s; }
+    .nav-item.active { color:#4f46e5; }
+    .nav-icon { font-size:22px; line-height:1; }
   </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-50 to-blue-100 min-h-screen">
 
-  <!-- Navbar -->
-  <nav class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
-    <a href="home.html" class="text-indigo-600 font-bold text-lg flex items-center gap-2">← Back</a>
+  <!-- Level-up overlay (hidden) -->
+  <div id="levelUpOverlay" class="levelup-overlay hidden">
+    <div class="levelup-card bg-white rounded-3xl shadow-2xl p-8 text-center mx-6">
+      <div class="text-6xl mb-3">⬆️</div>
+      <h2 class="text-2xl font-black text-indigo-700 mb-1">Level Up!</h2>
+      <p class="text-gray-500 mb-4" id="levelUpMsg">You reached a new rank!</p>
+      <button onclick="document.getElementById('levelUpOverlay').classList.add('hidden')"
+        class="bg-indigo-500 text-white font-black py-3 px-8 rounded-2xl">
+        Awesome! 🎉
+      </button>
+    </div>
+  </div>
+
+  <nav class="bg-white shadow-sm px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+    <a href="home.html" class="text-indigo-600 font-bold text-lg">← Back</a>
     <h1 class="font-extrabold text-indigo-700 text-lg">🎯 Quiz</h1>
     <span class="text-sm text-gray-400" id="qCounter">1 / 10</span>
   </nav>
 
   <div class="max-w-md mx-auto px-4 py-6">
 
-    <!-- Mode selector -->
+    <!-- Mode tabs -->
     <div class="flex bg-white rounded-2xl p-1 shadow-sm mb-5 gap-1">
-      <button class="mode-tab active flex-1 py-2 rounded-xl font-bold text-sm" id="tabMCQ" onclick="setMode('mcq')">
-        📋 MCQ
-      </button>
-      <button class="mode-tab flex-1 py-2 rounded-xl font-bold text-sm text-gray-500" id="tabType" onclick="setMode('type')">
-        ✏️ Type Answer
-      </button>
-      <button class="mode-tab flex-1 py-2 rounded-xl font-bold text-sm text-gray-500" id="tabSpeed" onclick="setMode('speed')">
-        ⚡ Speed
-      </button>
+      <button class="mode-tab active flex-1 py-2 rounded-xl font-bold text-sm" id="tabMCQ"   onclick="setMode('mcq')">📋 MCQ</button>
+      <button class="mode-tab flex-1 py-2 rounded-xl font-bold text-sm text-gray-500" id="tabType"  onclick="setMode('type')">✏️ Type</button>
+      <button class="mode-tab flex-1 py-2 rounded-xl font-bold text-sm text-gray-500" id="tabSpeed" onclick="setMode('speed')">⚡ Speed</button>
     </div>
 
-    <!-- Score & progress -->
+    <!-- HUD -->
     <div class="flex items-center justify-between mb-2">
-      <span class="text-indigo-600 font-bold text-sm">Score: <span id="scoreDisplay">0</span></span>
-      <span class="text-sm text-gray-400"><span id="livesDisplay">❤️❤️❤️</span></span>
+      <div class="flex items-center gap-2">
+        <span class="text-indigo-600 font-bold text-sm">Score: <span id="scoreDisplay">0</span></span>
+        <span class="text-xs bg-indigo-100 text-indigo-600 font-black px-2 py-0.5 rounded-full" id="xpDisplay">+0 XP</span>
+      </div>
+      <span class="text-sm" id="livesDisplay">❤️❤️❤️</span>
     </div>
     <div class="score-bar mb-5">
       <div class="score-fill" id="scoreFill" style="width:0%"></div>
     </div>
 
-    <!-- Loading -->
     <div id="loadingState" class="text-center py-20 text-gray-400">
-      <div class="text-5xl mb-4">⏳</div>
-      <p>Loading quiz...</p>
+      <div class="text-5xl mb-4">⏳</div><p>Loading quiz...</p>
     </div>
 
-    <!-- Quiz screen -->
     <div id="quizScreen" class="hidden">
-
       <!-- Question card -->
       <div class="bg-white rounded-3xl shadow-md p-6 mb-5 text-center" id="questionCard">
-        <p class="text-indigo-400 text-xs font-bold uppercase tracking-widest mb-3" id="questionDir">
-          What is the English meaning of...
-        </p>
+        <p class="text-indigo-400 text-xs font-bold uppercase tracking-widest mb-3" id="questionDir">What is the English meaning of...</p>
         <p class="text-4xl font-black text-gray-800" id="questionWord">—</p>
-        <!-- Speed timer bar -->
+        <!-- Audio button -->
+        <button id="audioBtn" onclick="speakQuestion()"
+          class="mt-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold px-4 py-2 rounded-full text-sm transition-colors">
+          🔊 Pronounce
+        </button>
+        <!-- Speed timer -->
         <div id="timerBarWrapper" class="hidden mt-4">
           <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div id="timerBar" class="h-full bg-indigo-400 rounded-full transition-none" style="width:100%"></div>
+            <div id="timerBar" class="h-full bg-indigo-400 rounded-full" style="width:100%"></div>
           </div>
         </div>
       </div>
@@ -140,12 +115,10 @@
       <!-- Feedback strip -->
       <div id="feedbackStrip" class="hidden rounded-xl px-4 py-3 mb-4 text-sm font-bold"></div>
 
-      <!-- MCQ Options -->
-      <div id="mcqOptions" class="grid grid-cols-2 gap-3 mb-4">
-        <!-- Filled by JS -->
-      </div>
+      <!-- MCQ -->
+      <div id="mcqOptions" class="grid grid-cols-2 gap-3 mb-4"></div>
 
-      <!-- Type Answer -->
+      <!-- Type answer -->
       <div id="typeSection" class="hidden mb-4">
         <input type="text" id="typeInput" placeholder="Type your answer..."
           class="w-full border-2 border-indigo-200 rounded-2xl px-5 py-4 text-lg font-bold text-gray-700 mb-3"
@@ -156,138 +129,113 @@
         </button>
       </div>
 
-      <!-- Next button (shown after answer) -->
       <button id="nextBtn" onclick="nextQuestion()"
         class="hidden w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-md text-lg">
         Next Question →
       </button>
-
     </div>
 
-    <!-- Results screen -->
+    <!-- Results -->
     <div id="resultsScreen" class="hidden text-center">
       <div class="pop-in bg-white rounded-3xl shadow-lg p-8">
         <div id="resultEmoji" class="text-6xl mb-3">🏆</div>
         <h2 class="text-2xl font-black mb-1" id="resultTitle">Quiz Complete!</h2>
-        <p class="text-gray-400 mb-6" id="resultSubtitle"></p>
+        <p class="text-gray-400 mb-2" id="resultSubtitle"></p>
 
-        <div class="grid grid-cols-3 gap-3 mb-8">
-          <div class="bg-green-50 rounded-2xl p-3">
-            <p class="text-2xl font-black text-green-600" id="resCorrect">0</p>
-            <p class="text-xs text-gray-500">Correct</p>
-          </div>
-          <div class="bg-red-50 rounded-2xl p-3">
-            <p class="text-2xl font-black text-red-400" id="resWrong">0</p>
-            <p class="text-xs text-gray-500">Wrong</p>
-          </div>
-          <div class="bg-indigo-50 rounded-2xl p-3">
-            <p class="text-2xl font-black text-indigo-500" id="resScore">0%</p>
-            <p class="text-xs text-gray-500">Score</p>
-          </div>
+        <!-- XP summary -->
+        <div class="bg-indigo-50 rounded-2xl p-3 mb-5">
+          <p class="text-indigo-700 font-black text-xl" id="resultXP">+0 XP</p>
+          <p class="text-indigo-400 text-xs">earned this quiz</p>
         </div>
 
-        <!-- Missed words review -->
-        <div id="missedSection" class="hidden text-left mb-6">
+        <div class="grid grid-cols-3 gap-3 mb-6">
+          <div class="bg-green-50 rounded-2xl p-3"><p class="text-2xl font-black text-green-600" id="resCorrect">0</p><p class="text-xs text-gray-500">Correct</p></div>
+          <div class="bg-red-50 rounded-2xl p-3"><p class="text-2xl font-black text-red-400" id="resWrong">0</p><p class="text-xs text-gray-500">Wrong</p></div>
+          <div class="bg-indigo-50 rounded-2xl p-3"><p class="text-2xl font-black text-indigo-500" id="resScore">0%</p><p class="text-xs text-gray-500">Score</p></div>
+        </div>
+
+        <div id="missedSection" class="hidden text-left mb-5">
           <p class="font-bold text-gray-600 mb-2 text-sm">📖 Words to Review:</p>
           <div id="missedList" class="space-y-2"></div>
         </div>
 
         <div class="flex flex-col gap-3">
-          <button onclick="restartQuiz()"
-            class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 rounded-2xl shadow">
-            🔁 Try Again
-          </button>
-          <a href="study.html" id="studyLink"
-            class="block bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-2xl shadow text-center">
-            📚 Back to Flashcards
-          </a>
-          <a href="home.html"
-            class="block bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3 rounded-2xl text-center">
-            🏠 Home
-          </a>
+          <button onclick="restartQuiz()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 rounded-2xl shadow">🔁 Try Again</button>
+          <a href="study.html" id="studyLink" class="block bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-2xl shadow text-center">📚 Back to Flashcards</a>
+          <a href="home.html" class="block bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3 rounded-2xl text-center">🏠 Home</a>
         </div>
       </div>
     </div>
 
-  </div><!-- end max-w -->
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <div class="max-w-2xl mx-auto flex">
+      <a href="home.html" class="nav-item"><span class="nav-icon">🏠</span>Home</a>
+      <a href="progress.html" class="nav-item"><span class="nav-icon">📊</span>Progress</a>
+      <a href="leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Ranking</a>
+      <a href="profile.html" class="nav-item"><span class="nav-icon">👤</span>Profile</a>
+    </div>
+  </nav>
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { recordStudySession } from "./js/streak.js";
+    import { onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { collection, query, where, getDocs }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // ---- State ----
-    let allWords = [];
-    let quizWords = [];
-    let currentIndex = 0;
-    let score = 0;
-    let lives = 3;
-    let correct = 0;
-    let wrong = 0;
-    let missedWords = [];
-    let mode = "mcq";           // mcq | type | speed
-    let answered = false;
-    let speedTimer = null;
-    const QUIZ_LENGTH = 10;
-    const SPEED_SECONDS = 8;
+    let allWords=[], quizWords=[], currentIndex=0, score=0, lives=3;
+    let correct=0, wrong=0, missedWords=[], mode="mcq", answered=false;
+    let speedTimer=null, currentUser=null, sessionXP=0;
+    const QUIZ_LENGTH=10, SPEED_SECONDS=8;
 
     const params = new URLSearchParams(window.location.search);
     const packId = params.get("pack") || "";
     document.getElementById("studyLink").href = `study.html?pack=${packId}`;
 
-    // Auth guard
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = "index.html"; return; }
+      currentUser = user;
       await loadWords();
     });
 
     async function loadWords() {
       try {
-        const q = query(collection(db, "words"), where("pack", "==", packId));
+        const q = query(collection(db, "words"), where("pack","==",packId));
         const snap = await getDocs(q);
-        allWords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
+        allWords = snap.docs.map(d => ({ id:d.id, ...d.data() }));
         document.getElementById("loadingState").classList.add("hidden");
         document.getElementById("quizScreen").classList.remove("hidden");
         startQuiz();
-      } catch (err) {
-        document.getElementById("loadingState").innerHTML =
-          `<p class="text-red-400 text-center">Failed to load. Check Firestore rules.</p>`;
+      } catch {
+        document.getElementById("loadingState").innerHTML = `<p class="text-red-400 text-center">Failed to load.</p>`;
       }
     }
 
     function startQuiz() {
       quizWords = shuffle([...allWords]).slice(0, QUIZ_LENGTH);
-      currentIndex = 0; score = 0; lives = 3;
-      correct = 0; wrong = 0; missedWords = [];
-      updateHUD();
-      showQuestion();
+      currentIndex=0; score=0; lives=3; correct=0; wrong=0;
+      missedWords=[]; sessionXP=0;
+      updateHUD(); showQuestion();
     }
 
     function showQuestion() {
-      if (currentIndex >= quizWords.length || lives <= 0) {
-        showResults(); return;
-      }
+      if (currentIndex >= quizWords.length || lives <= 0) { endQuiz(); return; }
       answered = false;
       clearTimer();
-
       const word = quizWords[currentIndex];
       document.getElementById("feedbackStrip").classList.add("hidden");
       document.getElementById("nextBtn").classList.add("hidden");
-      document.getElementById("qCounter").textContent =
-        `${currentIndex + 1} / ${Math.min(QUIZ_LENGTH, quizWords.length)}`;
-
-      // Randomise direction: BM→EN or EN→BM
-      const bmToEn = Math.random() > 0.4; // bias toward BM→EN
-      if (bmToEn) {
-        document.getElementById("questionDir").textContent = "What is the English meaning of...";
-        document.getElementById("questionWord").textContent = word.bm;
-      } else {
-        document.getElementById("questionDir").textContent = "What is the BM word for...";
-        document.getElementById("questionWord").textContent = word.en;
-      }
+      document.getElementById("qCounter").textContent = `${currentIndex+1} / ${Math.min(QUIZ_LENGTH, quizWords.length)}`;
+      const bmToEn = Math.random() > 0.4;
       word._bmToEn = bmToEn;
+      document.getElementById("questionDir").textContent = bmToEn ? "What is the English meaning of..." : "What is the BM word for...";
+      document.getElementById("questionWord").textContent = bmToEn ? word.bm : word.en;
+      // Show audio btn only for BM→EN (we know the BM word to speak)
+      document.getElementById("audioBtn").classList.toggle("hidden", !bmToEn);
 
       if (mode === "mcq" || mode === "speed") {
         buildMCQ(word, bmToEn);
@@ -300,53 +248,43 @@
         document.getElementById("typeInput").value = "";
         document.getElementById("typeInput").disabled = false;
         document.getElementById("typeInput").focus();
-        // Allow Enter key
-        document.getElementById("typeInput").onkeydown = (e) => {
-          if (e.key === "Enter") submitTyped();
-        };
+        document.getElementById("typeInput").onkeydown = (e) => { if (e.key==="Enter") submitTyped(); };
       }
     }
 
     function buildMCQ(word, bmToEn) {
-      const correctAnswer = bmToEn ? word.en : word.bm;
-      const pool = allWords.filter(w => w.id !== word.id);
-      const distractors = shuffle(pool)
-        .slice(0, 3)
-        .map(w => bmToEn ? w.en : w.bm);
-      const options = shuffle([correctAnswer, ...distractors]);
-
+      const correctAns = bmToEn ? word.en : word.bm;
+      const distractors = shuffle(allWords.filter(w=>w.id!==word.id)).slice(0,3).map(w=>bmToEn?w.en:w.bm);
+      const options = shuffle([correctAns, ...distractors]);
       const container = document.getElementById("mcqOptions");
       container.innerHTML = "";
       options.forEach(opt => {
         const btn = document.createElement("button");
         btn.className = "option-btn bg-white border-gray-200 rounded-2xl p-4 font-bold text-gray-700 text-base shadow-sm";
         btn.textContent = opt;
-        btn.onclick = () => handleMCQ(opt, correctAnswer, btn);
+        btn.onclick = () => handleMCQ(opt, correctAns, btn);
         container.appendChild(btn);
       });
     }
 
-    window.handleMCQ = function(chosen, correct, btn) {
+    window.handleMCQ = function(chosen, correctAns, btn) {
       if (answered) return;
-      clearTimer();
-      answered = true;
-      const allBtns = document.querySelectorAll(".option-btn");
-      allBtns.forEach(b => {
+      clearTimer(); answered = true;
+      document.querySelectorAll(".option-btn").forEach(b => {
         b.disabled = true;
-        if (b.textContent === correct) b.classList.add("option-correct");
+        if (b.textContent === correctAns) b.classList.add("option-correct");
       });
-
-      if (chosen === correct) {
-        btn.classList.add("option-correct", "bounce-in");
-        showFeedback(true, correct);
-        score += mode === "speed" ? 15 : 10;
-        correct_count();
+      if (chosen === correctAns) {
+        btn.classList.add("bounce-in");
+        const xp = mode==="speed" ? 15 : 10;
+        score += xp; sessionXP += xp; correct++;
+        showFeedback(true, correctAns);
+        floatXP(`+${xp} XP`);
       } else {
-        btn.classList.add("option-wrong", "shake");
-        showFeedback(false, correct);
-        lives--;
-        wrong_count();
+        btn.classList.add("option-wrong","shake");
+        lives--; wrong++;
         missedWords.push(quizWords[currentIndex]);
+        showFeedback(false, correctAns);
       }
       updateHUD();
       document.getElementById("nextBtn").classList.remove("hidden");
@@ -357,167 +295,151 @@
       const input = document.getElementById("typeInput");
       const typed = input.value.trim().toLowerCase();
       const word = quizWords[currentIndex];
-      const correctAnswer = word._bmToEn ? word.en : word.bm;
-      answered = true;
-      input.disabled = true;
-
-      if (fuzzyMatch(typed, correctAnswer.toLowerCase())) {
-        showFeedback(true, correctAnswer);
-        score += 10;
-        correct_count();
-        input.classList.add("border-green-400", "bg-green-50");
+      const correctAns = word._bmToEn ? word.en : word.bm;
+      answered = true; input.disabled = true;
+      if (fuzzyMatch(typed, correctAns.toLowerCase())) {
+        score += 10; sessionXP += 10; correct++;
+        input.classList.add("border-green-400","bg-green-50");
+        showFeedback(true, correctAns);
+        floatXP("+10 XP");
       } else {
-        showFeedback(false, correctAnswer);
-        lives--;
-        wrong_count();
+        lives--; wrong++;
         missedWords.push(word);
-        input.classList.add("border-red-400", "bg-red-50");
+        input.classList.add("border-red-400","bg-red-50");
+        showFeedback(false, correctAns);
       }
       updateHUD();
       document.getElementById("nextBtn").classList.remove("hidden");
     };
 
-    function showFeedback(isCorrect, correctAnswer) {
+    window.speakQuestion = function() {
+      const word = quizWords[currentIndex];
+      if (!word) return;
+      const utter = new SpeechSynthesisUtterance(word.bm);
+      utter.lang = "ms-MY"; utter.rate = 0.85;
+      speechSynthesis.speak(utter);
+    };
+
+    function showFeedback(isCorrect, correctAns) {
       const strip = document.getElementById("feedbackStrip");
-      strip.className = `rounded-xl px-4 py-3 mb-4 text-sm font-bold ${isCorrect ? "feedback-correct" : "feedback-wrong"}`;
-      strip.textContent = isCorrect
-        ? `✅ Correct! "${correctAnswer}"`
-        : `❌ Wrong! The answer is "${correctAnswer}"`;
+      strip.className = `rounded-xl px-4 py-3 mb-4 text-sm font-bold ${isCorrect?"feedback-correct":"feedback-wrong"}`;
+      strip.textContent = isCorrect ? `✅ Correct! "${correctAns}"` : `❌ Wrong! The answer is "${correctAns}"`;
       strip.classList.remove("hidden");
     }
 
-    window.nextQuestion = function() {
-      currentIndex++;
-      showQuestion();
-    };
+    function floatXP(text) {
+      const el = document.createElement("div");
+      el.textContent = text;
+      el.className = "xp-float fixed font-black text-indigo-600 text-lg z-50";
+      el.style.cssText = "top:120px;left:50%;transform:translateX(-50%)";
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 950);
+      // Update XP display
+      document.getElementById("xpDisplay").textContent = `+${sessionXP} XP`;
+    }
 
-    function showResults() {
+    window.nextQuestion = function() { currentIndex++; showQuestion(); };
+
+    async function endQuiz() {
       document.getElementById("quizScreen").classList.add("hidden");
       document.getElementById("resultsScreen").classList.remove("hidden");
       const total = correct + wrong;
-      const pct = total ? Math.round((correct / total) * 100) : 0;
-
+      const pct = total ? Math.round((correct/total)*100) : 0;
       document.getElementById("resCorrect").textContent = correct;
-      document.getElementById("resWrong").textContent = wrong;
-      document.getElementById("resScore").textContent = pct + "%";
+      document.getElementById("resWrong").textContent   = wrong;
+      document.getElementById("resScore").textContent   = pct + "%";
+      document.getElementById("resultXP").textContent   = `+${sessionXP} XP`;
 
-      // Pick emoji & title based on score
-      const [emoji, title, sub] =
-        pct >= 90 ? ["🏆", "Excellent!", "You're a BM vocab champion!"] :
-        pct >= 70 ? ["🎉", "Great job!", "Keep it up!"] :
-        pct >= 50 ? ["👍", "Not bad!", "A bit more practice will help."] :
-        ["💪", "Keep trying!", "Review the flashcards and try again."];
-
-      document.getElementById("resultEmoji").textContent = emoji;
-      document.getElementById("resultTitle").textContent = title;
+      const [emoji,title,sub] =
+        pct>=90?["🏆","Excellent!","You're a BM vocab champion!"]:
+        pct>=70?["🎉","Great job!","Keep it up!"]:
+        pct>=50?["👍","Not bad!","A bit more practice will help."]:
+        ["💪","Keep trying!","Review the flashcards and try again."];
+      document.getElementById("resultEmoji").textContent  = emoji;
+      document.getElementById("resultTitle").textContent  = title;
       document.getElementById("resultSubtitle").textContent = sub;
 
-      // Missed words list
       if (missedWords.length > 0) {
         document.getElementById("missedSection").classList.remove("hidden");
-        const list = document.getElementById("missedList");
-        list.innerHTML = missedWords.map(w =>
+        document.getElementById("missedList").innerHTML = missedWords.map(w=>
           `<div class="flex justify-between bg-red-50 rounded-xl px-4 py-2 text-sm">
             <span class="font-bold text-red-700">${w.bm}</span>
             <span class="text-gray-500">${w.en}</span>
-          </div>`
-        ).join("");
+          </div>`).join("");
+      }
+
+      // Record session & XP
+      if (currentUser && !currentUser.isAnonymous && sessionXP > 0) {
+        try {
+          const result = await recordStudySession(currentUser.uid, sessionXP);
+          if (result.leveledUp) {
+            document.getElementById("levelUpMsg").textContent =
+              `You're now a "${result.newLevel.title}"!`;
+            document.getElementById("levelUpOverlay").classList.remove("hidden");
+          }
+        } catch(e) { console.warn("Session record failed", e); }
       }
     }
 
     window.restartQuiz = function() {
       document.getElementById("resultsScreen").classList.add("hidden");
       document.getElementById("quizScreen").classList.remove("hidden");
+      document.getElementById("missedSection").classList.add("hidden");
       startQuiz();
     };
 
-    // ---- Mode switching ----
     window.setMode = function(m) {
       mode = m;
-      ["mcq","type","speed"].forEach(id => {
-        document.getElementById(`tab${id.charAt(0).toUpperCase()+id.slice(1) === "Mcq" ? "MCQ" : id.charAt(0).toUpperCase()+id.slice(1)}`)
-          ?.classList.remove("active");
-      });
-      const map = { mcq:"tabMCQ", type:"tabType", speed:"tabSpeed" };
-      document.getElementById(map[m]).classList.add("active");
-      document.getElementById("timerBarWrapper").classList.toggle("hidden", m !== "speed");
+      ["MCQ","Type","Speed"].forEach(id => document.getElementById("tab"+id).classList.remove("active"));
+      const map={mcq:"MCQ",type:"Type",speed:"Speed"};
+      document.getElementById("tab"+map[m]).classList.add("active");
+      document.getElementById("timerBarWrapper").classList.toggle("hidden", m!=="speed");
       startQuiz();
     };
 
-    // ---- Speed timer ----
     function startSpeedTimer() {
       const bar = document.getElementById("timerBar");
       document.getElementById("timerBarWrapper").classList.remove("hidden");
-      bar.style.transition = "none";
-      bar.style.width = "100%";
-      let elapsed = 0;
-      const interval = 100;
+      bar.style.transition="none"; bar.style.width="100%";
+      let elapsed=0;
       speedTimer = setInterval(() => {
-        elapsed += interval;
-        const pct = Math.max(0, 100 - (elapsed / (SPEED_SECONDS * 1000)) * 100);
-        bar.style.transition = `width ${interval}ms linear`;
-        bar.style.width = pct + "%";
-        bar.style.background = pct > 50 ? "#4f46e5" : pct > 25 ? "#f59e0b" : "#ef4444";
-        if (elapsed >= SPEED_SECONDS * 1000) {
+        elapsed += 100;
+        const pct = Math.max(0, 100-(elapsed/(SPEED_SECONDS*1000))*100);
+        bar.style.transition="width 100ms linear";
+        bar.style.width = pct+"%";
+        bar.style.background = pct>50?"#4f46e5":pct>25?"#f59e0b":"#ef4444";
+        if (elapsed >= SPEED_SECONDS*1000) {
           clearTimer();
           if (!answered) {
-            answered = true;
-            const word = quizWords[currentIndex];
-            const correctAnswer = word._bmToEn ? word.en : word.bm;
-            showFeedback(false, correctAnswer);
-            lives--;
-            wrong_count();
-            missedWords.push(word);
+            answered=true;
+            const w=quizWords[currentIndex];
+            showFeedback(false, w._bmToEn?w.en:w.bm);
+            lives--; wrong++; missedWords.push(w);
+            document.querySelectorAll(".option-btn").forEach(b=>b.disabled=true);
             updateHUD();
-            document.querySelectorAll(".option-btn").forEach(b => b.disabled = true);
             document.getElementById("nextBtn").classList.remove("hidden");
           }
         }
-      }, interval);
+      }, 100);
     }
 
-    function clearTimer() {
-      if (speedTimer) { clearInterval(speedTimer); speedTimer = null; }
-    }
-
-    // ---- Helpers ----
-    function correct_count() { correct++; }
-    function wrong_count()   { wrong++;   }
+    function clearTimer() { if(speedTimer){clearInterval(speedTimer);speedTimer=null;} }
 
     function updateHUD() {
       document.getElementById("scoreDisplay").textContent = score;
-      const heartsHTML = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 3 - lives));
-      document.getElementById("livesDisplay").textContent = heartsHTML;
-      const pct = quizWords.length ? (currentIndex / quizWords.length) * 100 : 0;
-      document.getElementById("scoreFill").style.width = pct + "%";
+      document.getElementById("livesDisplay").textContent = "❤️".repeat(Math.max(0,lives))+"🖤".repeat(Math.max(0,3-lives));
+      const pct = quizWords.length ? (currentIndex/quizWords.length)*100 : 0;
+      document.getElementById("scoreFill").style.width = pct+"%";
     }
 
-    function fuzzyMatch(input, target) {
-      if (input === target) return true;
-      // Allow 1 character difference for typos
-      return levenshtein(input, target) <= 1;
-    }
-
-    function levenshtein(a, b) {
-      const m = a.length, n = b.length;
-      const dp = Array.from({length: m+1}, (_, i) =>
-        Array.from({length: n+1}, (_, j) => i === 0 ? j : j === 0 ? i : 0)
-      );
-      for (let i = 1; i <= m; i++)
-        for (let j = 1; j <= n; j++)
-          dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1]
-            : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    function fuzzyMatch(a, b) { return a===b || levenshtein(a,b)<=1; }
+    function levenshtein(a,b) {
+      const m=a.length,n=b.length;
+      const dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i===0?j:j===0?i:0));
+      for(let i=1;i<=m;i++) for(let j=1;j<=n;j++) dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
       return dp[m][n];
     }
-
-    function shuffle(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
+    function shuffle(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
   </script>
-
 </body>
 </html>
