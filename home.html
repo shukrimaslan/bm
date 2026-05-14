@@ -15,19 +15,33 @@
     .avatar { width:38px; height:38px; border-radius:99px; background:linear-gradient(135deg,#16a34a,#4ade80); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:16px; cursor:pointer; text-decoration:none; }
     .stats-card { background: linear-gradient(135deg,#16a34a,#4ade80); color:white; }
     .guest-banner { background: linear-gradient(135deg,#fef3c7,#fde68a); border: 2px solid #fcd34d; }
-
-    /* Word of the Day card */
     .wotd-card { background: linear-gradient(135deg,#1e1b4b,#4338ca,#6366f1); color:white; }
     @keyframes pulse-soft { 0%,100%{opacity:1} 50%{opacity:.7} }
     .wotd-label { animation: pulse-soft 2.5s infinite; }
     .flip-mini { perspective:600px; cursor:pointer; }
     .flip-mini-inner { position:relative; width:100%; transition:transform .5s; transform-style:preserve-3d; }
     .flip-mini.flipped .flip-mini-inner { transform:rotateY(180deg); }
-    .flip-mini-front, .flip-mini-back {
-      backface-visibility:hidden; border-radius:.75rem;
-      padding:12px 16px; text-align:center;
-    }
+    .flip-mini-front, .flip-mini-back { backface-visibility:hidden; border-radius:.75rem; padding:12px 16px; text-align:center; }
     .flip-mini-back { position:absolute; top:0; left:0; width:100%; transform:rotateY(180deg); }
+
+    /* Level badge */
+    .level-badge-primary   { background:#dcfce7; color:#166534; border:1.5px solid #86efac; }
+    .level-badge-secondary { background:#e0e7ff; color:#3730a3; border:1.5px solid #a5b4fc; }
+
+    /* Filter tabs */
+    .filter-tab { transition: background .2s, color .2s; }
+    .filter-tab.active-primary   { background:#16a34a; color:white; }
+    .filter-tab.active-secondary { background:#4f46e5; color:white; }
+    .filter-tab.active-all       { background:#374151; color:white; }
+
+    /* Lock overlay */
+    .pack-locked { position:relative; }
+    .pack-locked::after {
+      content:'🔒';
+      position:absolute; top:10px; right:12px;
+      font-size:18px; opacity:.7;
+    }
+    .pack-locked .pack-btns { opacity:.5; pointer-events:none; }
 
     /* Pack colors */
     .pack-green  { background:linear-gradient(135deg,#dcfce7,#bbf7d0); border-color:#86efac; }
@@ -56,14 +70,16 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-  <!-- Navbar -->
   <nav class="bg-white shadow-sm sticky top-0 z-10">
     <div class="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="text-2xl">🇲🇾</span>
         <h1 class="text-xl font-black text-green-700">BM Vocab</h1>
       </div>
-      <a href="profile.html" class="avatar" id="userAvatar" title="Profile">?</a>
+      <div class="flex items-center gap-2">
+        <span id="levelBadge" class="hidden text-xs font-black px-3 py-1 rounded-full"></span>
+        <a href="profile.html" class="avatar" id="userAvatar" title="Profile">?</a>
+      </div>
     </div>
   </nav>
 
@@ -118,20 +134,21 @@
         </div>
       </div>
       <div class="flex gap-2 mt-3">
-        <button onclick="speakWord()" class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-xl text-sm transition-colors">
-          🔊 Pronounce
-        </button>
-        <a id="wotdStudyLink" href="home.html" class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-xl text-sm text-center transition-colors">
-          📚 Study Pack
-        </a>
+        <button onclick="speakWotd()" class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-xl text-sm transition-colors">🔊 Pronounce</button>
+        <a id="wotdStudyLink" href="home.html" class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-xl text-sm text-center transition-colors">📚 Study Pack</a>
       </div>
     </div>
 
-    <!-- Packs heading -->
-    <div class="flex items-center justify-between mb-4 fade-up" style="animation-delay:.1s">
+    <!-- Pack filter tabs -->
+    <div class="flex items-center justify-between mb-3 fade-up" style="animation-delay:.08s">
       <h3 class="text-lg font-black text-gray-700">📚 Word Packs</h3>
-      <span class="text-sm text-gray-400 font-semibold" id="packCount">Loading...</span>
+      <div class="flex bg-white rounded-2xl p-1 shadow-sm gap-1" id="filterTabs">
+        <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabAll"       onclick="setFilter('all')">All</button>
+        <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabPrimary"   onclick="setFilter('primary')">🏫 Primary</button>
+        <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabSecondary" onclick="setFilter('secondary')">🎓 Secondary</button>
+      </div>
     </div>
+    <p class="text-xs text-gray-400 font-semibold mb-4" id="packCount">Loading...</p>
 
     <!-- Skeleton -->
     <div id="loadingState" class="grid grid-cols-2 gap-4">
@@ -143,8 +160,7 @@
     <div id="packsGrid" class="grid grid-cols-2 gap-4 hidden"></div>
     <div id="emptyState" class="hidden text-center py-16">
       <div class="text-6xl mb-4">📭</div>
-      <h3 class="font-black text-gray-600 text-lg mb-2">No packs yet!</h3>
-      <p class="text-gray-400 text-sm mb-4">Run seed.html to import words.</p>
+      <p class="text-gray-400 text-sm">No packs found. Run seed.html to import words.</p>
     </div>
 
   </div>
@@ -152,18 +168,10 @@
   <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <div class="max-w-2xl mx-auto flex">
-      <a href="home.html" class="nav-item active">
-        <span class="nav-icon">🏠</span>Home
-      </a>
-      <a href="progress.html" class="nav-item">
-        <span class="nav-icon">📊</span>Progress
-      </a>
-      <a href="leaderboard.html" class="nav-item">
-        <span class="nav-icon">🏆</span>Ranking
-      </a>
-      <a href="profile.html" class="nav-item">
-        <span class="nav-icon">👤</span>Profile
-      </a>
+      <a href="home.html" class="nav-item active"><span class="nav-icon">🏠</span>Home</a>
+      <a href="progress.html" class="nav-item"><span class="nav-icon">📊</span>Progress</a>
+      <a href="leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Ranking</a>
+      <a href="profile.html" class="nav-item"><span class="nav-icon">👤</span>Profile</a>
     </div>
   </nav>
 
@@ -172,11 +180,14 @@
     import { getUserProfile } from "./js/streak.js";
     import { onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { collection, getDocs, doc, getDoc, query, where }
+    import { collection, getDocs, doc, getDoc }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const COLORS = ["pack-green","pack-blue","pack-yellow","pack-pink","pack-purple","pack-orange","pack-teal","pack-red","pack-lime","pack-sky","pack-rose","pack-amber","pack-cyan","pack-violet","pack-emerald","pack-fuchsia"];
-    let wotdWord = null;
+    let allPacks    = [];
+    let userLevel   = null; // "primary" | "secondary" | null
+    let activeFilter = "all";
+    let wotdWord    = null;
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = "index.html"; return; }
@@ -186,17 +197,39 @@
         document.getElementById("guestBanner").classList.remove("hidden");
         document.getElementById("userName").textContent = "Guest";
         document.getElementById("userAvatar").textContent = "👤";
-        document.getElementById("statWords").textContent = "—";
-        document.getElementById("statXP").textContent = "—";
-        document.getElementById("statStreak").textContent = "—";
+        ["statWords","statXP","statStreak"].forEach(id => document.getElementById(id).textContent = "—");
       } else {
+        // Check onboarding
+        try {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          if (!snap.exists() || !snap.data().onboardingDone) {
+            window.location.href = "onboarding.html"; return;
+          }
+          const data = snap.data();
+          userLevel = data.schoolLevel || null;
+
+          // Set default filter to user's level
+          if (userLevel) {
+            activeFilter = userLevel;
+            setFilterUI(userLevel);
+          }
+
+          // Level badge in navbar
+          if (userLevel) {
+            const badge = document.getElementById("levelBadge");
+            badge.textContent = userLevel === "primary" ? "🏫 Primary" : "🎓 Secondary";
+            badge.className = `text-xs font-black px-3 py-1 rounded-full level-badge-${userLevel}`;
+            badge.classList.remove("hidden");
+          }
+        } catch {}
+
         const name = user.displayName || user.email || "Student";
         document.getElementById("userName").textContent = name.split(" ")[0];
         document.getElementById("userAvatar").textContent = name.charAt(0).toUpperCase();
         loadUserStats(user.uid);
       }
 
-      await Promise.all([loadPacks(), loadWordOfTheDay()]);
+      await Promise.all([loadPacks(), loadWordOfTheDay(userLevel)]);
     });
 
     async function loadUserStats(uid) {
@@ -207,7 +240,7 @@
         ]);
         const known = progressSnap.docs.filter(d => d.data().status === "known").length;
         document.getElementById("statWords").textContent = known;
-        document.getElementById("statXP").textContent = (profile.xp || 0) + " XP";
+        document.getElementById("statXP").textContent    = (profile.xp || 0) + " XP";
         const streak = profile.streak || 0;
         document.getElementById("statStreak").textContent = streak > 0 ? `🔥 ${streak}` : "0";
       } catch {
@@ -215,88 +248,111 @@
       }
     }
 
-    async function loadWordOfTheDay() {
+    async function loadWordOfTheDay(level) {
       try {
-        // Use today's date as key to pick a deterministic word
-        const today = new Date();
-        const dayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
-
-        // Try custom wotd collection first
-        const wotdSnap = await getDoc(doc(db, "wordOfTheDay", dayKey));
-        let word;
-
-        if (wotdSnap.exists()) {
-          word = wotdSnap.data();
-        } else {
-          // Pick deterministically from words collection using day seed
-          const allSnap = await getDocs(collection(db, "words"));
-          const all = allSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-          // Stable daily pick based on date number
-          const seed = today.getFullYear() * 10000 + (today.getMonth()+1) * 100 + today.getDate();
-          word = all[seed % all.length];
+        const today  = new Date();
+        const allSnap = await getDocs(collection(db, "words"));
+        let pool = allSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Prefer words matching user level
+        if (level) {
+          const levelPool = pool.filter(w => w.level === level);
+          if (levelPool.length > 0) pool = levelPool;
         }
+        const seed = today.getFullYear() * 10000 + (today.getMonth()+1) * 100 + today.getDate();
+        wotdWord = pool[seed % pool.length];
 
-        wotdWord = word;
-        document.getElementById("wotdBM").textContent = word.bm;
-        document.getElementById("wotdEN").textContent = word.en;
-        document.getElementById("wotdExample").textContent = word.example_bm || "";
-        document.getElementById("wotdDate").textContent =
-          today.toLocaleDateString("en-MY", { day:"numeric", month:"short" });
-        document.getElementById("wotdStudyLink").href = `study.html?pack=${word.pack}`;
+        document.getElementById("wotdBM").textContent      = wotdWord.bm;
+        document.getElementById("wotdEN").textContent      = wotdWord.en;
+        document.getElementById("wotdExample").textContent = wotdWord.example_bm || "";
+        document.getElementById("wotdDate").textContent    = today.toLocaleDateString("en-MY",{day:"numeric",month:"short"});
+        document.getElementById("wotdStudyLink").href      = `study.html?pack=${wotdWord.pack}`;
         document.getElementById("wotdSection").classList.remove("hidden");
-      } catch (e) {
-        console.warn("WOTD failed:", e);
-      }
+      } catch(e) { console.warn("WOTD:", e); }
     }
 
-    window.flipWotd = function() {
-      document.getElementById("wotdFlip").classList.toggle("flipped");
-    };
-
-    window.speakWord = function() {
+    window.flipWotd  = () => document.getElementById("wotdFlip").classList.toggle("flipped");
+    window.speakWotd = () => {
       if (!wotdWord) return;
-      const utter = new SpeechSynthesisUtterance(wotdWord.bm);
-      utter.lang = "ms-MY";
-      utter.rate = 0.85;
-      speechSynthesis.speak(utter);
+      const u = new SpeechSynthesisUtterance(wotdWord.bm);
+      u.lang = "ms-MY"; u.rate = 0.85;
+      speechSynthesis.speak(u);
     };
 
     async function loadPacks() {
       try {
         const snapshot = await getDocs(collection(db, "packs"));
-        const packs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => (a.order || 99) - (b.order || 99));
-
+        allPacks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (a.order||99) - (b.order||99));
         document.getElementById("loadingState").classList.add("hidden");
-        document.getElementById("packCount").textContent = `${packs.length} packs`;
-
-        if (packs.length === 0) {
-          document.getElementById("emptyState").classList.remove("hidden");
-          return;
-        }
-
-        const grid = document.getElementById("packsGrid");
-        grid.classList.remove("hidden");
-        grid.innerHTML = "";
-        packs.forEach((pack, i) => {
-          const color = COLORS[i % COLORS.length];
-          const delay = (i * 0.05).toFixed(2);
-          grid.innerHTML += `
-            <div class="pack-card ${color} border-2 rounded-3xl p-5 shadow-sm fade-up" style="animation-delay:${delay}s">
-              <div class="text-4xl mb-2">${pack.emoji || "📖"}</div>
-              <h4 class="font-black text-gray-800 text-sm leading-tight mb-0.5">${pack.name}</h4>
-              <p class="text-gray-500 text-xs font-semibold mb-3">${pack.wordCount || "?"} words</p>
-              <div class="flex gap-2">
-                <a href="study.html?pack=${pack.id}" class="flex-1 bg-white/70 hover:bg-white text-gray-700 text-xs font-bold py-2 rounded-xl text-center transition-colors">📚 Study</a>
-                <a href="quiz.html?pack=${pack.id}" class="flex-1 bg-white/70 hover:bg-white text-gray-700 text-xs font-bold py-2 rounded-xl text-center transition-colors">🎯 Quiz</a>
-              </div>
-            </div>`;
-        });
-      } catch (err) {
+        renderPacks();
+      } catch {
         document.getElementById("loadingState").innerHTML =
           `<p class="text-red-400 text-sm col-span-2 text-center py-8">Failed to load packs.</p>`;
       }
     }
+
+    function renderPacks() {
+      const grid = document.getElementById("packsGrid");
+      grid.classList.remove("hidden");
+      grid.innerHTML = "";
+
+      // Filter
+      let visible = allPacks;
+      if (activeFilter !== "all") {
+        visible = allPacks.filter(p => p.level === activeFilter);
+      }
+
+      document.getElementById("packCount").textContent =
+        `${visible.length} pack${visible.length !== 1 ? "s" : ""}` +
+        (activeFilter !== "all" ? ` · ${activeFilter}` : "");
+
+      if (visible.length === 0) {
+        document.getElementById("emptyState").classList.remove("hidden");
+        return;
+      }
+      document.getElementById("emptyState").classList.add("hidden");
+
+      visible.forEach((pack, i) => {
+        const color = COLORS[allPacks.indexOf(pack) % COLORS.length];
+        const delay = (i * 0.05).toFixed(2);
+        // Lock secondary packs for primary students
+        const isLocked = userLevel === "primary" && pack.level === "secondary";
+        const levelTag = pack.level === "secondary"
+          ? `<span class="text-xs bg-indigo-100 text-indigo-600 font-bold px-2 py-0.5 rounded-full">Secondary</span>`
+          : `<span class="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">Primary</span>`;
+
+        grid.innerHTML += `
+          <div class="pack-card ${color} border-2 rounded-3xl p-5 shadow-sm fade-up ${isLocked?"pack-locked":""}" style="animation-delay:${delay}s">
+            <div class="text-4xl mb-2">${pack.emoji || "📖"}</div>
+            <h4 class="font-black text-gray-800 text-sm leading-tight mb-1">${pack.name}</h4>
+            <div class="mb-2">${levelTag}</div>
+            <p class="text-gray-500 text-xs font-semibold mb-3">${pack.wordCount || "?"} words</p>
+            <div class="flex gap-2 pack-btns">
+              <a href="study.html?pack=${pack.id}" class="flex-1 bg-white/70 hover:bg-white text-gray-700 text-xs font-bold py-2 rounded-xl text-center transition-colors">📚 Study</a>
+              <a href="quiz.html?pack=${pack.id}" class="flex-1 bg-white/70 hover:bg-white text-gray-700 text-xs font-bold py-2 rounded-xl text-center transition-colors">🎯 Quiz</a>
+            </div>
+            ${isLocked ? `<p class="text-xs text-center text-gray-400 mt-2 font-semibold">Secondary level</p>` : ""}
+          </div>`;
+      });
+    }
+
+    window.setFilter = function(filter) {
+      activeFilter = filter;
+      setFilterUI(filter);
+      renderPacks();
+    };
+
+    function setFilterUI(filter) {
+      ["all","primary","secondary"].forEach(f => {
+        document.getElementById(`tab${f.charAt(0).toUpperCase()+f.slice(1)}`)
+          .classList.remove("active-all","active-primary","active-secondary");
+      });
+      document.getElementById(`tab${filter.charAt(0).toUpperCase()+filter.slice(1)}`)
+        .classList.add(`active-${filter}`);
+    }
+
+    // Set initial filter UI
+    setFilterUI(activeFilter);
   </script>
 </body>
 </html>
