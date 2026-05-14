@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>BM Vocab - Home</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -36,11 +36,9 @@
         <span class="text-2xl">🇲🇾</span>
         <h1 class="text-xl font-black text-green-700">BM Vocab</h1>
       </div>
-      <div class="flex items-center gap-3">
-        <div class="avatar" id="userAvatar">?</div>
-        <button id="logoutBtn" class="text-sm text-gray-400 hover:text-red-400 font-semibold transition-colors">
-          Logout
-        </button>
+      <div class="flex items-center gap-2">
+        <a href="progress.html" class="text-sm text-indigo-400 hover:text-indigo-600 font-bold transition-colors">📊</a>
+        <a href="profile.html" class="avatar" id="userAvatar" title="Profile">?</a>
       </div>
     </div>
   </nav>
@@ -137,7 +135,8 @@
       await loadPacks();
     });
 
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
+    // Avatar now links to profile — no inline logout needed
+    document.getElementById("logoutBtn")?.addEventListener("click", async () => {
       await signOut(auth);
       window.location.href = "index.html";
     });

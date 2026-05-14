@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>BM Vocab - Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Nunito', sans-serif; }
+    @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation: fade-up .45s ease both; }
+    input:focus { outline: none; border-color: #16a34a !important; box-shadow: 0 0 0 3px #bbf7d0; }
+    .avatar-ring {
+      background: linear-gradient(135deg, #16a34a, #4ade80);
+      padding: 4px; border-radius: 99px; display: inline-block;
+    }
+    .avatar-inner {
+      width: 88px; height: 88px; border-radius: 99px;
+      background: linear-gradient(135deg, #166534, #16a34a);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; font-weight: 900; color: white;
+      border: 4px solid white;
+    }
+    .save-btn { transition: transform .15s, box-shadow .15s; }
+    .save-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(22,163,74,.35); }
+    .danger-btn { transition: background .2s; }
+    .section-card { background: white; border-radius: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,.07); padding: 1.5rem; margin-bottom: 1rem; }
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #166534; color: white; font-weight: 800; font-size: 14px;
+      padding: 12px 24px; border-radius: 99px; box-shadow: 0 8px 24px rgba(0,0,0,.2);
+      opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; z-index: 99;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow-sm sticky top-0 z-10">
+    <div class="max-w-lg mx-auto px-5 py-4 flex items-center justify-between">
+      <a href="home.html" class="text-green-600 font-bold text-lg">← Back</a>
+      <h1 class="font-black text-gray-800 text-lg">👤 Profile</h1>
+      <div class="w-12"></div>
+    </div>
+  </nav>
+
+  <div class="max-w-lg mx-auto px-5 py-6">
+
+    <!-- Avatar & Name -->
+    <div class="text-center mb-6 fade-up">
+      <div class="avatar-ring inline-block mb-3">
+        <div class="avatar-inner" id="avatarDisplay">?</div>
+      </div>
+      <h2 class="text-xl font-black text-gray-800" id="displayNameShow">Loading...</h2>
+      <p class="text-gray-400 text-sm font-semibold" id="emailShow"></p>
+      <span id="guestBadge" class="hidden inline-block mt-1 bg-yellow-100 text-yellow-700 text-xs font-bold px-3 py-1 rounded-full">
+        👤 Guest Account
+      </span>
+    </div>
+
+    <!-- Edit Display Name -->
+    <div class="section-card fade-up" style="animation-delay:.08s">
+      <h3 class="font-black text-gray-700 mb-4">✏️ Edit Display Name</h3>
+      <label class="text-sm font-bold text-gray-500 block mb-1">Display Name</label>
+      <input type="text" id="nameInput" placeholder="Enter your name"
+        class="w-full border-2 border-gray-200 rounded-2xl px-4 py-3 font-semibold text-gray-700 mb-4"/>
+      <button id="saveNameBtn"
+        class="save-btn w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-2xl">
+        Save Name
+      </button>
+      <p id="nameMsg" class="text-sm text-center mt-2 font-semibold hidden"></p>
+    </div>
+
+    <!-- Change Password (email users only) -->
+    <div class="section-card fade-up" id="passwordSection" style="animation-delay:.12s">
+      <h3 class="font-black text-gray-700 mb-4">🔑 Change Password</h3>
+      <label class="text-sm font-bold text-gray-500 block mb-1">New Password</label>
+      <input type="password" id="newPasswordInput" placeholder="At least 6 characters"
+        class="w-full border-2 border-gray-200 rounded-2xl px-4 py-3 font-semibold text-gray-700 mb-4"
+        autocomplete="new-password"/>
+      <button id="savePasswordBtn"
+        class="save-btn w-full bg-blue-500 hover:bg-blue-600 text-white font-black py-3 rounded-2xl">
+        Update Password
+      </button>
+      <p id="passwordMsg" class="text-sm text-center mt-2 font-semibold hidden"></p>
+    </div>
+
+    <!-- Account Info -->
+    <div class="section-card fade-up" style="animation-delay:.16s">
+      <h3 class="font-black text-gray-700 mb-3">ℹ️ Account Info</h3>
+      <div class="space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-bold text-gray-500">Account Type</span>
+          <span class="text-sm font-black text-gray-700" id="accountType">—</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-bold text-gray-500">User ID</span>
+          <span class="text-xs font-mono text-gray-400" id="userId">—</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-bold text-gray-500">Member Since</span>
+          <span class="text-sm font-bold text-gray-700" id="memberSince">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="section-card fade-up border-2 border-red-100" style="animation-delay:.2s">
+      <h3 class="font-black text-red-500 mb-3">⚠️ Danger Zone</h3>
+      <button id="logoutBtn"
+        class="danger-btn w-full bg-red-50 hover:bg-red-100 text-red-600 font-black py-3 rounded-2xl mb-3">
+        🚪 Log Out
+      </button>
+      <button id="deleteAccountBtn"
+        class="danger-btn w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-2xl text-sm">
+        🗑️ Delete Account & All Progress
+      </button>
+      <p class="text-xs text-gray-400 text-center mt-2">Deleting your account is permanent and cannot be undone.</p>
+    </div>
+
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import {
+      onAuthStateChanged, signOut, updateProfile,
+      updatePassword, deleteUser
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      collection, getDocs, deleteDoc, doc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    let currentUser = null;
+
+    function showToast(msg, isError = false) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.background = isError ? "#991b1b" : "#166534";
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2800);
+    }
+
+    function showMsg(id, msg, isError = false) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.className = `text-sm text-center mt-2 font-semibold ${isError ? "text-red-500" : "text-green-600"}`;
+      el.classList.remove("hidden");
+      setTimeout(() => el.classList.add("hidden"), 3000);
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) { window.location.href = "index.html"; return; }
+      currentUser = user;
+      populateProfile(user);
+    });
+
+    function populateProfile(user) {
+      const isGuest = user.isAnonymous;
+      const isGoogle = user.providerData.some(p => p.providerId === "google.com");
+      const isEmail  = user.providerData.some(p => p.providerId === "password");
+
+      const name = user.displayName || (isGuest ? "Guest" : "Student");
+      document.getElementById("displayNameShow").textContent = name;
+      document.getElementById("avatarDisplay").textContent   = isGuest ? "👤" : name.charAt(0).toUpperCase();
+      document.getElementById("emailShow").textContent       = user.email || "";
+      document.getElementById("nameInput").value             = isGuest ? "" : (user.displayName || "");
+      document.getElementById("userId").textContent          = user.uid.slice(0, 16) + "...";
+
+      // Member since
+      const created = user.metadata.creationTime;
+      document.getElementById("memberSince").textContent = created
+        ? new Date(created).toLocaleDateString("en-MY", { year:"numeric", month:"short", day:"numeric" })
+        : "—";
+
+      // Account type badge
+      document.getElementById("accountType").textContent =
+        isGuest ? "Guest" : isGoogle ? "Google" : "Email";
+
+      // Guest badge
+      if (isGuest) document.getElementById("guestBadge").classList.remove("hidden");
+
+      // Hide password section for Google / Guest users
+      if (!isEmail) document.getElementById("passwordSection").classList.add("hidden");
+
+      // Disable name editing for guests
+      if (isGuest) {
+        document.getElementById("nameInput").disabled = true;
+        document.getElementById("nameInput").placeholder = "Sign in to set a name";
+        document.getElementById("saveNameBtn").disabled = true;
+        document.getElementById("saveNameBtn").classList.add("opacity-50", "cursor-not-allowed");
+      }
+    }
+
+    // Save display name
+    document.getElementById("saveNameBtn").addEventListener("click", async () => {
+      const name = document.getElementById("nameInput").value.trim();
+      if (!name) { showMsg("nameMsg", "Please enter a name.", true); return; }
+      if (name.length > 30) { showMsg("nameMsg", "Name too long (max 30 chars).", true); return; }
+      try {
+        await updateProfile(currentUser, { displayName: name });
+        document.getElementById("displayNameShow").textContent = name;
+        document.getElementById("avatarDisplay").textContent = name.charAt(0).toUpperCase();
+        showToast("✅ Name updated!");
+      } catch (err) {
+        showMsg("nameMsg", "Failed to update. Try again.", true);
+      }
+    });
+
+    // Change password
+    document.getElementById("savePasswordBtn")?.addEventListener("click", async () => {
+      const pw = document.getElementById("newPasswordInput").value;
+      if (!pw || pw.length < 6) { showMsg("passwordMsg", "Password must be at least 6 characters.", true); return; }
+      try {
+        await updatePassword(currentUser, pw);
+        document.getElementById("newPasswordInput").value = "";
+        showToast("✅ Password updated!");
+      } catch (err) {
+        const msg = err.code === "auth/requires-recent-login"
+          ? "Please log out and log in again first, then retry."
+          : "Failed to update password.";
+        showMsg("passwordMsg", msg, true);
+      }
+    });
+
+    // Logout
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "index.html";
+    });
+
+    // Delete account
+    document.getElementById("deleteAccountBtn").addEventListener("click", async () => {
+      const confirmed = confirm(
+        "⚠️ This will permanently delete your account and all your progress.\n\nAre you sure?"
+      );
+      if (!confirmed) return;
+      try {
+        // Delete Firestore progress sub-collection
+        const progressSnap = await getDocs(
+          collection(db, "users", currentUser.uid, "progress")
+        );
+        for (const d of progressSnap.docs) await deleteDoc(d.ref);
+        // Delete auth user
+        await deleteUser(currentUser);
+        window.location.href = "index.html";
+      } catch (err) {
+        if (err.code === "auth/requires-recent-login") {
+          alert("Please log out and log back in, then try deleting again.");
+        } else {
+          alert("Failed to delete account. Try again.");
+        }
+      }
+    });
+  </script>
+</body>
+</html>

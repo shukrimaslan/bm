@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>BM Vocab - Quiz</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -108,7 +108,7 @@
     <!-- Score & progress -->
     <div class="flex items-center justify-between mb-2">
       <span class="text-indigo-600 font-bold text-sm">Score: <span id="scoreDisplay">0</span></span>
-      <span class="text-sm text-gray-400">❤️ <span id="livesDisplay">3</span></span>
+      <span class="text-sm text-gray-400"><span id="livesDisplay">❤️❤️❤️</span></span>
     </div>
     <div class="score-bar mb-5">
       <div class="score-fill" id="scoreFill" style="width:0%"></div>
@@ -486,7 +486,8 @@
 
     function updateHUD() {
       document.getElementById("scoreDisplay").textContent = score;
-      document.getElementById("livesDisplay").textContent = "❤️".repeat(Math.max(0, lives));
+      const heartsHTML = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 3 - lives));
+      document.getElementById("livesDisplay").textContent = heartsHTML;
       const pct = quizWords.length ? (currentIndex / quizWords.length) * 100 : 0;
       document.getElementById("scoreFill").style.width = pct + "%";
     }

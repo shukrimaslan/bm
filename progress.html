@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>BM Vocab - Progress Report</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Nunito', sans-serif; }
+
+    @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation: fade-up .45s ease both; }
+
+    /* Progress bars */
+    .bar-track { height: 10px; background: #f3f4f6; border-radius: 99px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 99px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+
+    /* Achievement badges */
+    .badge {
+      border-radius: 1.25rem; padding: 12px; text-align: center;
+      border: 2px solid transparent; transition: transform .15s;
+    }
+    .badge:hover { transform: translateY(-2px); }
+    .badge-locked { filter: grayscale(1); opacity: .45; }
+
+    /* Stat cards */
+    .stat-card { background: white; border-radius: 1.25rem; padding: 1rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+
+    /* Ring chart */
+    .ring-svg { transform: rotate(-90deg); }
+    .ring-bg   { fill: none; stroke: #f3f4f6; stroke-width: 10; }
+    .ring-prog { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1); }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow-sm sticky top-0 z-10">
+    <div class="max-w-lg mx-auto px-5 py-4 flex items-center justify-between">
+      <a href="home.html" class="text-green-600 font-bold text-lg">← Back</a>
+      <h1 class="font-black text-gray-800 text-lg">📊 Progress Report</h1>
+      <div class="w-12"></div>
+    </div>
+  </nav>
+
+  <div class="max-w-lg mx-auto px-5 py-6" id="mainContent">
+
+    <!-- Loading -->
+    <div id="loadingState" class="text-center py-20 text-gray-400">
+      <div class="text-5xl mb-4 animate-bounce">📊</div>
+      <p class="font-semibold">Loading your progress...</p>
+    </div>
+
+    <!-- Guest notice -->
+    <div id="guestNotice" class="hidden text-center py-16 fade-up">
+      <div class="text-6xl mb-4">👤</div>
+      <h3 class="font-black text-gray-700 text-xl mb-2">No progress to show</h3>
+      <p class="text-gray-400 text-sm mb-5">You're in guest mode. Sign in to track your progress!</p>
+      <a href="index.html" class="inline-block bg-green-500 text-white font-black py-3 px-6 rounded-2xl">
+        Sign In
+      </a>
+    </div>
+
+    <!-- Main report (hidden until loaded) -->
+    <div id="reportContent" class="hidden">
+
+      <!-- Overall ring + summary -->
+      <div class="bg-white rounded-3xl shadow-sm p-6 mb-4 fade-up">
+        <div class="flex items-center gap-6">
+          <!-- Ring chart -->
+          <div class="relative flex-shrink-0" style="width:100px;height:100px">
+            <svg class="ring-svg" width="100" height="100" viewBox="0 0 100 100">
+              <circle class="ring-bg" cx="50" cy="50" r="40"/>
+              <circle class="ring-prog" id="ringProg" cx="50" cy="50" r="40"
+                stroke="#16a34a"
+                stroke-dasharray="251.2"
+                stroke-dashoffset="251.2"/>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span class="text-xl font-black text-green-700" id="ringPct">0%</span>
+              <span class="text-xs text-gray-400 font-semibold">mastered</span>
+            </div>
+          </div>
+          <!-- Summary text -->
+          <div>
+            <h2 class="text-xl font-black text-gray-800 mb-1" id="greetingName">Hi!</h2>
+            <p class="text-gray-500 text-sm mb-3" id="summaryLine">Start studying to see your progress.</p>
+            <div class="flex gap-3">
+              <div class="text-center">
+                <p class="text-lg font-black text-green-600" id="totalKnown">0</p>
+                <p class="text-xs text-gray-400 font-semibold">Known</p>
+              </div>
+              <div class="text-center">
+                <p class="text-lg font-black text-gray-400" id="totalWords">0</p>
+                <p class="text-xs text-gray-400 font-semibold">Total</p>
+              </div>
+              <div class="text-center">
+                <p class="text-lg font-black text-indigo-500" id="totalPacks">0</p>
+                <p class="text-xs text-gray-400 font-semibold">Packs</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 stat cards -->
+      <div class="grid grid-cols-4 gap-2 mb-4 fade-up" style="animation-delay:.07s">
+        <div class="stat-card">
+          <p class="text-2xl mb-1">🔥</p>
+          <p class="font-black text-gray-800" id="statStreak">0</p>
+          <p class="text-xs text-gray-400 font-semibold">Streak</p>
+        </div>
+        <div class="stat-card">
+          <p class="text-2xl mb-1">⭐</p>
+          <p class="font-black text-gray-800" id="statXP">0</p>
+          <p class="text-xs text-gray-400 font-semibold">XP</p>
+        </div>
+        <div class="stat-card">
+          <p class="text-2xl mb-1">🏆</p>
+          <p class="font-black text-gray-800" id="statBadges">0</p>
+          <p class="text-xs text-gray-400 font-semibold">Badges</p>
+        </div>
+        <div class="stat-card">
+          <p class="text-2xl mb-1">📅</p>
+          <p class="font-black text-gray-800" id="statDays">0</p>
+          <p class="text-xs text-gray-400 font-semibold">Days</p>
+        </div>
+      </div>
+
+      <!-- Per-pack progress -->
+      <div class="bg-white rounded-3xl shadow-sm p-6 mb-4 fade-up" style="animation-delay:.1s">
+        <h3 class="font-black text-gray-700 mb-4">📚 Pack Progress</h3>
+        <div id="packProgressList" class="space-y-4"></div>
+      </div>
+
+      <!-- Achievements -->
+      <div class="bg-white rounded-3xl shadow-sm p-6 mb-4 fade-up" style="animation-delay:.14s">
+        <h3 class="font-black text-gray-700 mb-1">🏅 Achievements</h3>
+        <p class="text-xs text-gray-400 mb-4">Earn badges by reaching milestones</p>
+        <div id="badgeGrid" class="grid grid-cols-3 gap-3"></div>
+      </div>
+
+      <!-- Level progress -->
+      <div class="bg-white rounded-3xl shadow-sm p-6 mb-6 fade-up" style="animation-delay:.18s">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-gray-700">⚡ Level Progress</h3>
+          <span class="text-sm font-black text-indigo-600" id="levelLabel">Level 1</span>
+        </div>
+        <div class="bar-track mb-2">
+          <div class="bar-fill bg-indigo-400" id="xpBar" style="width:0%"></div>
+        </div>
+        <div class="flex justify-between text-xs text-gray-400 font-semibold">
+          <span id="xpCurrent">0 XP</span>
+          <span id="xpNext">100 XP to next level</span>
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
+          <div class="bg-indigo-50 rounded-2xl p-3 text-center">
+            <p class="font-black text-indigo-700" id="levelTitle">Pelajar Baru</p>
+            <p class="text-indigo-400 text-xs">Current rank</p>
+          </div>
+          <div class="bg-gray-50 rounded-2xl p-3 text-center">
+            <p class="font-black text-gray-500" id="nextLevelTitle">Pelajar Aktif</p>
+            <p class="text-gray-400 text-xs">Next rank</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end reportContent -->
+  </div>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { collection, getDocs }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // ── Level definitions ─────────────────────────────────────────
+    const LEVELS = [
+      { title: "Pelajar Baru",    minXP: 0   },
+      { title: "Pelajar Aktif",   minXP: 100 },
+      { title: "Pelajar Rajin",   minXP: 250 },
+      { title: "Pelajar Cemerlang",minXP:500 },
+      { title: "Juara BM",        minXP: 1000},
+      { title: "Pakar Bahasa",    minXP: 2000},
+    ];
+
+    // ── Badge definitions ─────────────────────────────────────────
+    const BADGES = [
+      { id:"first_word",  emoji:"🌱", name:"First Word",     desc:"Know your first word",      check: (s) => s.known >= 1 },
+      { id:"ten_words",   emoji:"🔟", name:"Ten Words",      desc:"Know 10 words",              check: (s) => s.known >= 10 },
+      { id:"fifty_words", emoji:"⭐", name:"Star Student",   desc:"Know 50 words",              check: (s) => s.known >= 50 },
+      { id:"hundred",     emoji:"💯", name:"Century!",       desc:"Know 100 words",             check: (s) => s.known >= 100 },
+      { id:"all_300",     emoji:"🏆", name:"Vocab Master",   desc:"Know all 300 words",         check: (s) => s.known >= 300 },
+      { id:"one_pack",    emoji:"📦", name:"Pack Complete",  desc:"Complete a full pack",       check: (s) => s.packsCompleted >= 1 },
+      { id:"five_packs",  emoji:"🎒", name:"Pack Hunter",    desc:"Complete 5 packs",           check: (s) => s.packsCompleted >= 5 },
+      { id:"all_packs",   emoji:"🌟", name:"All Packs!",     desc:"Complete all 10 packs",      check: (s) => s.packsCompleted >= 10 },
+      { id:"streak3",     emoji:"🔥", name:"On Fire!",       desc:"3-day study streak",         check: (s) => s.streak >= 3 },
+      { id:"streak7",     emoji:"🗓️", name:"Week Warrior",  desc:"7-day study streak",         check: (s) => s.streak >= 7 },
+      { id:"halfmaster",  emoji:"🎯", name:"Halfway There",  desc:"50% of all words known",    check: (s) => s.known >= 150 },
+      { id:"secondary",   emoji:"🎓", name:"Secondary Pro",  desc:"Know 30+ secondary words",  check: (s) => s.secondaryKnown >= 30 },
+    ];
+
+    const PACK_COLORS = ["#16a34a","#2563eb","#d97706","#db2777","#7c3aed","#ea580c","#0d9488","#dc2626","#65a30d","#0284c7"];
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = "index.html"; return; }
+      if (user.isAnonymous) {
+        document.getElementById("loadingState").classList.add("hidden");
+        document.getElementById("guestNotice").classList.remove("hidden");
+        return;
+      }
+      await buildReport(user);
+    });
+
+    async function buildReport(user) {
+      // Fetch packs
+      const packsSnap = await getDocs(collection(db, "packs"));
+      const packs = packsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.order || 99) - (b.order || 99));
+
+      // Fetch all words
+      const wordsSnap = await getDocs(collection(db, "words"));
+      const allWords  = wordsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Fetch user progress
+      const progressSnap = await getDocs(collection(db, "users", user.uid, "progress"));
+      const knownIds = new Set(
+        progressSnap.docs.filter(d => d.data().status === "known").map(d => d.id)
+      );
+
+      // Build per-pack stats
+      const packStats = packs.map(pack => {
+        const packWords = allWords.filter(w => w.pack === pack.id);
+        const knownInPack = packWords.filter(w => knownIds.has(w.id)).length;
+        return { ...pack, total: packWords.length, known: knownInPack };
+      });
+
+      const totalWords    = allWords.length;
+      const totalKnown    = knownIds.size;
+      const packsCompleted= packStats.filter(p => p.total > 0 && p.known === p.total).length;
+      const secondaryKnown= allWords.filter(w => w.level === "secondary" && knownIds.has(w.id)).length;
+      const overallPct    = totalWords ? Math.round((totalKnown / totalWords) * 100) : 0;
+
+      // XP estimate: 10 per known word
+      const xp = totalKnown * 10;
+      const streak = 0; // placeholder — real streak needs daily login tracking
+
+      const stats = { known: totalKnown, total: totalWords, packsCompleted, secondaryKnown, streak, xp };
+
+      // Determine level
+      let levelIdx = 0;
+      for (let i = LEVELS.length - 1; i >= 0; i--) {
+        if (xp >= LEVELS[i].minXP) { levelIdx = i; break; }
+      }
+      const currentLevel = LEVELS[levelIdx];
+      const nextLevel    = LEVELS[Math.min(levelIdx + 1, LEVELS.length - 1)];
+      const xpInLevel    = xp - currentLevel.minXP;
+      const xpNeeded     = nextLevel.minXP - currentLevel.minXP;
+      const levelPct     = xpNeeded ? Math.min(100, Math.round((xpInLevel / xpNeeded) * 100)) : 100;
+      const earnedBadges = BADGES.filter(b => b.check(stats)).length;
+
+      // ── Populate UI ──────────────────────────────────────────────
+      document.getElementById("loadingState").classList.add("hidden");
+      document.getElementById("reportContent").classList.remove("hidden");
+
+      const name = user.displayName || "Student";
+      document.getElementById("greetingName").textContent = `Hi, ${name.split(" ")[0]}!`;
+      document.getElementById("totalKnown").textContent  = totalKnown;
+      document.getElementById("totalWords").textContent  = totalWords;
+      document.getElementById("totalPacks").textContent  = packs.length;
+      document.getElementById("statStreak").textContent  = streak;
+      document.getElementById("statXP").textContent      = xp;
+      document.getElementById("statBadges").textContent  = earnedBadges;
+      document.getElementById("statDays").textContent    = Math.floor(xp / 10); // proxy
+
+      document.getElementById("summaryLine").textContent = overallPct === 0
+        ? "Start studying to see your progress!"
+        : overallPct < 30 ? "Good start! Keep it up."
+        : overallPct < 60 ? "You're making great progress!"
+        : overallPct < 90 ? "Almost there — nearly a master!"
+        : "🎉 Incredible! You know almost everything!";
+
+      document.getElementById("ringPct").textContent = overallPct + "%";
+
+      // Level
+      document.getElementById("levelLabel").textContent   = `Level ${levelIdx + 1}`;
+      document.getElementById("levelTitle").textContent   = currentLevel.title;
+      document.getElementById("nextLevelTitle").textContent = nextLevel.title;
+      document.getElementById("xpCurrent").textContent    = `${xp} XP`;
+      document.getElementById("xpNext").textContent       =
+        levelIdx === LEVELS.length - 1 ? "Max level reached!" : `${nextLevel.minXP - xp} XP to next level`;
+
+      // Animate ring
+      setTimeout(() => {
+        const circ = 2 * Math.PI * 40;
+        document.getElementById("ringProg").style.strokeDashoffset =
+          circ - (overallPct / 100) * circ;
+      }, 200);
+
+      // Animate XP bar
+      setTimeout(() => {
+        document.getElementById("xpBar").style.width = levelPct + "%";
+      }, 300);
+
+      // Per-pack bars
+      const packList = document.getElementById("packProgressList");
+      packList.innerHTML = "";
+      packStats.forEach((pack, i) => {
+        const pct = pack.total ? Math.round((pack.known / pack.total) * 100) : 0;
+        const color = PACK_COLORS[i % PACK_COLORS.length];
+        packList.innerHTML += `
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm font-bold text-gray-700">${pack.emoji || "📖"} ${pack.name}</span>
+              <span class="text-xs font-black" style="color:${color}">${pack.known}/${pack.total} · ${pct}%</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill pack-bar" data-pct="${pct}" style="background:${color};width:0%"></div>
+            </div>
+          </div>`;
+      });
+
+      // Animate pack bars staggered
+      setTimeout(() => {
+        document.querySelectorAll(".pack-bar").forEach((bar, i) => {
+          setTimeout(() => { bar.style.width = bar.dataset.pct + "%"; }, i * 80);
+        });
+      }, 400);
+
+      // Badges
+      const badgeGrid = document.getElementById("badgeGrid");
+      badgeGrid.innerHTML = "";
+      const badgeBg = ["#dcfce7","#dbeafe","#fef9c3","#fce7f3","#ede9fe","#ffedd5","#ccfbf1","#fee2e2","#fef3c7","#e0f2fe","#f3e8ff","#ecfccb"];
+      BADGES.forEach((badge, i) => {
+        const earned = badge.check(stats);
+        badgeGrid.innerHTML += `
+          <div class="badge ${earned ? "" : "badge-locked"}" style="background:${badgeBg[i % badgeBg.length]}">
+            <div class="text-3xl mb-1">${badge.emoji}</div>
+            <p class="text-xs font-black text-gray-700 leading-tight">${badge.name}</p>
+            <p class="text-xs text-gray-400 mt-0.5 leading-tight">${badge.desc}</p>
+          </div>`;
+      });
+    }
+  </script>
+</body>
+</html>
