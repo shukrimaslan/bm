@@ -18,6 +18,11 @@
     .section-card { background:white; border-radius:1.5rem; box-shadow:0 2px 12px rgba(0,0,0,.07); padding:1.5rem; margin-bottom:1rem; }
     .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:#166534; color:white; font-weight:800; font-size:14px; padding:12px 24px; border-radius:99px; box-shadow:0 8px 24px rgba(0,0,0,.2); opacity:0; transition:opacity .3s; pointer-events:none; white-space:nowrap; z-index:99; }
     .toast.show { opacity:1; }
+    /* Level pill buttons */
+    .level-pill { border:2px solid #e5e7eb; background:white; border-radius:99px; padding:8px 16px; font-weight:800; font-size:13px; color:#6b7280; cursor:pointer; transition:all .15s; }
+    .level-pill:hover { border-color:#9ca3af; }
+    .level-pill.active-primary   { border-color:#16a34a; background:#f0fdf4; color:#166534; }
+    .level-pill.active-secondary { border-color:#4f46e5; background:#eef2ff; color:#3730a3; }
     /* Bottom nav */
     .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #f3f4f6; padding:8px 0 max(8px,env(safe-area-inset-bottom)); z-index:50; }
     .nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; flex:1; font-size:11px; font-weight:800; color:#9ca3af; text-decoration:none; transition:color .2s; }
@@ -38,7 +43,7 @@
   <div class="max-w-lg mx-auto px-5 py-6">
 
     <!-- Avatar -->
-    <div class="text-center mb-6 fade-up">
+    <div class="text-center mb-5 fade-up">
       <div class="avatar-ring inline-block mb-3">
         <div class="avatar-inner" id="avatarDisplay">?</div>
       </div>
@@ -47,26 +52,63 @@
       <span id="guestBadge" class="hidden inline-block mt-1 bg-yellow-100 text-yellow-700 text-xs font-bold px-3 py-1 rounded-full">👤 Guest Account</span>
     </div>
 
-    <!-- XP + Level mini card -->
+    <!-- GUEST: Sign in prompt card -->
+    <div id="guestSignInCard" class="hidden section-card fade-up bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 text-center mb-4">
+      <div class="text-4xl mb-2">🔐</div>
+      <h3 class="font-black text-gray-800 mb-1">Save Your Progress</h3>
+      <p class="text-gray-500 text-sm mb-4">Sign in to track your words, streaks, XP and appear on the leaderboard.</p>
+      <a href="index.html?signout=1"
+        class="block w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-2xl transition-colors">
+        🔐 Sign In / Create Account
+      </a>
+    </div>
+
+    <!-- XP + Level (non-guest) -->
     <div id="levelCard" class="hidden section-card fade-up mb-4" style="animation-delay:.05s">
       <div class="flex items-center justify-between">
-        <div>
-          <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Current Rank</p>
-          <p class="font-black text-indigo-700 text-lg" id="profileLevel">—</p>
-        </div>
-        <div class="text-right">
-          <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Total XP</p>
-          <p class="font-black text-gray-800 text-lg" id="profileXP">0</p>
-        </div>
-        <div class="text-right">
-          <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Streak</p>
-          <p class="font-black text-orange-500 text-lg" id="profileStreak">🔥 0</p>
-        </div>
+        <div><p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Current Rank</p><p class="font-black text-indigo-700 text-lg" id="profileLevel">—</p></div>
+        <div class="text-right"><p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Total XP</p><p class="font-black text-gray-800 text-lg" id="profileXP">0</p></div>
+        <div class="text-right"><p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Streak</p><p class="font-black text-orange-500 text-lg" id="profileStreak">🔥 0</p></div>
       </div>
     </div>
 
-    <!-- Edit name -->
-    <div class="section-card fade-up" style="animation-delay:.08s">
+    <!-- School level & year (non-guest) -->
+    <div id="schoolCard" class="hidden section-card fade-up" style="animation-delay:.07s">
+      <h3 class="font-black text-gray-700 mb-3">🏫 School Level</h3>
+
+      <!-- Current info -->
+      <div class="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3 mb-4">
+        <div>
+          <p class="text-xs font-bold text-gray-400 uppercase">Current Level</p>
+          <p class="font-black text-gray-800" id="schoolLevelShow">—</p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs font-bold text-gray-400 uppercase">Current Year</p>
+          <p class="font-black text-gray-800" id="schoolYearShow">—</p>
+        </div>
+      </div>
+
+      <!-- Change level -->
+      <p class="text-xs font-bold text-gray-500 mb-2">Change school level:</p>
+      <div class="flex gap-2 mb-4">
+        <button class="level-pill flex-1" id="pillPrimary"   onclick="selectNewLevel('primary')">🏫 Primary</button>
+        <button class="level-pill flex-1" id="pillSecondary" onclick="selectNewLevel('secondary')">🎓 Secondary</button>
+      </div>
+
+      <!-- Change year (shown after level selected) -->
+      <div id="yearChangeSection" class="hidden">
+        <p class="text-xs font-bold text-gray-500 mb-2" id="yearChangeLabel">Change year:</p>
+        <div id="yearChangeBtns" class="flex flex-wrap gap-2 mb-4"></div>
+      </div>
+
+      <button id="saveLevelBtn" class="save-btn hidden w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-2xl">
+        Save Changes
+      </button>
+      <p id="levelMsg" class="text-sm text-center mt-2 font-semibold hidden"></p>
+    </div>
+
+    <!-- Edit name (non-guest) -->
+    <div id="nameCard" class="hidden section-card fade-up" style="animation-delay:.09s">
       <h3 class="font-black text-gray-700 mb-4">✏️ Edit Display Name</h3>
       <input type="text" id="nameInput" placeholder="Enter your name"
         class="w-full border-2 border-gray-200 rounded-2xl px-4 py-3 font-semibold text-gray-700 mb-4"/>
@@ -74,8 +116,8 @@
       <p id="nameMsg" class="text-sm text-center mt-2 font-semibold hidden"></p>
     </div>
 
-    <!-- Change password -->
-    <div class="section-card fade-up" id="passwordSection" style="animation-delay:.12s">
+    <!-- Change password (email users only) -->
+    <div id="passwordSection" class="hidden section-card fade-up" style="animation-delay:.11s">
       <h3 class="font-black text-gray-700 mb-4">🔑 Change Password</h3>
       <input type="password" id="newPasswordInput" placeholder="At least 6 characters"
         class="w-full border-2 border-gray-200 rounded-2xl px-4 py-3 font-semibold text-gray-700 mb-4" autocomplete="new-password"/>
@@ -84,7 +126,7 @@
     </div>
 
     <!-- Account info -->
-    <div class="section-card fade-up" style="animation-delay:.16s">
+    <div class="section-card fade-up" style="animation-delay:.13s">
       <h3 class="font-black text-gray-700 mb-3">ℹ️ Account Info</h3>
       <div class="space-y-3">
         <div class="flex justify-between"><span class="text-sm font-bold text-gray-500">Account Type</span><span class="text-sm font-black text-gray-700" id="accountType">—</span></div>
@@ -94,11 +136,16 @@
     </div>
 
     <!-- Danger zone -->
-    <div class="section-card fade-up border-2 border-red-100" style="animation-delay:.2s">
+    <div class="section-card fade-up border-2 border-red-100" style="animation-delay:.15s">
       <h3 class="font-black text-red-500 mb-3">⚠️ Danger Zone</h3>
-      <button id="logoutBtn" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-black py-3 rounded-2xl mb-3">🚪 Log Out</button>
-      <button id="deleteAccountBtn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-2xl text-sm">🗑️ Delete Account & All Progress</button>
-      <p class="text-xs text-gray-400 text-center mt-2">Deleting is permanent and cannot be undone.</p>
+      <button id="logoutBtn" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-black py-3 rounded-2xl mb-3">
+        🚪 Log Out
+      </button>
+      <!-- Delete button only for non-guest users -->
+      <button id="deleteAccountBtn" class="hidden w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-2xl text-sm">
+        🗑️ Delete Account & All Progress
+      </button>
+      <p id="deleteNote" class="hidden text-xs text-gray-400 text-center mt-2">Deleting is permanent and cannot be undone.</p>
     </div>
 
   </div>
@@ -117,20 +164,22 @@
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
-    import { getUserProfile, getLevel } from "./js/streak.js";
+    import { getUserProfile, getLevel, calcCurrentSchoolYear, getSchoolYearLabel }
+      from "./js/streak.js";
     import { onAuthStateChanged, signOut, updateProfile, updatePassword, deleteUser }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { collection, getDocs, deleteDoc }
+    import { doc, getDoc, updateDoc, collection, getDocs, deleteDoc }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    let currentUser=null;
+    let currentUser = null;
+    let newLevel = null, newYearNum = null;
 
     function showToast(msg, isError=false) {
       const t=document.getElementById("toast");
       t.textContent=msg; t.style.background=isError?"#991b1b":"#166534";
       t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2800);
     }
-    function showMsg(id,msg,isError=false) {
+    function showMsg(id,msg,isError=false){
       const el=document.getElementById(id);
       el.textContent=msg;
       el.className=`text-sm text-center mt-2 font-semibold ${isError?"text-red-500":"text-green-600"}`;
@@ -140,79 +189,161 @@
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href="index.html"; return; }
       currentUser=user;
-      const isGuest=user.isAnonymous;
-      const isGoogle=user.providerData.some(p=>p.providerId==="google.com");
-      const isEmail=user.providerData.some(p=>p.providerId==="password");
-      const name=user.displayName||(isGuest?"Guest":"Student");
+      const isGuest  = user.isAnonymous;
+      const isGoogle = user.providerData.some(p=>p.providerId==="google.com");
+      const isEmail  = user.providerData.some(p=>p.providerId==="password");
+      const name     = user.displayName||(isGuest?"Guest":"Student");
 
-      document.getElementById("displayNameShow").textContent=name;
-      document.getElementById("avatarDisplay").textContent=isGuest?"👤":name.charAt(0).toUpperCase();
-      document.getElementById("emailShow").textContent=user.email||"";
-      document.getElementById("nameInput").value=isGuest?"":( user.displayName||"");
-      document.getElementById("userId").textContent=user.uid.slice(0,16)+"...";
-      document.getElementById("memberSince").textContent=user.metadata.creationTime
+      document.getElementById("displayNameShow").textContent = name;
+      document.getElementById("avatarDisplay").textContent   = isGuest?"👤":name.charAt(0).toUpperCase();
+      document.getElementById("emailShow").textContent       = user.email||"";
+      document.getElementById("userId").textContent          = user.uid.slice(0,16)+"...";
+      document.getElementById("memberSince").textContent     = user.metadata.creationTime
         ?new Date(user.metadata.creationTime).toLocaleDateString("en-MY",{year:"numeric",month:"short",day:"numeric"}):"—";
-      document.getElementById("accountType").textContent=isGuest?"Guest":isGoogle?"Google":"Email";
+      document.getElementById("accountType").textContent     = isGuest?"Guest":isGoogle?"Google":"Email";
 
       if (isGuest) {
+        // Guest UI
         document.getElementById("guestBadge").classList.remove("hidden");
-        document.getElementById("nameInput").disabled=true;
-        document.getElementById("nameInput").placeholder="Sign in to set a name";
-        document.getElementById("saveNameBtn").disabled=true;
-        document.getElementById("saveNameBtn").classList.add("opacity-50","cursor-not-allowed");
-      }
-      if (!isEmail) document.getElementById("passwordSection").classList.add("hidden");
+        document.getElementById("guestSignInCard").classList.remove("hidden");
+        // Logout only — no delete
+      } else {
+        // Non-guest UI
+        document.getElementById("nameCard").classList.remove("hidden");
+        document.getElementById("schoolCard").classList.remove("hidden");
+        document.getElementById("deleteAccountBtn").classList.remove("hidden");
+        document.getElementById("deleteNote").classList.remove("hidden");
+        if (!isEmail) document.getElementById("passwordSection").classList.add("hidden");
+        else document.getElementById("passwordSection").classList.remove("hidden");
 
-      // Load XP/level/streak
-      if (!isGuest) {
+        // Load profile data
         try {
-          const profile=await getUserProfile(user.uid);
-          const lv=getLevel(profile.xp||0);
+          const profile = await getUserProfile(user.uid);
+          const lv = getLevel(profile.xp||0);
           document.getElementById("levelCard").classList.remove("hidden");
-          document.getElementById("profileLevel").textContent=lv.title;
-          document.getElementById("profileXP").textContent=(profile.xp||0)+" XP";
-          document.getElementById("profileStreak").textContent=`🔥 ${profile.streak||0}`;
-        } catch{}
+          document.getElementById("profileLevel").textContent  = lv.title;
+          document.getElementById("profileXP").textContent     = (profile.xp||0)+" XP";
+          document.getElementById("profileStreak").textContent = `🔥 ${profile.streak||0}`;
+
+          // School level + auto-advanced year
+          const schoolLevel   = profile.schoolLevel || null;
+          const yearNum       = profile.schoolYearNum || null;
+          const yearSetIn     = profile.schoolYearSetIn || new Date().getFullYear();
+          if (schoolLevel && yearNum) {
+            const currentYearNum = calcCurrentSchoolYear(yearNum, yearSetIn);
+            const yearLabel      = getSchoolYearLabel(schoolLevel, currentYearNum);
+            document.getElementById("schoolLevelShow").textContent =
+              schoolLevel==="primary"?"🏫 Primary (Sekolah Rendah)":"🎓 Secondary (Sekolah Menengah)";
+            document.getElementById("schoolYearShow").textContent  = yearLabel;
+            // Set active pill
+            document.getElementById(`pill${schoolLevel.charAt(0).toUpperCase()+schoolLevel.slice(1)}`).classList.add(`active-${schoolLevel}`);
+            newLevel = schoolLevel;
+          }
+        } catch(e){console.warn(e);}
+
+        document.getElementById("nameInput").value = user.displayName||"";
       }
     });
 
-    document.getElementById("saveNameBtn").addEventListener("click", async () => {
-      const name=document.getElementById("nameInput").value.trim();
-      if (!name) { showMsg("nameMsg","Please enter a name.",true); return; }
-      if (name.length>30) { showMsg("nameMsg","Name too long (max 30).",true); return; }
+    // ── Change school level ──────────────────────────────────────
+    window.selectNewLevel = function(level) {
+      newLevel   = level;
+      newYearNum = null;
+      ["primary","secondary"].forEach(l=>{
+        document.getElementById(`pill${l.charAt(0).toUpperCase()+l.slice(1)}`)
+          .classList.remove("active-primary","active-secondary");
+      });
+      document.getElementById(`pill${level.charAt(0).toUpperCase()+level.slice(1)}`)
+        .classList.add(`active-${level}`);
+
+      // Build year buttons
+      const isPrimary = level==="primary";
+      const prefix    = isPrimary?"Tahun":"Tingkatan";
+      const years     = isPrimary?[1,2,3,4,5,6]:[1,2,3,4,5];
+      const label     = document.getElementById("yearChangeLabel");
+      label.textContent = isPrimary?"Select your current year:":"Select your current form:";
+
+      const container = document.getElementById("yearChangeBtns");
+      container.innerHTML="";
+      years.forEach(n=>{
+        const btn=document.createElement("button");
+        btn.className="level-pill";
+        btn.textContent=`${prefix} ${n}`;
+        btn.onclick=()=>{
+          newYearNum=n;
+          document.querySelectorAll("#yearChangeBtns .level-pill")
+            .forEach(b=>b.classList.remove("active-primary","active-secondary"));
+          btn.classList.add(`active-${level}`);
+          document.getElementById("saveLevelBtn").classList.remove("hidden");
+        };
+        container.appendChild(btn);
+      });
+      document.getElementById("yearChangeSection").classList.remove("hidden");
+      document.getElementById("saveLevelBtn").classList.add("hidden");
+    };
+
+    document.getElementById("saveLevelBtn").addEventListener("click", async()=>{
+      if (!newLevel||!newYearNum) return;
       try {
+        const now=new Date();
+        await updateDoc(doc(db,"users",currentUser.uid),{
+          schoolLevel:     newLevel,
+          schoolYearNum:   newYearNum,
+          schoolYearSetIn: now.getFullYear(),
+        });
+        const yearLabel = getSchoolYearLabel(newLevel, newYearNum);
+        document.getElementById("schoolLevelShow").textContent =
+          newLevel==="primary"?"🏫 Primary (Sekolah Rendah)":"🎓 Secondary (Sekolah Menengah)";
+        document.getElementById("schoolYearShow").textContent = yearLabel;
+        document.getElementById("saveLevelBtn").classList.add("hidden");
+        document.getElementById("yearChangeSection").classList.add("hidden");
+        showToast("✅ School level updated!");
+      } catch { showMsg("levelMsg","Failed to save. Try again.",true); }
+    });
+
+    // ── Save name ────────────────────────────────────────────────
+    document.getElementById("saveNameBtn")?.addEventListener("click", async()=>{
+      const name=document.getElementById("nameInput").value.trim();
+      if (!name){showMsg("nameMsg","Please enter a name.",true);return;}
+      if (name.length>30){showMsg("nameMsg","Name too long (max 30).",true);return;}
+      try{
         await updateProfile(currentUser,{displayName:name});
         document.getElementById("displayNameShow").textContent=name;
         document.getElementById("avatarDisplay").textContent=name.charAt(0).toUpperCase();
         showToast("✅ Name updated!");
-      } catch { showMsg("nameMsg","Failed. Try again.",true); }
+      }catch{showMsg("nameMsg","Failed. Try again.",true);}
     });
 
-    document.getElementById("savePasswordBtn")?.addEventListener("click", async () => {
+    // ── Change password ──────────────────────────────────────────
+    document.getElementById("savePasswordBtn")?.addEventListener("click", async()=>{
       const pw=document.getElementById("newPasswordInput").value;
-      if (!pw||pw.length<6) { showMsg("passwordMsg","Password must be 6+ characters.",true); return; }
-      try {
+      if(!pw||pw.length<6){showMsg("passwordMsg","Password must be 6+ characters.",true);return;}
+      try{
         await updatePassword(currentUser,pw);
         document.getElementById("newPasswordInput").value="";
         showToast("✅ Password updated!");
-      } catch(err) {
-        showMsg("passwordMsg", err.code==="auth/requires-recent-login"
-          ?"Please log out and log in again first.":"Failed to update.",true);
+      }catch(err){
+        showMsg("passwordMsg",
+          err.code==="auth/requires-recent-login"
+            ?"Please log out and log in again first.":"Failed to update.",true);
       }
     });
 
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      await signOut(auth); window.location.href="index.html";
+    // ── Logout ───────────────────────────────────────────────────
+    document.getElementById("logoutBtn").addEventListener("click", async()=>{
+      await signOut(auth);
+      window.location.href="index.html";
     });
 
-    document.getElementById("deleteAccountBtn").addEventListener("click", async () => {
-      if (!confirm("⚠️ Permanently delete your account and all progress?\n\nThis cannot be undone.")) return;
-      try {
+    // ── Delete account (non-guest only) ─────────────────────────
+    document.getElementById("deleteAccountBtn")?.addEventListener("click", async()=>{
+      if(!confirm("⚠️ Permanently delete your account and all progress?\n\nThis cannot be undone."))return;
+      try{
         const progressSnap=await getDocs(collection(db,"users",currentUser.uid,"progress"));
-        for (const d of progressSnap.docs) await deleteDoc(d.ref);
+        for(const d of progressSnap.docs) await deleteDoc(d.ref);
         await deleteUser(currentUser);
         window.location.href="index.html";
-      } catch(err) {
+      }catch(err){
         alert(err.code==="auth/requires-recent-login"
           ?"Please log out and log back in, then try again.":"Failed to delete account.");
       }
