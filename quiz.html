@@ -30,13 +30,9 @@
     .levelup-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:100; }
     @keyframes levelup-pop { 0%{transform:scale(.5);opacity:0} 70%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
     .levelup-card { animation: levelup-pop .5s forwards; }
-
-    /* Level difficulty banner */
     .diff-banner { border-radius:1rem; padding:10px 16px; font-size:12px; font-weight:800; text-align:center; margin-bottom:12px; }
     .diff-primary   { background:#dbeafe; color:#1e40af; border:1.5px solid #93c5fd; }
     .diff-secondary { background:#dcfce7; color:#166534; border:1.5px solid #86efac; }
-
-    /* Bottom nav */
     .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #f3f4f6; padding:8px 0 max(8px,env(safe-area-inset-bottom)); z-index:50; }
     .nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; flex:1; font-size:11px; font-weight:800; color:#9ca3af; text-decoration:none; transition:color .2s; }
     .nav-item.active { color:#4f46e5; }
@@ -91,6 +87,7 @@
     </div>
 
     <div id="quizScreen" class="hidden">
+
       <!-- Question card -->
       <div class="bg-white rounded-3xl shadow-md p-6 mb-4 text-center">
         <p class="text-indigo-400 text-xs font-bold uppercase tracking-widest mb-3" id="questionDir">—</p>
@@ -111,12 +108,12 @@
       <!-- MCQ options -->
       <div id="mcqOptions" class="gap-3 mb-4"></div>
 
-      <!-- Type answer -->
+      <!-- Type answer — submit button hides after answer, next button appears -->
       <div id="typeSection" class="hidden mb-4">
         <input type="text" id="typeInput" placeholder="Type your answer..."
           class="w-full border-2 border-indigo-200 rounded-2xl px-5 py-4 text-lg font-bold text-gray-700 mb-3"
           autocomplete="off" autocorrect="off" spellcheck="false"/>
-        <button onclick="submitTyped()"
+        <button id="submitBtn" onclick="submitTyped()"
           class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 rounded-2xl shadow text-lg">
           Submit ➜
         </button>
@@ -126,6 +123,7 @@
         class="hidden w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-md text-lg">
         Next Question →
       </button>
+
     </div>
 
     <!-- Results -->
@@ -154,6 +152,7 @@
         </div>
       </div>
     </div>
+
   </div>
 
   <!-- Bottom Nav -->
@@ -174,35 +173,10 @@
     import { collection, query, where, getDocs, doc, getDoc }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // ── Level-based difficulty settings ──────────────────────────
     const DIFFICULTY = {
-      primary: {
-        options:       3,       // 3 MCQ choices (easier)
-        lives:         5,       // more lives
-        speedSeconds:  12,      // more time
-        quizLength:    8,       // shorter quiz
-        xpPerCorrect:  8,
-        defaultDir:    "en-bm", // show EN → answer in BM (easier recall)
-        label: "🏫 Primary Mode — 3 options · 5 lives · 12s speed timer",
-      },
-      secondary: {
-        options:       4,       // 4 MCQ choices
-        lives:         3,
-        speedSeconds:  8,
-        quizLength:    10,
-        xpPerCorrect:  10,
-        defaultDir:    "bm-en", // show BM → answer in EN
-        label: "🎓 Secondary Mode — 4 options · 3 lives · 8s speed timer",
-      },
-      guest: {
-        options:       4,
-        lives:         3,
-        speedSeconds:  8,
-        quizLength:    10,
-        xpPerCorrect:  10,
-        defaultDir:    "bm-en",
-        label: "",
-      },
+      primary:   { options:3, lives:5, speedSeconds:12, quizLength:8,  xpPerCorrect:8,  label:"🏫 Primary Mode — 3 options · 5 lives · 12s speed" },
+      secondary: { options:4, lives:3, speedSeconds:8,  quizLength:10, xpPerCorrect:10, label:"🎓 Secondary Mode — 4 options · 3 lives · 8s speed" },
+      guest:     { options:4, lives:3, speedSeconds:8,  quizLength:10, xpPerCorrect:10, label:"" },
     };
 
     let allWords=[], quizWords=[], currentIndex=0, score=0, lives=3;
@@ -217,35 +191,26 @@
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = "index.html"; return; }
       currentUser = user;
-
-      // Load user level
       if (!user.isAnonymous) {
         try {
           const snap = await getDoc(doc(db, "users", user.uid));
-          if (snap.exists() && snap.data().schoolLevel) {
-            userLevel = snap.data().schoolLevel;
-          }
+          if (snap.exists() && snap.data().schoolLevel) userLevel = snap.data().schoolLevel;
         } catch {}
       }
-
       diff = DIFFICULTY[userLevel] || DIFFICULTY.guest;
       applyDifficulty();
       await loadWords();
     });
 
     function applyDifficulty() {
-      // Difficulty banner
       if (diff.label) {
-        const banner = document.getElementById("diffBanner");
-        banner.textContent = diff.label;
-        banner.className = `diff-banner diff-${userLevel}`;
-        banner.classList.remove("hidden");
+        const b = document.getElementById("diffBanner");
+        b.textContent = diff.label;
+        b.className = `diff-banner diff-${userLevel}`;
+        b.classList.remove("hidden");
       }
-      // MCQ grid: 2 cols for 4 options, full-width for 3
       document.getElementById("mcqOptions").className =
-        diff.options === 3
-          ? "flex flex-col gap-3 mb-4"
-          : "grid grid-cols-2 gap-3 mb-4";
+        diff.options === 3 ? "flex flex-col gap-3 mb-4" : "grid grid-cols-2 gap-3 mb-4";
     }
 
     async function loadWords() {
@@ -278,16 +243,8 @@
       document.getElementById("qCounter").textContent =
         `${currentIndex+1} / ${Math.min(diff.quizLength, quizWords.length)}`;
 
-      // Direction: primary shows EN→BM, secondary shows BM→EN
-      // Also randomly flip direction for secondary (50/50) for variety
-      let bmToEn;
-      if (userLevel === "primary") {
-        bmToEn = false; // always EN question → BM answer (easier)
-      } else {
-        bmToEn = Math.random() > 0.4; // mostly BM→EN for secondary
-      }
+      const bmToEn = userLevel === "primary" ? false : Math.random() > 0.4;
       word._bmToEn = bmToEn;
-
       document.getElementById("questionDir").textContent =
         bmToEn ? "What is the English meaning of..." : "What is the BM word for...";
       document.getElementById("questionWord").textContent = bmToEn ? word.bm : word.en;
@@ -302,7 +259,12 @@
         document.getElementById("mcqOptions").classList.add("hidden");
         document.getElementById("typeSection").classList.remove("hidden");
         const ti = document.getElementById("typeInput");
-        ti.value=""; ti.disabled=false; ti.focus();
+        ti.value=""; ti.disabled=false;
+        ti.className = "w-full border-2 border-indigo-200 rounded-2xl px-5 py-4 text-lg font-bold text-gray-700 mb-3";
+        // Show submit, hide next
+        document.getElementById("submitBtn").classList.remove("hidden");
+        document.getElementById("nextBtn").classList.add("hidden");
+        ti.focus();
         ti.onkeydown = (e) => { if(e.key==="Enter") submitTyped(); };
       }
     }
@@ -310,16 +272,15 @@
     function buildMCQ(word, bmToEn) {
       const correctAns  = bmToEn ? word.en : word.bm;
       const distractors = shuffle(allWords.filter(w=>w.id!==word.id))
-        .slice(0, diff.options - 1)
-        .map(w => bmToEn ? w.en : w.bm);
+        .slice(0, diff.options-1).map(w=>bmToEn?w.en:w.bm);
       const options = shuffle([correctAns, ...distractors]);
       const container = document.getElementById("mcqOptions");
-      container.innerHTML = "";
-      options.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.className = "option-btn bg-white border-gray-200 rounded-2xl p-4 font-bold text-gray-700 text-base shadow-sm w-full text-left";
-        btn.textContent = opt;
-        btn.onclick = () => handleMCQ(opt, correctAns, btn);
+      container.innerHTML="";
+      options.forEach(opt=>{
+        const btn=document.createElement("button");
+        btn.className="option-btn bg-white border-gray-200 rounded-2xl p-4 font-bold text-gray-700 text-base shadow-sm w-full text-left";
+        btn.textContent=opt;
+        btn.onclick=()=>handleMCQ(opt, correctAns, btn);
         container.appendChild(btn);
       });
     }
@@ -329,14 +290,13 @@
       clearTimer(); answered=true;
       document.querySelectorAll(".option-btn").forEach(b=>{
         b.disabled=true;
-        if (b.textContent===correctAns) b.classList.add("option-correct");
+        if(b.textContent===correctAns) b.classList.add("option-correct");
       });
       if (chosen===correctAns) {
         btn.classList.add("bounce-in");
-        const xp = mode==="speed" ? Math.round(diff.xpPerCorrect*1.5) : diff.xpPerCorrect;
+        const xp=mode==="speed"?Math.round(diff.xpPerCorrect*1.5):diff.xpPerCorrect;
         score+=xp; sessionXP+=xp; correct++;
-        showFeedback(true, correctAns);
-        floatXP(`+${xp} XP`);
+        showFeedback(true, correctAns); floatXP(`+${xp} XP`);
       } else {
         btn.classList.add("option-wrong","shake");
         lives--; wrong++; missedWords.push(quizWords[currentIndex]);
@@ -346,49 +306,72 @@
       document.getElementById("nextBtn").classList.remove("hidden");
     };
 
+    // ── Multi-word answer matching ───────────────────────────────
+    // Splits "draw / tie" → ["draw","tie"], accepts if ANY part matches
+    function extractAnswerParts(answer) {
+      return answer.toLowerCase()
+        .split(/[\/,;|]/)       // split on / , ; |
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+    }
+
+    function multiWordMatch(typed, correctAns) {
+      const typedClean = typed.toLowerCase().trim();
+      const parts = extractAnswerParts(correctAns);
+      // Accept if typed matches ANY part (exact or fuzzy)
+      return parts.some(part => fuzzyMatch(typedClean, part));
+    }
+
     window.submitTyped = function() {
       if (answered) return;
-      const input = document.getElementById("typeInput");
-      const typed = input.value.trim().toLowerCase();
-      const word  = quizWords[currentIndex];
+      const input      = document.getElementById("typeInput");
+      const typed      = input.value.trim();
+      const word       = quizWords[currentIndex];
       const correctAns = word._bmToEn ? word.en : word.bm;
       answered=true; input.disabled=true;
-      if (fuzzyMatch(typed, correctAns.toLowerCase())) {
+
+      // Hide submit button, show next button
+      document.getElementById("submitBtn").classList.add("hidden");
+      document.getElementById("nextBtn").classList.remove("hidden");
+
+      if (multiWordMatch(typed, correctAns)) {
         score+=diff.xpPerCorrect; sessionXP+=diff.xpPerCorrect; correct++;
-        input.classList.add("border-green-400","bg-green-50");
-        showFeedback(true, correctAns);
-        floatXP(`+${diff.xpPerCorrect} XP`);
+        input.className="w-full border-2 border-green-400 bg-green-50 rounded-2xl px-5 py-4 text-lg font-bold text-gray-700 mb-3";
+        showFeedback(true, correctAns); floatXP(`+${diff.xpPerCorrect} XP`);
       } else {
         lives--; wrong++; missedWords.push(word);
-        input.classList.add("border-red-400","bg-red-50");
+        input.className="w-full border-2 border-red-400 bg-red-50 rounded-2xl px-5 py-4 text-lg font-bold text-gray-700 mb-3";
         showFeedback(false, correctAns);
       }
       updateHUD();
-      document.getElementById("nextBtn").classList.remove("hidden");
     };
 
     window.speakQuestion = function() {
-      const word = quizWords[currentIndex];
-      if (!word) return;
-      const u = new SpeechSynthesisUtterance(word.bm);
+      const word=quizWords[currentIndex]; if(!word) return;
+      const u=new SpeechSynthesisUtterance(word.bm);
       u.lang="ms-MY"; u.rate=0.85; speechSynthesis.speak(u);
     };
 
     function showFeedback(isCorrect, correctAns) {
-      const s = document.getElementById("feedbackStrip");
-      s.className = `rounded-xl px-4 py-3 mb-4 text-sm font-bold ${isCorrect?"feedback-correct":"feedback-wrong"}`;
-      s.textContent = isCorrect ? `✅ Correct! "${correctAns}"` : `❌ Wrong! The answer is "${correctAns}"`;
+      const s=document.getElementById("feedbackStrip");
+      // Show what was acceptable if multi-word
+      const parts = extractAnswerParts(correctAns);
+      const hint  = parts.length > 1 ? ` (accepted: ${parts.join(" or ")})` : "";
+      s.className=`rounded-xl px-4 py-3 mb-4 text-sm font-bold ${isCorrect?"feedback-correct":"feedback-wrong"}`;
+      s.textContent=isCorrect
+        ? `✅ Correct! "${correctAns}"${hint}`
+        : `❌ Wrong! The answer is "${correctAns}"${hint}`;
       s.classList.remove("hidden");
     }
 
     function floatXP(text) {
-      const el = document.createElement("div");
-      el.textContent = text;
-      el.className = "xp-float fixed font-black text-indigo-600 text-lg z-50";
-      el.style.cssText = "top:120px;left:50%;transform:translateX(-50%)";
+      const el=document.createElement("div");
+      el.textContent=text;
+      el.className="xp-float fixed font-black text-indigo-600 text-lg z-50";
+      el.style.cssText="top:120px;left:50%;transform:translateX(-50%)";
       document.body.appendChild(el);
-      setTimeout(()=>el.remove(), 950);
-      document.getElementById("xpDisplay").textContent = `+${sessionXP} XP`;
+      setTimeout(()=>el.remove(),950);
+      document.getElementById("xpDisplay").textContent=`+${sessionXP} XP`;
     }
 
     window.nextQuestion = function() { currentIndex++; showQuestion(); };
@@ -396,59 +379,56 @@
     async function endQuiz() {
       document.getElementById("quizScreen").classList.add("hidden");
       document.getElementById("resultsScreen").classList.remove("hidden");
-      const total = correct+wrong;
-      const pct   = total ? Math.round((correct/total)*100) : 0;
-      document.getElementById("resCorrect").textContent = correct;
-      document.getElementById("resWrong").textContent   = wrong;
-      document.getElementById("resScore").textContent   = pct+"%";
-      document.getElementById("resultXP").textContent   = `+${sessionXP} XP`;
-
-      const [emoji,title,sub] =
+      const total=correct+wrong;
+      const pct=total?Math.round((correct/total)*100):0;
+      document.getElementById("resCorrect").textContent=correct;
+      document.getElementById("resWrong").textContent=wrong;
+      document.getElementById("resScore").textContent=pct+"%";
+      document.getElementById("resultXP").textContent=`+${sessionXP} XP`;
+      const [emoji,title,sub]=
         pct>=90?["🏆","Excellent!","You're a BM vocab champion!"]:
         pct>=70?["🎉","Great job!","Keep it up!"]:
         pct>=50?["👍","Not bad!","A bit more practice will help."]:
         ["💪","Keep trying!","Review the flashcards and try again."];
-      document.getElementById("resultEmoji").textContent   = emoji;
-      document.getElementById("resultTitle").textContent   = title;
-      document.getElementById("resultSubtitle").textContent = sub;
-
-      if (missedWords.length > 0) {
+      document.getElementById("resultEmoji").textContent=emoji;
+      document.getElementById("resultTitle").textContent=title;
+      document.getElementById("resultSubtitle").textContent=sub;
+      if (missedWords.length>0) {
         document.getElementById("missedSection").classList.remove("hidden");
-        document.getElementById("missedList").innerHTML = missedWords.map(w=>
+        document.getElementById("missedList").innerHTML=missedWords.map(w=>
           `<div class="flex justify-between bg-red-50 rounded-xl px-4 py-2 text-sm">
             <span class="font-bold text-red-700">${w.bm}</span>
             <span class="text-gray-500">${w.en}</span>
           </div>`).join("");
       }
-
-      if (currentUser && !currentUser.isAnonymous && sessionXP > 0) {
+      if (currentUser && !currentUser.isAnonymous && sessionXP>0) {
         try {
-          const result = await recordStudySession(currentUser.uid, sessionXP);
+          const result=await recordStudySession(currentUser.uid,sessionXP);
           if (result.leveledUp) {
-            document.getElementById("levelUpMsg").textContent = `You're now "${result.newLevel.title}"!`;
+            document.getElementById("levelUpMsg").textContent=`You're now "${result.newLevel.title}"!`;
             document.getElementById("levelUpOverlay").classList.remove("hidden");
           }
-        } catch(e) { console.warn(e); }
+        } catch(e){console.warn(e);}
       }
     }
 
-    window.restartQuiz = function() {
+    window.restartQuiz=function(){
       document.getElementById("resultsScreen").classList.add("hidden");
       document.getElementById("quizScreen").classList.remove("hidden");
       document.getElementById("missedSection").classList.add("hidden");
       startQuiz();
     };
 
-    window.setMode = function(m) {
+    window.setMode=function(m){
       mode=m;
       ["MCQ","Type","Speed"].forEach(id=>document.getElementById("tab"+id).classList.remove("active"));
       const map={mcq:"MCQ",type:"Type",speed:"Speed"};
       document.getElementById("tab"+map[m]).classList.add("active");
-      document.getElementById("timerBarWrapper").classList.toggle("hidden", m!=="speed");
+      document.getElementById("timerBarWrapper").classList.toggle("hidden",m!=="speed");
       startQuiz();
     };
 
-    function startSpeedTimer() {
+    function startSpeedTimer(){
       const bar=document.getElementById("timerBar");
       document.getElementById("timerBarWrapper").classList.remove("hidden");
       bar.style.transition="none"; bar.style.width="100%";
@@ -456,12 +436,11 @@
       speedTimer=setInterval(()=>{
         elapsed+=100;
         const pct=Math.max(0,100-(elapsed/(diff.speedSeconds*1000))*100);
-        bar.style.transition="width 100ms linear";
-        bar.style.width=pct+"%";
+        bar.style.transition="width 100ms linear"; bar.style.width=pct+"%";
         bar.style.background=pct>50?"#4f46e5":pct>25?"#f59e0b":"#ef4444";
-        if (elapsed>=diff.speedSeconds*1000) {
+        if(elapsed>=diff.speedSeconds*1000){
           clearTimer();
-          if (!answered) {
+          if(!answered){
             answered=true;
             const w=quizWords[currentIndex];
             showFeedback(false,w._bmToEn?w.en:w.bm);
@@ -474,28 +453,25 @@
       },100);
     }
 
-    function clearTimer() { if(speedTimer){clearInterval(speedTimer);speedTimer=null;} }
+    function clearTimer(){if(speedTimer){clearInterval(speedTimer);speedTimer=null;}}
 
-    function updateHUD() {
-      document.getElementById("scoreDisplay").textContent = score;
-      document.getElementById("livesDisplay").textContent =
-        "❤️".repeat(Math.max(0,lives)) + "🖤".repeat(Math.max(0,diff.lives-lives));
-      const pct = quizWords.length ? (currentIndex/quizWords.length)*100 : 0;
-      document.getElementById("scoreFill").style.width = pct+"%";
+    function updateHUD(){
+      document.getElementById("scoreDisplay").textContent=score;
+      document.getElementById("livesDisplay").textContent=
+        "❤️".repeat(Math.max(0,lives))+"🖤".repeat(Math.max(0,diff.lives-lives));
+      const pct=quizWords.length?(currentIndex/quizWords.length)*100:0;
+      document.getElementById("scoreFill").style.width=pct+"%";
     }
 
-    function fuzzyMatch(a,b) { return a===b||levenshtein(a,b)<=1; }
-    function levenshtein(a,b) {
+    function fuzzyMatch(a,b){return a===b||levenshtein(a,b)<=1;}
+    function levenshtein(a,b){
       const m=a.length,n=b.length;
       const dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i===0?j:j===0?i:0));
       for(let i=1;i<=m;i++) for(let j=1;j<=n;j++)
         dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
       return dp[m][n];
     }
-    function shuffle(arr) {
-      for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
-      return arr;
-    }
+    function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
   </script>
 </body>
 </html>

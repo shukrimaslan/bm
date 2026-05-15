@@ -13,164 +13,130 @@
       background-image:
         radial-gradient(circle at 15% 25%, #bbf7d0 0%, transparent 45%),
         radial-gradient(circle at 85% 75%, #bfdbfe 0%, transparent 45%),
-        radial-gradient(circle at 60% 10%, #fde68a 0%, transparent 35%);
+        radial-gradient(circle at 60% 10%,  #fde68a 0%, transparent 35%);
     }
     @keyframes fade-up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
     .fade-up   { animation: fade-up .5s ease both; }
     .fade-up-2 { animation: fade-up .5s .1s ease both; }
     .fade-up-3 { animation: fade-up .5s .2s ease both; }
-    .fade-up-4 { animation: fade-up .5s .3s ease both; }
 
-    /* Level cards */
     .level-card {
-      border: 3px solid #e5e7eb;
-      background: white;
-      border-radius: 1.5rem;
-      padding: 1.5rem;
-      cursor: pointer;
+      border: 3px solid #e5e7eb; background: white; border-radius: 1.5rem;
+      padding: 1.5rem; cursor: pointer;
       transition: transform .2s, border-color .2s, box-shadow .2s;
       position: relative;
     }
     .level-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,.1); }
-    .level-card.selected-primary   { border-color: #16a34a; box-shadow: 0 0 0 4px #bbf7d0; background: #f0fdf4; }
-    .level-card.selected-secondary { border-color: #4f46e5; box-shadow: 0 0 0 4px #e0e7ff; background: #eef2ff; }
+    .level-card.selected-primary   { border-color:#16a34a; box-shadow:0 0 0 4px #bbf7d0; background:#f0fdf4; }
+    .level-card.selected-secondary { border-color:#4f46e5; box-shadow:0 0 0 4px #e0e7ff; background:#eef2ff; }
     .check-badge {
-      position: absolute; top: -10px; right: -10px;
-      width: 28px; height: 28px; border-radius: 99px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; font-weight: 900; color: white;
-      opacity: 0; transform: scale(0);
-      transition: opacity .2s, transform .2s;
+      position:absolute; top:-10px; right:-10px; width:28px; height:28px;
+      border-radius:99px; display:flex; align-items:center; justify-content:center;
+      font-size:14px; font-weight:900; color:white;
+      opacity:0; transform:scale(0); transition:opacity .2s,transform .2s;
     }
     .level-card.selected-primary   .check-badge,
-    .level-card.selected-secondary .check-badge { opacity: 1; transform: scale(1); }
-    .selected-primary   .check-badge { background: #16a34a; }
-    .selected-secondary .check-badge { background: #4f46e5; }
+    .level-card.selected-secondary .check-badge { opacity:1; transform:scale(1); }
+    .selected-primary   .check-badge { background:#16a34a; }
+    .selected-secondary .check-badge { background:#4f46e5; }
 
-    /* Year buttons */
     .year-btn {
-      border: 2px solid #e5e7eb; background: white; border-radius: 99px;
-      padding: 8px 16px; font-weight: 800; font-size: 14px; color: #6b7280;
-      cursor: pointer; transition: all .15s;
+      border:2px solid #e5e7eb; background:white; border-radius:99px;
+      padding:8px 18px; font-weight:800; font-size:14px; color:#6b7280;
+      cursor:pointer; transition:all .15s;
     }
-    .year-btn:hover { border-color: #9ca3af; }
-    .year-btn.active-primary   { border-color: #16a34a; background: #f0fdf4; color: #166534; }
-    .year-btn.active-secondary { border-color: #4f46e5; background: #eef2ff; color: #3730a3; }
+    .year-btn:hover { border-color:#9ca3af; }
+    .year-btn.active-primary   { border-color:#16a34a; background:#f0fdf4; color:#166534; }
+    .year-btn.active-secondary { border-color:#4f46e5; background:#eef2ff; color:#3730a3; }
 
-    /* Continue button */
-    .continue-btn {
-      transition: transform .15s, box-shadow .15s, opacity .2s;
-      opacity: 0.4; pointer-events: none;
-    }
-    .continue-btn.ready { opacity: 1; pointer-events: auto; }
-    .continue-btn.ready:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+    .continue-btn { transition:transform .15s,box-shadow .15s,opacity .2s; opacity:.4; pointer-events:none; }
+    .continue-btn.ready { opacity:1; pointer-events:auto; }
+    .continue-btn.ready:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.2); }
 
-    /* Step indicator */
-    .step-dot { width: 8px; height: 8px; border-radius: 99px; background: #e5e7eb; transition: background .3s, width .3s; }
-    .step-dot.active { background: #16a34a; width: 24px; }
+    .step-dot { width:8px; height:8px; border-radius:99px; background:#e5e7eb; transition:background .3s,width .3s; }
+    .step-dot.active { background:#16a34a; width:24px; }
   </style>
 </head>
 <body class="bg-pattern min-h-screen flex items-center justify-center p-5">
 <div class="w-full max-w-md">
 
-  <!-- Step dots -->
   <div class="flex justify-center gap-2 mb-8 fade-up">
     <div class="step-dot active" id="dot1"></div>
     <div class="step-dot" id="dot2"></div>
     <div class="step-dot" id="dot3"></div>
   </div>
 
-  <!-- ── STEP 1: Choose level ── -->
+  <!-- Step 1: Level -->
   <div id="step1">
     <div class="text-center mb-8 fade-up-2">
       <div class="text-5xl mb-3">👋</div>
       <h1 class="text-3xl font-black text-gray-800 mb-2">Selamat Datang!</h1>
       <p class="text-gray-500 font-semibold">Which school level are you in?</p>
     </div>
-
     <div class="grid grid-cols-2 gap-4 mb-8 fade-up-3">
-      <!-- Primary -->
       <div class="level-card" id="primaryCard" onclick="selectLevel('primary')">
-        <div class="check-badge" id="primaryCheck">✓</div>
+        <div class="check-badge">✓</div>
         <div class="text-4xl mb-3 text-center">🏫</div>
         <h3 class="font-black text-gray-800 text-center text-base mb-1">Primary School</h3>
         <p class="text-gray-400 text-xs text-center font-semibold">Sekolah Rendah</p>
         <p class="text-gray-400 text-xs text-center mt-2">Tahun 1 – 6<br/>Age 7 – 12</p>
       </div>
-      <!-- Secondary -->
       <div class="level-card" id="secondaryCard" onclick="selectLevel('secondary')">
-        <div class="check-badge" id="secondaryCheck">✓</div>
+        <div class="check-badge">✓</div>
         <div class="text-4xl mb-3 text-center">🎓</div>
         <h3 class="font-black text-gray-800 text-center text-base mb-1">Secondary School</h3>
         <p class="text-gray-400 text-xs text-center font-semibold">Sekolah Menengah</p>
         <p class="text-gray-400 text-xs text-center mt-2">Tingkatan 1 – 5<br/>Age 13 – 17</p>
       </div>
     </div>
-
-    <button id="step1Btn" class="continue-btn w-full bg-green-500 text-white font-black py-4 rounded-2xl text-lg"
-      onclick="goStep2()">
-      Continue →
-    </button>
+    <button id="step1Btn" class="continue-btn w-full bg-green-500 text-white font-black py-4 rounded-2xl text-lg" onclick="goStep2()">Continue →</button>
   </div>
 
-  <!-- ── STEP 2: Choose year/form ── -->
+  <!-- Step 2: Year -->
   <div id="step2" class="hidden">
     <div class="text-center mb-8 fade-up">
       <div class="text-5xl mb-3" id="step2Emoji">📚</div>
       <h1 class="text-2xl font-black text-gray-800 mb-2" id="step2Title">Which year are you in?</h1>
-      <p class="text-gray-500 font-semibold text-sm" id="step2Subtitle">Select your current year</p>
+      <p class="text-gray-400 text-sm font-semibold" id="step2Sub">Select your current year</p>
+    </div>
+    <div id="yearButtons" class="flex flex-wrap justify-center gap-3 mb-6 fade-up-2"></div>
+
+    <!-- Academic year note -->
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 mb-6 text-xs text-blue-700 font-semibold fade-up-2">
+      📅 We'll automatically advance your year each new academic year so you don't need to update it manually.
     </div>
 
-    <div id="yearButtons" class="flex flex-wrap justify-center gap-3 mb-8 fade-up-2"></div>
-
-    <button id="step2Btn" class="continue-btn w-full bg-green-500 text-white font-black py-4 rounded-2xl text-lg"
-      onclick="goStep3()">
-      Continue →
-    </button>
+    <button id="step2Btn" class="continue-btn w-full bg-green-500 text-white font-black py-4 rounded-2xl text-lg" onclick="goStep3()">Continue →</button>
     <button onclick="goBack(1)" class="w-full text-gray-400 font-bold py-3 mt-2">← Back</button>
   </div>
 
-  <!-- ── STEP 3: Confirmation ── -->
+  <!-- Step 3: Confirm -->
   <div id="step3" class="hidden">
     <div class="text-center mb-8 fade-up">
       <div class="text-6xl mb-3">🎉</div>
       <h1 class="text-2xl font-black text-gray-800 mb-2">You're all set!</h1>
       <p class="text-gray-500 font-semibold text-sm">Here's what we've set up for you:</p>
     </div>
-
     <div class="bg-white rounded-3xl shadow-md p-6 mb-6 fade-up-2">
       <div class="space-y-4">
         <div class="flex items-center gap-4">
           <span class="text-3xl" id="confEmoji">🏫</span>
-          <div>
-            <p class="text-xs font-bold text-gray-400 uppercase">School Level</p>
-            <p class="font-black text-gray-800" id="confLevel">Primary School</p>
-          </div>
+          <div><p class="text-xs font-bold text-gray-400 uppercase">School Level</p><p class="font-black text-gray-800" id="confLevel">—</p></div>
         </div>
         <div class="flex items-center gap-4">
           <span class="text-3xl">📅</span>
-          <div>
-            <p class="text-xs font-bold text-gray-400 uppercase">Year / Form</p>
-            <p class="font-black text-gray-800" id="confYear">Tahun 4</p>
-          </div>
+          <div><p class="text-xs font-bold text-gray-400 uppercase">Current Year</p><p class="font-black text-gray-800" id="confYear">—</p></div>
         </div>
         <div class="flex items-center gap-4">
           <span class="text-3xl">🎯</span>
-          <div>
-            <p class="text-xs font-bold text-gray-400 uppercase">Quiz Mode</p>
-            <p class="font-black text-gray-800" id="confMode">MCQ with 4 options</p>
-          </div>
+          <div><p class="text-xs font-bold text-gray-400 uppercase">Quiz Difficulty</p><p class="font-black text-gray-800" id="confMode">—</p></div>
         </div>
         <div class="flex items-center gap-4">
           <span class="text-3xl">📦</span>
-          <div>
-            <p class="text-xs font-bold text-gray-400 uppercase">Starting Packs</p>
-            <p class="font-black text-gray-800" id="confPacks">6 primary packs unlocked</p>
-          </div>
+          <div><p class="text-xs font-bold text-gray-400 uppercase">Starting Packs</p><p class="font-black text-gray-800" id="confPacks">—</p></div>
         </div>
       </div>
     </div>
-
     <button id="startBtn" onclick="saveAndStart()"
       class="w-full bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-2xl text-lg shadow-lg transition-colors fade-up-3">
       Start Learning! 🚀
@@ -188,16 +154,15 @@
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   let selectedLevel = null;
-  let selectedYear  = null;
-  let currentUser   = null;
+  let selectedYearNum = null; // numeric e.g. 4 for "Tahun 4"
+  let currentUser = null;
 
-  const PRIMARY_YEARS   = ["Tahun 1","Tahun 2","Tahun 3","Tahun 4","Tahun 5","Tahun 6"];
-  const SECONDARY_YEARS = ["Tingkatan 1","Tingkatan 2","Tingkatan 3","Tingkatan 4","Tingkatan 5"];
+  const PRIMARY_YEARS   = [1,2,3,4,5,6];
+  const SECONDARY_YEARS = [1,2,3,4,5];
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = "index.html"; return; }
     currentUser = user;
-    // If already onboarded, skip to home
     try {
       const snap = await getDoc(doc(db, "users", user.uid));
       if (snap.exists() && snap.data().onboardingDone) {
@@ -208,8 +173,7 @@
 
   window.selectLevel = function(level) {
     selectedLevel = level;
-    selectedYear  = null;
-
+    selectedYearNum = null;
     document.getElementById("primaryCard").classList.remove("selected-primary","selected-secondary");
     document.getElementById("secondaryCard").classList.remove("selected-primary","selected-secondary");
     document.getElementById(`${level}Card`).classList.add(`selected-${level}`);
@@ -220,20 +184,22 @@
     if (!selectedLevel) return;
     setStep(2);
     const isPrimary = selectedLevel === "primary";
-    document.getElementById("step2Emoji").textContent   = isPrimary ? "🏫" : "🎓";
-    document.getElementById("step2Title").textContent   = isPrimary ? "Which year are you in?" : "Which form are you in?";
-    document.getElementById("step2Subtitle").textContent= isPrimary ? "Select your current year" : "Select your current form";
+    document.getElementById("step2Emoji").textContent = isPrimary ? "🏫" : "🎓";
+    document.getElementById("step2Title").textContent = isPrimary ? "Which year are you in?" : "Which form are you in?";
+    document.getElementById("step2Sub").textContent   = isPrimary ? "Select your current year" : "Select your current form";
 
     const years = isPrimary ? PRIMARY_YEARS : SECONDARY_YEARS;
+    const prefix = isPrimary ? "Tahun" : "Tingkatan";
     const container = document.getElementById("yearButtons");
     container.innerHTML = "";
-    years.forEach(y => {
+    years.forEach(n => {
       const btn = document.createElement("button");
       btn.className = "year-btn";
-      btn.textContent = y;
+      btn.textContent = `${prefix} ${n}`;
       btn.onclick = () => {
-        selectedYear = y;
-        document.querySelectorAll(".year-btn").forEach(b => b.classList.remove("active-primary","active-secondary"));
+        selectedYearNum = n;
+        document.querySelectorAll(".year-btn").forEach(b =>
+          b.classList.remove("active-primary","active-secondary"));
         btn.classList.add(`active-${selectedLevel}`);
         document.getElementById("step2Btn").classList.add("ready");
       };
@@ -242,37 +208,47 @@
   };
 
   window.goStep3 = function() {
-    if (!selectedYear) return;
+    if (!selectedYearNum) return;
     setStep(3);
     const isPrimary = selectedLevel === "primary";
-    document.getElementById("confEmoji").textContent  = isPrimary ? "🏫" : "🎓";
-    document.getElementById("confLevel").textContent  = isPrimary ? "Primary School (Sekolah Rendah)" : "Secondary School (Sekolah Menengah)";
-    document.getElementById("confYear").textContent   = selectedYear;
-    document.getElementById("confMode").textContent   = isPrimary ? "MCQ with 3 options, 5 lives" : "MCQ + Type Answer, 3 lives";
-    document.getElementById("confPacks").textContent  = isPrimary ? "6 primary packs unlocked" : "All 16 packs unlocked";
+    const prefix = isPrimary ? "Tahun" : "Tingkatan";
+    document.getElementById("confEmoji").textContent = isPrimary ? "🏫" : "🎓";
+    document.getElementById("confLevel").textContent = isPrimary
+      ? "Primary School (Sekolah Rendah)"
+      : "Secondary School (Sekolah Menengah)";
+    document.getElementById("confYear").textContent  = `${prefix} ${selectedYearNum} (auto-advances yearly)`;
+    document.getElementById("confMode").textContent  = isPrimary
+      ? "3 MCQ options · 5 lives · 12s speed"
+      : "4 MCQ options · 3 lives · 8s speed";
+    document.getElementById("confPacks").textContent = isPrimary
+      ? "6 primary packs — secondary packs locked"
+      : "All 16 packs unlocked";
   };
 
   window.goBack = function(toStep) { setStep(toStep); };
 
   window.saveAndStart = async function() {
     if (!currentUser) return;
-    document.getElementById("startBtn").textContent = "Saving...";
-    document.getElementById("startBtn").disabled = true;
+    const btn = document.getElementById("startBtn");
+    btn.textContent = "Saving..."; btn.disabled = true;
     try {
+      const now = new Date();
+      // Save numeric year + the calendar year they set it in
+      // calcCurrentSchoolYear() in streak.js will auto-advance this
       await setDoc(doc(db, "users", currentUser.uid), {
-        schoolLevel:    selectedLevel,
-        schoolYear:     selectedYear,
-        onboardingDone: true,
-        xp:             0,
-        streak:         0,
-        lastStudyDate:  null,
-        displayName:    currentUser.displayName || "",
-        createdAt:      serverTimestamp(),
+        schoolLevel:       selectedLevel,
+        schoolYearNum:     selectedYearNum,      // e.g. 4
+        schoolYearSetIn:   now.getFullYear(),    // e.g. 2024
+        onboardingDone:    true,
+        xp:                0,
+        streak:            0,
+        lastStudyDate:     null,
+        displayName:       currentUser.displayName || "",
+        createdAt:         serverTimestamp(),
       }, { merge: true });
       window.location.href = "home.html";
-    } catch (err) {
-      document.getElementById("startBtn").textContent = "Start Learning! 🚀";
-      document.getElementById("startBtn").disabled = false;
+    } catch {
+      btn.textContent = "Start Learning! 🚀"; btn.disabled = false;
       alert("Failed to save. Please try again.");
     }
   };
@@ -280,8 +256,7 @@
   function setStep(n) {
     [1,2,3].forEach(i => {
       document.getElementById(`step${i}`).classList.toggle("hidden", i !== n);
-      const dot = document.getElementById(`dot${i}`);
-      dot.classList.toggle("active", i <= n);
+      document.getElementById(`dot${i}`).classList.toggle("active", i <= n);
     });
   }
 </script>
