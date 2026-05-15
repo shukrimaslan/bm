@@ -8,13 +8,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
     body { font-family: 'Nunito', sans-serif; padding-bottom: 80px; }
-    .pack-card { transition: transform .18s, box-shadow .18s; cursor: pointer; }
-    .pack-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.13); }
     @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
     .fade-up { animation: fade-up .5s ease both; }
-    .avatar { width:38px; height:38px; border-radius:99px; background:linear-gradient(135deg,#16a34a,#4ade80); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:16px; cursor:pointer; text-decoration:none; }
+
+    .avatar { width:38px; height:38px; border-radius:99px; background:linear-gradient(135deg,#16a34a,#4ade80); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:16px; cursor:pointer; text-decoration:none; flex-shrink:0; }
     .stats-card { background: linear-gradient(135deg,#16a34a,#4ade80); color:white; }
     .guest-banner { background: linear-gradient(135deg,#fef3c7,#fde68a); border: 2px solid #fcd34d; }
+
+    /* WOTD */
     .wotd-card { background: linear-gradient(135deg,#1e1b4b,#4338ca,#6366f1); color:white; }
     @keyframes pulse-soft { 0%,100%{opacity:1} 50%{opacity:.7} }
     .wotd-label { animation: pulse-soft 2.5s infinite; }
@@ -29,19 +30,41 @@
     .level-badge-secondary { background:#e0e7ff; color:#3730a3; border:1.5px solid #a5b4fc; }
 
     /* Filter tabs */
-    .filter-tab { transition: background .2s, color .2s; }
+    .filter-tab { transition: background .2s, color .2s; cursor:pointer; }
+    .filter-tab.active-all       { background:#374151; color:white; }
     .filter-tab.active-primary   { background:#16a34a; color:white; }
     .filter-tab.active-secondary { background:#4f46e5; color:white; }
-    .filter-tab.active-all       { background:#374151; color:white; }
+
+    /* Pack cards — tap opens bottom sheet */
+    .pack-card {
+      cursor:pointer;
+      transition: transform .18s, box-shadow .18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pack-card:hover  { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.12); }
+    .pack-card:active { transform: scale(.97); }
 
     /* Lock overlay */
+    .pack-locked::after { content:'🔒'; position:absolute; top:10px; right:12px; font-size:18px; opacity:.7; }
     .pack-locked { position:relative; }
-    .pack-locked::after {
-      content:'🔒';
-      position:absolute; top:10px; right:12px;
-      font-size:18px; opacity:.7;
+
+    /* ── Bottom Sheet ── */
+    .sheet-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.45);
+      z-index:60; opacity:0; pointer-events:none;
+      transition: opacity .25s;
     }
-    .pack-locked .pack-btns { opacity:.5; pointer-events:none; }
+    .sheet-overlay.open { opacity:1; pointer-events:auto; }
+    .bottom-sheet {
+      position:fixed; bottom:0; left:0; right:0; z-index:61;
+      background:white; border-radius:1.5rem 1.5rem 0 0;
+      padding:0 1.25rem 2rem;
+      transform: translateY(100%);
+      transition: transform .3s cubic-bezier(.4,0,.2,1);
+      max-width:480px; margin:0 auto;
+    }
+    .bottom-sheet.open { transform: translateY(0); }
+    .sheet-handle { width:40px; height:4px; background:#e5e7eb; border-radius:99px; margin:12px auto 20px; }
 
     /* Pack colors */
     .pack-green  { background:linear-gradient(135deg,#dcfce7,#bbf7d0); border-color:#86efac; }
@@ -70,6 +93,46 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
 
+  <!-- ── Bottom Sheet Overlay ── -->
+  <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+  <div class="bottom-sheet" id="bottomSheet">
+    <div class="sheet-handle"></div>
+    <!-- Sheet content filled by JS -->
+    <div class="flex items-center gap-4 mb-5">
+      <div class="text-5xl" id="sheetEmoji">📖</div>
+      <div>
+        <h3 class="font-black text-gray-800 text-xl" id="sheetName">Pack Name</h3>
+        <p class="text-gray-400 text-sm font-semibold" id="sheetMeta">30 words · Primary</p>
+      </div>
+    </div>
+    <p class="text-gray-500 text-sm mb-5" id="sheetDesc">Choose how you want to learn this pack.</p>
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <a id="sheetStudyBtn" href="#"
+        class="flex flex-col items-center bg-green-50 hover:bg-green-100 border-2 border-green-200 rounded-2xl py-5 transition-colors">
+        <span class="text-3xl mb-1">📚</span>
+        <span class="font-black text-green-700">Study</span>
+        <span class="text-xs text-green-500 mt-0.5">Flashcards</span>
+      </a>
+      <a id="sheetQuizBtn" href="#"
+        class="flex flex-col items-center bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 rounded-2xl py-5 transition-colors">
+        <span class="text-3xl mb-1">🎯</span>
+        <span class="font-black text-indigo-700">Quiz</span>
+        <span class="text-xs text-indigo-400 mt-0.5">Test yourself</span>
+      </a>
+    </div>
+    <!-- Pack progress bar in sheet -->
+    <div id="sheetProgress" class="bg-gray-50 rounded-2xl px-4 py-3">
+      <div class="flex justify-between text-xs font-bold text-gray-500 mb-1">
+        <span>Your progress</span>
+        <span id="sheetProgressLabel">0 / 30</span>
+      </div>
+      <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div id="sheetProgressBar" class="h-full bg-green-400 rounded-full transition-all" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
   <nav class="bg-white shadow-sm sticky top-0 z-10">
     <div class="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
       <div class="flex items-center gap-2">
@@ -78,7 +141,7 @@
       </div>
       <div class="flex items-center gap-2">
         <span id="levelBadge" class="hidden text-xs font-black px-3 py-1 rounded-full"></span>
-        <a href="profile.html" class="avatar" id="userAvatar" title="Profile">?</a>
+        <a href="profile.html" class="avatar" id="userAvatar">?</a>
       </div>
     </div>
   </nav>
@@ -90,7 +153,9 @@
       <span class="text-2xl">👤</span>
       <div>
         <p class="font-black text-yellow-800 text-sm">You're in Guest Mode</p>
-        <p class="text-yellow-700 text-xs mt-0.5">Progress won't be saved. <a href="index.html" class="underline font-bold">Sign in</a> to track your learning!</p>
+        <p class="text-yellow-700 text-xs mt-0.5">Progress won't be saved.
+          <a href="index.html?signout=1" class="underline font-bold">Sign in</a> to track your learning!
+        </p>
       </div>
     </div>
 
@@ -139,16 +204,16 @@
       </div>
     </div>
 
-    <!-- Pack filter tabs -->
+    <!-- Filter tabs + heading -->
     <div class="flex items-center justify-between mb-3 fade-up" style="animation-delay:.08s">
       <h3 class="text-lg font-black text-gray-700">📚 Word Packs</h3>
-      <div class="flex bg-white rounded-2xl p-1 shadow-sm gap-1" id="filterTabs">
+      <div class="flex bg-white rounded-2xl p-1 shadow-sm gap-1">
         <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabAll"       onclick="setFilter('all')">All</button>
-        <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabPrimary"   onclick="setFilter('primary')">🏫 Primary</button>
-        <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabSecondary" onclick="setFilter('secondary')">🎓 Secondary</button>
+        <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabPrimary"   onclick="setFilter('primary')">🏫</button>
+        <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabSecondary" onclick="setFilter('secondary')">🎓</button>
       </div>
     </div>
-    <p class="text-xs text-gray-400 font-semibold mb-4" id="packCount">Loading...</p>
+    <p class="text-xs text-gray-400 font-semibold mb-4 fade-up" style="animation-delay:.09s" id="packCount">Loading...</p>
 
     <!-- Skeleton -->
     <div id="loadingState" class="grid grid-cols-2 gap-4">
@@ -157,6 +222,7 @@
       <div class="bg-gray-200 rounded-3xl h-40 animate-pulse"></div>
       <div class="bg-gray-200 rounded-3xl h-40 animate-pulse"></div>
     </div>
+
     <div id="packsGrid" class="grid grid-cols-2 gap-4 hidden"></div>
     <div id="emptyState" class="hidden text-center py-16">
       <div class="text-6xl mb-4">📭</div>
@@ -185,13 +251,17 @@
 
     const COLORS = ["pack-green","pack-blue","pack-yellow","pack-pink","pack-purple","pack-orange","pack-teal","pack-red","pack-lime","pack-sky","pack-rose","pack-amber","pack-cyan","pack-violet","pack-emerald","pack-fuchsia"];
     let allPacks    = [];
-    let userLevel   = null; // "primary" | "secondary" | null
+    let allWords    = [];
+    let knownIds    = new Set();
+    let userLevel   = null;
     let activeFilter = "all";
     let wotdWord    = null;
+    let currentUid  = null;
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = "index.html"; return; }
       const isGuest = user.isAnonymous;
+      currentUid = user.uid;
 
       if (isGuest) {
         document.getElementById("guestBanner").classList.remove("hidden");
@@ -207,15 +277,9 @@
           }
           const data = snap.data();
           userLevel = data.schoolLevel || null;
-
-          // Set default filter to user's level
           if (userLevel) {
             activeFilter = userLevel;
             setFilterUI(userLevel);
-          }
-
-          // Level badge in navbar
-          if (userLevel) {
             const badge = document.getElementById("levelBadge");
             badge.textContent = userLevel === "primary" ? "🏫 Primary" : "🎓 Secondary";
             badge.className = `text-xs font-black px-3 py-1 rounded-full level-badge-${userLevel}`;
@@ -229,7 +293,8 @@
         loadUserStats(user.uid);
       }
 
-      await Promise.all([loadPacks(), loadWordOfTheDay(userLevel)]);
+      // Load packs + words + progress in parallel for sheet progress bars
+      await Promise.all([loadPacksAndWords(user), loadWordOfTheDay(userLevel)]);
     });
 
     async function loadUserStats(uid) {
@@ -238,9 +303,9 @@
           getDocs(collection(db, "users", uid, "progress")),
           getUserProfile(uid)
         ]);
-        const known = progressSnap.docs.filter(d => d.data().status === "known").length;
-        document.getElementById("statWords").textContent = known;
-        document.getElementById("statXP").textContent    = (profile.xp || 0) + " XP";
+        knownIds = new Set(progressSnap.docs.filter(d => d.data().status === "known").map(d => d.id));
+        document.getElementById("statWords").textContent  = knownIds.size;
+        document.getElementById("statXP").textContent     = (profile.xp || 0) + " XP";
         const streak = profile.streak || 0;
         document.getElementById("statStreak").textContent = streak > 0 ? `🔥 ${streak}` : "0";
       } catch {
@@ -248,41 +313,24 @@
       }
     }
 
-    async function loadWordOfTheDay(level) {
+    async function loadPacksAndWords(user) {
       try {
-        const today  = new Date();
-        const allSnap = await getDocs(collection(db, "words"));
-        let pool = allSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        // Prefer words matching user level
-        if (level) {
-          const levelPool = pool.filter(w => w.level === level);
-          if (levelPool.length > 0) pool = levelPool;
-        }
-        const seed = today.getFullYear() * 10000 + (today.getMonth()+1) * 100 + today.getDate();
-        wotdWord = pool[seed % pool.length];
-
-        document.getElementById("wotdBM").textContent      = wotdWord.bm;
-        document.getElementById("wotdEN").textContent      = wotdWord.en;
-        document.getElementById("wotdExample").textContent = wotdWord.example_bm || "";
-        document.getElementById("wotdDate").textContent    = today.toLocaleDateString("en-MY",{day:"numeric",month:"short"});
-        document.getElementById("wotdStudyLink").href      = `study.html?pack=${wotdWord.pack}`;
-        document.getElementById("wotdSection").classList.remove("hidden");
-      } catch(e) { console.warn("WOTD:", e); }
-    }
-
-    window.flipWotd  = () => document.getElementById("wotdFlip").classList.toggle("flipped");
-    window.speakWotd = () => {
-      if (!wotdWord) return;
-      const u = new SpeechSynthesisUtterance(wotdWord.bm);
-      u.lang = "ms-MY"; u.rate = 0.85;
-      speechSynthesis.speak(u);
-    };
-
-    async function loadPacks() {
-      try {
-        const snapshot = await getDocs(collection(db, "packs"));
-        allPacks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+        const [packSnap, wordSnap] = await Promise.all([
+          getDocs(collection(db, "packs")),
+          getDocs(collection(db, "words")),
+        ]);
+        allPacks  = packSnap.docs.map(d => ({ id: d.id, ...d.data() }))
           .sort((a, b) => (a.order||99) - (b.order||99));
+        allWords  = wordSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Load progress for sheet bars (non-guest)
+        if (!user.isAnonymous) {
+          try {
+            const progSnap = await getDocs(collection(db, "users", user.uid, "progress"));
+            knownIds = new Set(progSnap.docs.filter(d => d.data().status === "known").map(d => d.id));
+          } catch {}
+        }
+
         document.getElementById("loadingState").classList.add("hidden");
         renderPacks();
       } catch {
@@ -296,46 +344,116 @@
       grid.classList.remove("hidden");
       grid.innerHTML = "";
 
-      // Filter
-      let visible = allPacks;
-      if (activeFilter !== "all") {
-        visible = allPacks.filter(p => p.level === activeFilter);
-      }
+      const visible = activeFilter === "all"
+        ? allPacks
+        : allPacks.filter(p => p.level === activeFilter);
 
       document.getElementById("packCount").textContent =
         `${visible.length} pack${visible.length !== 1 ? "s" : ""}` +
         (activeFilter !== "all" ? ` · ${activeFilter}` : "");
 
       if (visible.length === 0) {
-        document.getElementById("emptyState").classList.remove("hidden");
-        return;
+        document.getElementById("emptyState").classList.remove("hidden"); return;
       }
       document.getElementById("emptyState").classList.add("hidden");
 
       visible.forEach((pack, i) => {
-        const color = COLORS[allPacks.indexOf(pack) % COLORS.length];
-        const delay = (i * 0.05).toFixed(2);
-        // Lock secondary packs for primary students
+        const color   = COLORS[allPacks.indexOf(pack) % COLORS.length];
+        const delay   = (i * 0.05).toFixed(2);
         const isLocked = userLevel === "primary" && pack.level === "secondary";
         const levelTag = pack.level === "secondary"
           ? `<span class="text-xs bg-indigo-100 text-indigo-600 font-bold px-2 py-0.5 rounded-full">Secondary</span>`
           : `<span class="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">Primary</span>`;
 
-        grid.innerHTML += `
-          <div class="pack-card ${color} border-2 rounded-3xl p-5 shadow-sm fade-up ${isLocked?"pack-locked":""}" style="animation-delay:${delay}s">
-            <div class="text-4xl mb-2">${pack.emoji || "📖"}</div>
-            <h4 class="font-black text-gray-800 text-sm leading-tight mb-1">${pack.name}</h4>
-            <div class="mb-2">${levelTag}</div>
-            <p class="text-gray-500 text-xs font-semibold mb-3">${pack.wordCount || "?"} words</p>
-            <div class="flex gap-2 pack-btns">
-              <a href="study.html?pack=${pack.id}" class="flex-1 bg-white/70 hover:bg-white text-gray-700 text-xs font-bold py-2 rounded-xl text-center transition-colors">📚 Study</a>
-              <a href="quiz.html?pack=${pack.id}" class="flex-1 bg-white/70 hover:bg-white text-gray-700 text-xs font-bold py-2 rounded-xl text-center transition-colors">🎯 Quiz</a>
-            </div>
-            ${isLocked ? `<p class="text-xs text-center text-gray-400 mt-2 font-semibold">Secondary level</p>` : ""}
-          </div>`;
+        // Per-pack progress
+        const packWords  = allWords.filter(w => w.pack === pack.id);
+        const packKnown  = packWords.filter(w => knownIds.has(w.id)).length;
+        const packPct    = packWords.length ? Math.round((packKnown / packWords.length) * 100) : 0;
+
+        const div = document.createElement("div");
+        div.className = `pack-card ${color} border-2 rounded-3xl p-5 shadow-sm fade-up ${isLocked ? "pack-locked" : ""}`;
+        div.style.animationDelay = delay + "s";
+        div.innerHTML = `
+          <div class="text-4xl mb-2">${pack.emoji || "📖"}</div>
+          <h4 class="font-black text-gray-800 text-sm leading-tight mb-1">${pack.name}</h4>
+          <div class="mb-2">${levelTag}</div>
+          <p class="text-gray-500 text-xs font-semibold mb-2">${pack.wordCount || "?"} words</p>
+          <!-- Mini progress bar on card -->
+          <div class="h-1.5 bg-black/10 rounded-full overflow-hidden">
+            <div class="h-full bg-black/25 rounded-full" style="width:${packPct}%"></div>
+          </div>
+          <p class="text-xs text-gray-500 font-semibold mt-1">${packKnown}/${packWords.length} known</p>`;
+
+        if (!isLocked) {
+          div.onclick = () => openSheet(pack, packWords.length, packKnown);
+        } else {
+          div.onclick = () => {
+            div.classList.add("shake-brief");
+            setTimeout(() => div.classList.remove("shake-brief"), 400);
+          };
+        }
+        grid.appendChild(div);
       });
     }
 
+    // ── Bottom sheet ─────────────────────────────────────────────
+    function openSheet(pack, total, known) {
+      const pct = total ? Math.round((known / total) * 100) : 0;
+      document.getElementById("sheetEmoji").textContent       = pack.emoji || "📖";
+      document.getElementById("sheetName").textContent        = pack.name;
+      document.getElementById("sheetMeta").textContent        =
+        `${total} words · ${pack.level === "secondary" ? "Secondary 🎓" : "Primary 🏫"}`;
+      document.getElementById("sheetDesc").textContent        =
+        `You know ${known} of ${total} words (${pct}%). Ready to study or quiz?`;
+      document.getElementById("sheetStudyBtn").href           = `study.html?pack=${pack.id}`;
+      document.getElementById("sheetQuizBtn").href            = `quiz.html?pack=${pack.id}`;
+      document.getElementById("sheetProgressLabel").textContent = `${known} / ${total}`;
+      document.getElementById("sheetProgressBar").style.width = pct + "%";
+      document.getElementById("sheetOverlay").classList.add("open");
+      document.getElementById("bottomSheet").classList.add("open");
+    }
+
+    window.closeSheet = function() {
+      document.getElementById("sheetOverlay").classList.remove("open");
+      document.getElementById("bottomSheet").classList.remove("open");
+    };
+    // Swipe down to close
+    let touchStartY = 0;
+    document.getElementById("bottomSheet").addEventListener("touchstart", e => { touchStartY = e.touches[0].clientY; });
+    document.getElementById("bottomSheet").addEventListener("touchend",   e => {
+      if (e.changedTouches[0].clientY - touchStartY > 60) closeSheet();
+    });
+
+    // ── Word of the Day ──────────────────────────────────────────
+    async function loadWordOfTheDay(level) {
+      try {
+        const today   = new Date();
+        const allSnap = await getDocs(collection(db, "words"));
+        let pool = allSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (level) {
+          const levelPool = pool.filter(w => w.level === level);
+          if (levelPool.length > 0) pool = levelPool;
+        }
+        const seed = today.getFullYear() * 10000 + (today.getMonth()+1) * 100 + today.getDate();
+        wotdWord = pool[seed % pool.length];
+        document.getElementById("wotdBM").textContent      = wotdWord.bm;
+        document.getElementById("wotdEN").textContent      = wotdWord.en;
+        document.getElementById("wotdExample").textContent = wotdWord.example_bm || "";
+        document.getElementById("wotdDate").textContent    =
+          today.toLocaleDateString("en-MY", { day:"numeric", month:"short" });
+        document.getElementById("wotdStudyLink").href      = `study.html?pack=${wotdWord.pack}`;
+        document.getElementById("wotdSection").classList.remove("hidden");
+      } catch(e) { console.warn("WOTD:", e); }
+    }
+
+    window.flipWotd  = () => document.getElementById("wotdFlip").classList.toggle("flipped");
+    window.speakWotd = () => {
+      if (!wotdWord) return;
+      const u = new SpeechSynthesisUtterance(wotdWord.bm);
+      u.lang = "ms-MY"; u.rate = 0.85; speechSynthesis.speak(u);
+    };
+
+    // ── Filters ──────────────────────────────────────────────────
     window.setFilter = function(filter) {
       activeFilter = filter;
       setFilterUI(filter);
@@ -344,14 +462,13 @@
 
     function setFilterUI(filter) {
       ["all","primary","secondary"].forEach(f => {
-        document.getElementById(`tab${f.charAt(0).toUpperCase()+f.slice(1)}`)
-          .classList.remove("active-all","active-primary","active-secondary");
+        const btn = document.getElementById(`tab${f.charAt(0).toUpperCase()+f.slice(1)}`);
+        if (btn) btn.classList.remove("active-all","active-primary","active-secondary");
       });
-      document.getElementById(`tab${filter.charAt(0).toUpperCase()+filter.slice(1)}`)
-        .classList.add(`active-${filter}`);
+      const active = document.getElementById(`tab${filter.charAt(0).toUpperCase()+filter.slice(1)}`);
+      if (active) active.classList.add(`active-${filter}`);
     }
 
-    // Set initial filter UI
     setFilterUI(activeFilter);
   </script>
 </body>
