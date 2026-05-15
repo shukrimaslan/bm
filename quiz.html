@@ -25,21 +25,16 @@
     .feedback-correct { background:#dcfce7; border-left:5px solid #16a34a; }
     .feedback-wrong   { background:#fee2e2; border-left:5px solid #dc2626; }
     #typeInput:focus  { outline:none; border-color:#4f46e5; box-shadow:0 0 0 3px #c7d2fe; }
-
-    /* XP Float animation */
-    @keyframes xp-float {
-      0%   { opacity:1; transform:translateY(0) scale(1); }
-      100% { opacity:0; transform:translateY(-60px) scale(1.3); }
-    }
+    @keyframes xp-float { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-60px) scale(1.3)} }
     .xp-float { animation: xp-float .9s ease forwards; pointer-events:none; }
-
-    /* Level-up overlay */
-    .levelup-overlay {
-      position:fixed; inset:0; background:rgba(0,0,0,.6);
-      display:flex; align-items:center; justify-content:center; z-index:100;
-    }
+    .levelup-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:100; }
     @keyframes levelup-pop { 0%{transform:scale(.5);opacity:0} 70%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
     .levelup-card { animation: levelup-pop .5s forwards; }
+
+    /* Level difficulty banner */
+    .diff-banner { border-radius:1rem; padding:10px 16px; font-size:12px; font-weight:800; text-align:center; margin-bottom:12px; }
+    .diff-primary   { background:#dbeafe; color:#1e40af; border:1.5px solid #93c5fd; }
+    .diff-secondary { background:#dcfce7; color:#166534; border:1.5px solid #86efac; }
 
     /* Bottom nav */
     .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #f3f4f6; padding:8px 0 max(8px,env(safe-area-inset-bottom)); z-index:50; }
@@ -50,29 +45,30 @@
 </head>
 <body class="bg-gradient-to-br from-indigo-50 to-blue-100 min-h-screen">
 
-  <!-- Level-up overlay (hidden) -->
+  <!-- Level-up overlay -->
   <div id="levelUpOverlay" class="levelup-overlay hidden">
     <div class="levelup-card bg-white rounded-3xl shadow-2xl p-8 text-center mx-6">
       <div class="text-6xl mb-3">⬆️</div>
       <h2 class="text-2xl font-black text-indigo-700 mb-1">Level Up!</h2>
-      <p class="text-gray-500 mb-4" id="levelUpMsg">You reached a new rank!</p>
+      <p class="text-gray-500 mb-4" id="levelUpMsg"></p>
       <button onclick="document.getElementById('levelUpOverlay').classList.add('hidden')"
-        class="bg-indigo-500 text-white font-black py-3 px-8 rounded-2xl">
-        Awesome! 🎉
-      </button>
+        class="bg-indigo-500 text-white font-black py-3 px-8 rounded-2xl">Awesome! 🎉</button>
     </div>
   </div>
 
-  <nav class="bg-white shadow-sm px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+  <nav class="bg-white shadow-sm px-5 py-4 flex items-center justify-between sticky top-0 z-10">
     <a href="home.html" class="text-indigo-600 font-bold text-lg">← Back</a>
     <h1 class="font-extrabold text-indigo-700 text-lg">🎯 Quiz</h1>
     <span class="text-sm text-gray-400" id="qCounter">1 / 10</span>
   </nav>
 
-  <div class="max-w-md mx-auto px-4 py-6">
+  <div class="max-w-md mx-auto px-4 py-5">
+
+    <!-- Difficulty banner -->
+    <div id="diffBanner" class="hidden diff-banner"></div>
 
     <!-- Mode tabs -->
-    <div class="flex bg-white rounded-2xl p-1 shadow-sm mb-5 gap-1">
+    <div class="flex bg-white rounded-2xl p-1 shadow-sm mb-4 gap-1">
       <button class="mode-tab active flex-1 py-2 rounded-xl font-bold text-sm" id="tabMCQ"   onclick="setMode('mcq')">📋 MCQ</button>
       <button class="mode-tab flex-1 py-2 rounded-xl font-bold text-sm text-gray-500" id="tabType"  onclick="setMode('type')">✏️ Type</button>
       <button class="mode-tab flex-1 py-2 rounded-xl font-bold text-sm text-gray-500" id="tabSpeed" onclick="setMode('speed')">⚡ Speed</button>
@@ -86,7 +82,7 @@
       </div>
       <span class="text-sm" id="livesDisplay">❤️❤️❤️</span>
     </div>
-    <div class="score-bar mb-5">
+    <div class="score-bar mb-4">
       <div class="score-fill" id="scoreFill" style="width:0%"></div>
     </div>
 
@@ -96,15 +92,13 @@
 
     <div id="quizScreen" class="hidden">
       <!-- Question card -->
-      <div class="bg-white rounded-3xl shadow-md p-6 mb-5 text-center" id="questionCard">
-        <p class="text-indigo-400 text-xs font-bold uppercase tracking-widest mb-3" id="questionDir">What is the English meaning of...</p>
-        <p class="text-4xl font-black text-gray-800" id="questionWord">—</p>
-        <!-- Audio button -->
+      <div class="bg-white rounded-3xl shadow-md p-6 mb-4 text-center">
+        <p class="text-indigo-400 text-xs font-bold uppercase tracking-widest mb-3" id="questionDir">—</p>
+        <p class="text-4xl font-black text-gray-800 mb-3" id="questionWord">—</p>
         <button id="audioBtn" onclick="speakQuestion()"
-          class="mt-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold px-4 py-2 rounded-full text-sm transition-colors">
+          class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold px-4 py-2 rounded-full text-sm transition-colors">
           🔊 Pronounce
         </button>
-        <!-- Speed timer -->
         <div id="timerBarWrapper" class="hidden mt-4">
           <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div id="timerBar" class="h-full bg-indigo-400 rounded-full" style="width:100%"></div>
@@ -112,11 +106,10 @@
         </div>
       </div>
 
-      <!-- Feedback strip -->
       <div id="feedbackStrip" class="hidden rounded-xl px-4 py-3 mb-4 text-sm font-bold"></div>
 
-      <!-- MCQ -->
-      <div id="mcqOptions" class="grid grid-cols-2 gap-3 mb-4"></div>
+      <!-- MCQ options -->
+      <div id="mcqOptions" class="gap-3 mb-4"></div>
 
       <!-- Type answer -->
       <div id="typeSection" class="hidden mb-4">
@@ -141,24 +134,19 @@
         <div id="resultEmoji" class="text-6xl mb-3">🏆</div>
         <h2 class="text-2xl font-black mb-1" id="resultTitle">Quiz Complete!</h2>
         <p class="text-gray-400 mb-2" id="resultSubtitle"></p>
-
-        <!-- XP summary -->
         <div class="bg-indigo-50 rounded-2xl p-3 mb-5">
           <p class="text-indigo-700 font-black text-xl" id="resultXP">+0 XP</p>
           <p class="text-indigo-400 text-xs">earned this quiz</p>
         </div>
-
-        <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="grid grid-cols-3 gap-3 mb-5">
           <div class="bg-green-50 rounded-2xl p-3"><p class="text-2xl font-black text-green-600" id="resCorrect">0</p><p class="text-xs text-gray-500">Correct</p></div>
           <div class="bg-red-50 rounded-2xl p-3"><p class="text-2xl font-black text-red-400" id="resWrong">0</p><p class="text-xs text-gray-500">Wrong</p></div>
           <div class="bg-indigo-50 rounded-2xl p-3"><p class="text-2xl font-black text-indigo-500" id="resScore">0%</p><p class="text-xs text-gray-500">Score</p></div>
         </div>
-
         <div id="missedSection" class="hidden text-left mb-5">
           <p class="font-bold text-gray-600 mb-2 text-sm">📖 Words to Review:</p>
-          <div id="missedList" class="space-y-2"></div>
+          <div id="missedList" class="space-y-2 max-h-48 overflow-y-auto"></div>
         </div>
-
         <div class="flex flex-col gap-3">
           <button onclick="restartQuiz()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 rounded-2xl shadow">🔁 Try Again</button>
           <a href="study.html" id="studyLink" class="block bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-2xl shadow text-center">📚 Back to Flashcards</a>
@@ -166,7 +154,6 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <!-- Bottom Nav -->
@@ -184,13 +171,44 @@
     import { recordStudySession } from "./js/streak.js";
     import { onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { collection, query, where, getDocs }
+    import { collection, query, where, getDocs, doc, getDoc }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // ── Level-based difficulty settings ──────────────────────────
+    const DIFFICULTY = {
+      primary: {
+        options:       3,       // 3 MCQ choices (easier)
+        lives:         5,       // more lives
+        speedSeconds:  12,      // more time
+        quizLength:    8,       // shorter quiz
+        xpPerCorrect:  8,
+        defaultDir:    "en-bm", // show EN → answer in BM (easier recall)
+        label: "🏫 Primary Mode — 3 options · 5 lives · 12s speed timer",
+      },
+      secondary: {
+        options:       4,       // 4 MCQ choices
+        lives:         3,
+        speedSeconds:  8,
+        quizLength:    10,
+        xpPerCorrect:  10,
+        defaultDir:    "bm-en", // show BM → answer in EN
+        label: "🎓 Secondary Mode — 4 options · 3 lives · 8s speed timer",
+      },
+      guest: {
+        options:       4,
+        lives:         3,
+        speedSeconds:  8,
+        quizLength:    10,
+        xpPerCorrect:  10,
+        defaultDir:    "bm-en",
+        label: "",
+      },
+    };
 
     let allWords=[], quizWords=[], currentIndex=0, score=0, lives=3;
     let correct=0, wrong=0, missedWords=[], mode="mcq", answered=false;
     let speedTimer=null, currentUser=null, sessionXP=0;
-    const QUIZ_LENGTH=10, SPEED_SECONDS=8;
+    let userLevel="guest", diff=DIFFICULTY.guest;
 
     const params = new URLSearchParams(window.location.search);
     const packId = params.get("pack") || "";
@@ -199,42 +217,80 @@
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = "index.html"; return; }
       currentUser = user;
+
+      // Load user level
+      if (!user.isAnonymous) {
+        try {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          if (snap.exists() && snap.data().schoolLevel) {
+            userLevel = snap.data().schoolLevel;
+          }
+        } catch {}
+      }
+
+      diff = DIFFICULTY[userLevel] || DIFFICULTY.guest;
+      applyDifficulty();
       await loadWords();
     });
 
+    function applyDifficulty() {
+      // Difficulty banner
+      if (diff.label) {
+        const banner = document.getElementById("diffBanner");
+        banner.textContent = diff.label;
+        banner.className = `diff-banner diff-${userLevel}`;
+        banner.classList.remove("hidden");
+      }
+      // MCQ grid: 2 cols for 4 options, full-width for 3
+      document.getElementById("mcqOptions").className =
+        diff.options === 3
+          ? "flex flex-col gap-3 mb-4"
+          : "grid grid-cols-2 gap-3 mb-4";
+    }
+
     async function loadWords() {
       try {
-        const q = query(collection(db, "words"), where("pack","==",packId));
+        const q = query(collection(db,"words"), where("pack","==",packId));
         const snap = await getDocs(q);
-        allWords = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+        allWords = snap.docs.map(d=>({id:d.id,...d.data()}));
         document.getElementById("loadingState").classList.add("hidden");
         document.getElementById("quizScreen").classList.remove("hidden");
         startQuiz();
       } catch {
-        document.getElementById("loadingState").innerHTML = `<p class="text-red-400 text-center">Failed to load.</p>`;
+        document.getElementById("loadingState").innerHTML =
+          `<p class="text-red-400 text-center">Failed to load.</p>`;
       }
     }
 
     function startQuiz() {
-      quizWords = shuffle([...allWords]).slice(0, QUIZ_LENGTH);
-      currentIndex=0; score=0; lives=3; correct=0; wrong=0;
-      missedWords=[]; sessionXP=0;
+      quizWords = shuffle([...allWords]).slice(0, diff.quizLength);
+      currentIndex=0; score=0; lives=diff.lives;
+      correct=0; wrong=0; missedWords=[]; sessionXP=0;
       updateHUD(); showQuestion();
     }
 
     function showQuestion() {
       if (currentIndex >= quizWords.length || lives <= 0) { endQuiz(); return; }
-      answered = false;
-      clearTimer();
+      answered=false; clearTimer();
       const word = quizWords[currentIndex];
       document.getElementById("feedbackStrip").classList.add("hidden");
       document.getElementById("nextBtn").classList.add("hidden");
-      document.getElementById("qCounter").textContent = `${currentIndex+1} / ${Math.min(QUIZ_LENGTH, quizWords.length)}`;
-      const bmToEn = Math.random() > 0.4;
+      document.getElementById("qCounter").textContent =
+        `${currentIndex+1} / ${Math.min(diff.quizLength, quizWords.length)}`;
+
+      // Direction: primary shows EN→BM, secondary shows BM→EN
+      // Also randomly flip direction for secondary (50/50) for variety
+      let bmToEn;
+      if (userLevel === "primary") {
+        bmToEn = false; // always EN question → BM answer (easier)
+      } else {
+        bmToEn = Math.random() > 0.4; // mostly BM→EN for secondary
+      }
       word._bmToEn = bmToEn;
-      document.getElementById("questionDir").textContent = bmToEn ? "What is the English meaning of..." : "What is the BM word for...";
+
+      document.getElementById("questionDir").textContent =
+        bmToEn ? "What is the English meaning of..." : "What is the BM word for...";
       document.getElementById("questionWord").textContent = bmToEn ? word.bm : word.en;
-      // Show audio btn only for BM→EN (we know the BM word to speak)
       document.getElementById("audioBtn").classList.toggle("hidden", !bmToEn);
 
       if (mode === "mcq" || mode === "speed") {
@@ -245,22 +301,23 @@
       } else {
         document.getElementById("mcqOptions").classList.add("hidden");
         document.getElementById("typeSection").classList.remove("hidden");
-        document.getElementById("typeInput").value = "";
-        document.getElementById("typeInput").disabled = false;
-        document.getElementById("typeInput").focus();
-        document.getElementById("typeInput").onkeydown = (e) => { if (e.key==="Enter") submitTyped(); };
+        const ti = document.getElementById("typeInput");
+        ti.value=""; ti.disabled=false; ti.focus();
+        ti.onkeydown = (e) => { if(e.key==="Enter") submitTyped(); };
       }
     }
 
     function buildMCQ(word, bmToEn) {
-      const correctAns = bmToEn ? word.en : word.bm;
-      const distractors = shuffle(allWords.filter(w=>w.id!==word.id)).slice(0,3).map(w=>bmToEn?w.en:w.bm);
+      const correctAns  = bmToEn ? word.en : word.bm;
+      const distractors = shuffle(allWords.filter(w=>w.id!==word.id))
+        .slice(0, diff.options - 1)
+        .map(w => bmToEn ? w.en : w.bm);
       const options = shuffle([correctAns, ...distractors]);
       const container = document.getElementById("mcqOptions");
       container.innerHTML = "";
       options.forEach(opt => {
         const btn = document.createElement("button");
-        btn.className = "option-btn bg-white border-gray-200 rounded-2xl p-4 font-bold text-gray-700 text-base shadow-sm";
+        btn.className = "option-btn bg-white border-gray-200 rounded-2xl p-4 font-bold text-gray-700 text-base shadow-sm w-full text-left";
         btn.textContent = opt;
         btn.onclick = () => handleMCQ(opt, correctAns, btn);
         container.appendChild(btn);
@@ -269,21 +326,20 @@
 
     window.handleMCQ = function(chosen, correctAns, btn) {
       if (answered) return;
-      clearTimer(); answered = true;
-      document.querySelectorAll(".option-btn").forEach(b => {
-        b.disabled = true;
-        if (b.textContent === correctAns) b.classList.add("option-correct");
+      clearTimer(); answered=true;
+      document.querySelectorAll(".option-btn").forEach(b=>{
+        b.disabled=true;
+        if (b.textContent===correctAns) b.classList.add("option-correct");
       });
-      if (chosen === correctAns) {
+      if (chosen===correctAns) {
         btn.classList.add("bounce-in");
-        const xp = mode==="speed" ? 15 : 10;
-        score += xp; sessionXP += xp; correct++;
+        const xp = mode==="speed" ? Math.round(diff.xpPerCorrect*1.5) : diff.xpPerCorrect;
+        score+=xp; sessionXP+=xp; correct++;
         showFeedback(true, correctAns);
         floatXP(`+${xp} XP`);
       } else {
         btn.classList.add("option-wrong","shake");
-        lives--; wrong++;
-        missedWords.push(quizWords[currentIndex]);
+        lives--; wrong++; missedWords.push(quizWords[currentIndex]);
         showFeedback(false, correctAns);
       }
       updateHUD();
@@ -294,17 +350,16 @@
       if (answered) return;
       const input = document.getElementById("typeInput");
       const typed = input.value.trim().toLowerCase();
-      const word = quizWords[currentIndex];
+      const word  = quizWords[currentIndex];
       const correctAns = word._bmToEn ? word.en : word.bm;
-      answered = true; input.disabled = true;
+      answered=true; input.disabled=true;
       if (fuzzyMatch(typed, correctAns.toLowerCase())) {
-        score += 10; sessionXP += 10; correct++;
+        score+=diff.xpPerCorrect; sessionXP+=diff.xpPerCorrect; correct++;
         input.classList.add("border-green-400","bg-green-50");
         showFeedback(true, correctAns);
-        floatXP("+10 XP");
+        floatXP(`+${diff.xpPerCorrect} XP`);
       } else {
-        lives--; wrong++;
-        missedWords.push(word);
+        lives--; wrong++; missedWords.push(word);
         input.classList.add("border-red-400","bg-red-50");
         showFeedback(false, correctAns);
       }
@@ -315,16 +370,15 @@
     window.speakQuestion = function() {
       const word = quizWords[currentIndex];
       if (!word) return;
-      const utter = new SpeechSynthesisUtterance(word.bm);
-      utter.lang = "ms-MY"; utter.rate = 0.85;
-      speechSynthesis.speak(utter);
+      const u = new SpeechSynthesisUtterance(word.bm);
+      u.lang="ms-MY"; u.rate=0.85; speechSynthesis.speak(u);
     };
 
     function showFeedback(isCorrect, correctAns) {
-      const strip = document.getElementById("feedbackStrip");
-      strip.className = `rounded-xl px-4 py-3 mb-4 text-sm font-bold ${isCorrect?"feedback-correct":"feedback-wrong"}`;
-      strip.textContent = isCorrect ? `✅ Correct! "${correctAns}"` : `❌ Wrong! The answer is "${correctAns}"`;
-      strip.classList.remove("hidden");
+      const s = document.getElementById("feedbackStrip");
+      s.className = `rounded-xl px-4 py-3 mb-4 text-sm font-bold ${isCorrect?"feedback-correct":"feedback-wrong"}`;
+      s.textContent = isCorrect ? `✅ Correct! "${correctAns}"` : `❌ Wrong! The answer is "${correctAns}"`;
+      s.classList.remove("hidden");
     }
 
     function floatXP(text) {
@@ -333,8 +387,7 @@
       el.className = "xp-float fixed font-black text-indigo-600 text-lg z-50";
       el.style.cssText = "top:120px;left:50%;transform:translateX(-50%)";
       document.body.appendChild(el);
-      setTimeout(() => el.remove(), 950);
-      // Update XP display
+      setTimeout(()=>el.remove(), 950);
       document.getElementById("xpDisplay").textContent = `+${sessionXP} XP`;
     }
 
@@ -343,11 +396,11 @@
     async function endQuiz() {
       document.getElementById("quizScreen").classList.add("hidden");
       document.getElementById("resultsScreen").classList.remove("hidden");
-      const total = correct + wrong;
-      const pct = total ? Math.round((correct/total)*100) : 0;
+      const total = correct+wrong;
+      const pct   = total ? Math.round((correct/total)*100) : 0;
       document.getElementById("resCorrect").textContent = correct;
       document.getElementById("resWrong").textContent   = wrong;
-      document.getElementById("resScore").textContent   = pct + "%";
+      document.getElementById("resScore").textContent   = pct+"%";
       document.getElementById("resultXP").textContent   = `+${sessionXP} XP`;
 
       const [emoji,title,sub] =
@@ -355,8 +408,8 @@
         pct>=70?["🎉","Great job!","Keep it up!"]:
         pct>=50?["👍","Not bad!","A bit more practice will help."]:
         ["💪","Keep trying!","Review the flashcards and try again."];
-      document.getElementById("resultEmoji").textContent  = emoji;
-      document.getElementById("resultTitle").textContent  = title;
+      document.getElementById("resultEmoji").textContent   = emoji;
+      document.getElementById("resultTitle").textContent   = title;
       document.getElementById("resultSubtitle").textContent = sub;
 
       if (missedWords.length > 0) {
@@ -368,16 +421,14 @@
           </div>`).join("");
       }
 
-      // Record session & XP
       if (currentUser && !currentUser.isAnonymous && sessionXP > 0) {
         try {
           const result = await recordStudySession(currentUser.uid, sessionXP);
           if (result.leveledUp) {
-            document.getElementById("levelUpMsg").textContent =
-              `You're now a "${result.newLevel.title}"!`;
+            document.getElementById("levelUpMsg").textContent = `You're now "${result.newLevel.title}"!`;
             document.getElementById("levelUpOverlay").classList.remove("hidden");
           }
-        } catch(e) { console.warn("Session record failed", e); }
+        } catch(e) { console.warn(e); }
       }
     }
 
@@ -389,8 +440,8 @@
     };
 
     window.setMode = function(m) {
-      mode = m;
-      ["MCQ","Type","Speed"].forEach(id => document.getElementById("tab"+id).classList.remove("active"));
+      mode=m;
+      ["MCQ","Type","Speed"].forEach(id=>document.getElementById("tab"+id).classList.remove("active"));
       const map={mcq:"MCQ",type:"Type",speed:"Speed"};
       document.getElementById("tab"+map[m]).classList.add("active");
       document.getElementById("timerBarWrapper").classList.toggle("hidden", m!=="speed");
@@ -398,48 +449,53 @@
     };
 
     function startSpeedTimer() {
-      const bar = document.getElementById("timerBar");
+      const bar=document.getElementById("timerBar");
       document.getElementById("timerBarWrapper").classList.remove("hidden");
       bar.style.transition="none"; bar.style.width="100%";
       let elapsed=0;
-      speedTimer = setInterval(() => {
-        elapsed += 100;
-        const pct = Math.max(0, 100-(elapsed/(SPEED_SECONDS*1000))*100);
+      speedTimer=setInterval(()=>{
+        elapsed+=100;
+        const pct=Math.max(0,100-(elapsed/(diff.speedSeconds*1000))*100);
         bar.style.transition="width 100ms linear";
-        bar.style.width = pct+"%";
-        bar.style.background = pct>50?"#4f46e5":pct>25?"#f59e0b":"#ef4444";
-        if (elapsed >= SPEED_SECONDS*1000) {
+        bar.style.width=pct+"%";
+        bar.style.background=pct>50?"#4f46e5":pct>25?"#f59e0b":"#ef4444";
+        if (elapsed>=diff.speedSeconds*1000) {
           clearTimer();
           if (!answered) {
             answered=true;
             const w=quizWords[currentIndex];
-            showFeedback(false, w._bmToEn?w.en:w.bm);
+            showFeedback(false,w._bmToEn?w.en:w.bm);
             lives--; wrong++; missedWords.push(w);
             document.querySelectorAll(".option-btn").forEach(b=>b.disabled=true);
             updateHUD();
             document.getElementById("nextBtn").classList.remove("hidden");
           }
         }
-      }, 100);
+      },100);
     }
 
     function clearTimer() { if(speedTimer){clearInterval(speedTimer);speedTimer=null;} }
 
     function updateHUD() {
       document.getElementById("scoreDisplay").textContent = score;
-      document.getElementById("livesDisplay").textContent = "❤️".repeat(Math.max(0,lives))+"🖤".repeat(Math.max(0,3-lives));
+      document.getElementById("livesDisplay").textContent =
+        "❤️".repeat(Math.max(0,lives)) + "🖤".repeat(Math.max(0,diff.lives-lives));
       const pct = quizWords.length ? (currentIndex/quizWords.length)*100 : 0;
       document.getElementById("scoreFill").style.width = pct+"%";
     }
 
-    function fuzzyMatch(a, b) { return a===b || levenshtein(a,b)<=1; }
+    function fuzzyMatch(a,b) { return a===b||levenshtein(a,b)<=1; }
     function levenshtein(a,b) {
       const m=a.length,n=b.length;
       const dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i===0?j:j===0?i:0));
-      for(let i=1;i<=m;i++) for(let j=1;j<=n;j++) dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+      for(let i=1;i<=m;i++) for(let j=1;j<=n;j++)
+        dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
       return dp[m][n];
     }
-    function shuffle(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+    function shuffle(arr) {
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+      return arr;
+    }
   </script>
 </body>
 </html>

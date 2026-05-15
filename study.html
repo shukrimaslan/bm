@@ -9,11 +9,25 @@
   <style>
     body { font-family: 'Nunito', sans-serif; padding-bottom: 80px; }
     .flip-container { perspective: 1000px; }
-    .flip-card { position:relative; width:100%; height:280px; transform-style:preserve-3d; transition:transform .55s cubic-bezier(.4,2,.6,1); cursor:pointer; }
+    .flip-card {
+      position:relative; width:100%; height:280px;
+      transform-style:preserve-3d;
+      transition:transform .55s cubic-bezier(.4,2,.6,1);
+      cursor:pointer;
+    }
     .flip-card.flipped { transform: rotateY(180deg); }
-    .flip-front, .flip-back { position:absolute; width:100%; height:100%; backface-visibility:hidden; border-radius:1.5rem; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem; }
-    .flip-front { background: linear-gradient(135deg,#16a34a,#4ade80); color:white; }
-    .flip-back  { background: linear-gradient(135deg,#1d4ed8,#60a5fa); color:white; transform:rotateY(180deg); }
+    .flip-front, .flip-back {
+      position:absolute; width:100%; height:100%;
+      backface-visibility:hidden; border-radius:1.5rem;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem;
+    }
+    /* Primary: EN front (blue) → BM back (green) */
+    .flip-front-primary { background: linear-gradient(135deg,#1d4ed8,#60a5fa); color:white; }
+    .flip-back-primary  { background: linear-gradient(135deg,#16a34a,#4ade80); color:white; transform:rotateY(180deg); }
+    /* Secondary: BM front (green) → EN back (blue) */
+    .flip-front-secondary { background: linear-gradient(135deg,#16a34a,#4ade80); color:white; }
+    .flip-back-secondary  { background: linear-gradient(135deg,#1d4ed8,#60a5fa); color:white; transform:rotateY(180deg); }
+
     .btn-know { background:linear-gradient(135deg,#16a34a,#4ade80); transition:transform .15s,box-shadow .15s; }
     .btn-know:hover { transform:translateY(-2px); box-shadow:0 8px 20px #16a34a55; }
     .btn-skip { background:linear-gradient(135deg,#dc2626,#f87171); transition:transform .15s,box-shadow .15s; }
@@ -24,9 +38,12 @@
     .tap-hint { animation: pulse-hint 2s infinite; }
     @keyframes pop-in { 0%{transform:scale(.7);opacity:0} 80%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
     .pop-in { animation: pop-in .5s forwards; }
-    /* Audio btn ripple */
     .audio-btn { transition:transform .1s; }
     .audio-btn:active { transform:scale(.92); }
+
+    /* Level hint banner */
+    .hint-primary   { background:#dbeafe; border:1.5px solid #93c5fd; color:#1e40af; }
+    .hint-secondary { background:#dcfce7; border:1.5px solid #86efac; color:#166534; }
 
     /* Bottom nav */
     .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #f3f4f6; padding:8px 0 max(8px,env(safe-area-inset-bottom)); z-index:50; }
@@ -45,8 +62,12 @@
     </div>
   </nav>
 
-  <div class="max-w-md mx-auto px-4 py-6">
-    <div class="progress-bar mb-6">
+  <div class="max-w-md mx-auto px-4 py-5">
+
+    <!-- Level mode hint -->
+    <div id="levelHint" class="hidden rounded-2xl px-4 py-2 mb-4 text-xs font-bold text-center"></div>
+
+    <div class="progress-bar mb-5">
       <div class="progress-fill" id="progressFill" style="width:0%"></div>
     </div>
 
@@ -55,27 +76,25 @@
     </div>
 
     <div id="studyScreen" class="hidden">
+
       <!-- Flip Card -->
       <div class="flip-container mb-4">
         <div class="flip-card" id="flipCard" onclick="flipCard()">
-          <div class="flip-front">
-            <p class="text-white/70 text-xs font-bold uppercase tracking-widest mb-3">Bahasa Malaysia</p>
-            <p class="text-4xl font-black text-center" id="bmWord">—</p>
-            <!-- Audio button on front -->
+          <!-- Front face -->
+          <div class="flip-front" id="cardFront">
+            <p class="text-white/70 text-xs font-bold uppercase tracking-widest mb-3" id="frontLabel">Bahasa Malaysia</p>
+            <p class="text-4xl font-black text-center" id="frontWord">—</p>
             <button class="audio-btn mt-4 bg-white/25 hover:bg-white/40 text-white font-bold px-4 py-2 rounded-full text-sm flex items-center gap-2"
-              onclick="event.stopPropagation(); speakCurrent()">
-              🔊 Sebutan
-            </button>
+              onclick="event.stopPropagation(); speakBM()">🔊 Sebutan</button>
             <p class="mt-3 tap-hint text-white/60 text-xs">👆 Tap card to see meaning</p>
           </div>
-          <div class="flip-back">
-            <p class="text-white/70 text-xs font-bold uppercase tracking-widest mb-3">English</p>
-            <p class="text-4xl font-black text-center" id="enWord">—</p>
+          <!-- Back face -->
+          <div class="flip-back" id="cardBack">
+            <p class="text-white/70 text-xs font-bold uppercase tracking-widest mb-3" id="backLabel">English</p>
+            <p class="text-4xl font-black text-center" id="backWord">—</p>
             <p class="mt-3 text-white/80 text-sm text-center italic px-2" id="exampleSentence"></p>
             <button class="audio-btn mt-3 bg-white/25 hover:bg-white/40 text-white font-bold px-4 py-2 rounded-full text-sm flex items-center gap-2"
-              onclick="event.stopPropagation(); speakCurrent()">
-              🔊 Sebutan
-            </button>
+              onclick="event.stopPropagation(); speakBM()">🔊 Sebutan</button>
           </div>
         </div>
       </div>
@@ -88,7 +107,7 @@
           class="btn-know flex-1 text-white font-bold py-4 rounded-2xl text-lg shadow-md">✅ I Know It!</button>
       </div>
 
-      <!-- Stats row -->
+      <!-- Stats -->
       <div class="grid grid-cols-2 gap-3">
         <div class="bg-white rounded-2xl p-4 text-center shadow-sm">
           <p class="text-2xl font-black text-green-500" id="knownCount">0</p>
@@ -106,21 +125,17 @@
       <div class="pop-in bg-white rounded-3xl shadow-lg p-8">
         <div class="text-6xl mb-3">🎉</div>
         <h2 class="text-2xl font-black text-green-700 mb-1">Pack Complete!</h2>
-        <p class="text-gray-500 mb-2">Great job studying this pack!</p>
-
-        <!-- XP earned -->
-        <div id="xpEarned" class="bg-indigo-50 rounded-2xl p-3 mb-4 hidden">
+        <p class="text-gray-500 mb-3">Great job studying this pack!</p>
+        <div id="xpEarned" class="bg-indigo-50 rounded-2xl p-3 mb-3 hidden">
           <p class="text-indigo-700 font-black text-lg" id="xpEarnedText">+0 XP</p>
           <p class="text-indigo-400 text-xs">earned this session</p>
         </div>
-        <!-- Level up -->
         <div id="levelUpBanner" class="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-3 mb-4 hidden">
           <p class="text-2xl mb-1">⬆️</p>
           <p class="text-yellow-700 font-black">Level Up!</p>
           <p class="text-yellow-600 text-sm" id="levelUpText"></p>
         </div>
-
-        <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="grid grid-cols-2 gap-4 mb-5">
           <div class="bg-green-50 rounded-2xl p-4">
             <p class="text-3xl font-black text-green-600" id="finalKnown">0</p>
             <p class="text-sm text-gray-500">Words Known</p>
@@ -154,20 +169,63 @@
     import { recordStudySession } from "./js/streak.js";
     import { onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { collection, query, where, getDocs, doc, setDoc, serverTimestamp }
+    import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     let words = [], currentIndex = 0, isFlipped = false;
     let known = 0, skipped = 0, currentUser = null;
-    const params = new URLSearchParams(window.location.search);
-    const packId = params.get("pack") || "";
+    let userLevel = null; // "primary" | "secondary"
+    // Primary: show EN first (hint), flip to BM
+    // Secondary: show BM first (harder), flip to EN
+
+    const params  = new URLSearchParams(window.location.search);
+    const packId  = params.get("pack") || "";
     document.getElementById("quizLink").href = `quiz.html?pack=${packId}`;
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = "index.html"; return; }
       currentUser = user;
+
+      // Load user level
+      if (!user.isAnonymous) {
+        try {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          if (snap.exists()) userLevel = snap.data().schoolLevel || null;
+        } catch {}
+      }
+
+      applyLevelStyles();
       await loadWords();
     });
+
+    function applyLevelStyles() {
+      const front = document.getElementById("cardFront");
+      const back  = document.getElementById("cardBack");
+
+      if (userLevel === "primary") {
+        // Show English first — easier (familiar language as hint)
+        front.className = "flip-front flip-front-primary";
+        back.className  = "flip-back flip-back-primary";
+        document.getElementById("frontLabel").textContent = "English";
+        document.getElementById("backLabel").textContent  = "Bahasa Malaysia";
+        const hint = document.getElementById("levelHint");
+        hint.className = "hint-primary rounded-2xl px-4 py-2 mb-4 text-xs font-bold text-center";
+        hint.textContent = "🏫 Primary Mode — English shown first as a hint";
+        hint.classList.remove("hidden");
+      } else {
+        // Secondary or guest: BM first (standard, harder)
+        front.className = "flip-front flip-front-secondary";
+        back.className  = "flip-back flip-back-secondary";
+        document.getElementById("frontLabel").textContent = "Bahasa Malaysia";
+        document.getElementById("backLabel").textContent  = "English";
+        if (userLevel === "secondary") {
+          const hint = document.getElementById("levelHint");
+          hint.className = "hint-secondary rounded-2xl px-4 py-2 mb-4 text-xs font-bold text-center";
+          hint.textContent = "🎓 Secondary Mode — Recall the English meaning";
+          hint.classList.remove("hidden");
+        }
+      }
+    }
 
     async function loadWords() {
       try {
@@ -176,13 +234,13 @@
         words = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         shuffle(words);
         document.getElementById("packTitle").textContent =
-          packId.charAt(0).toUpperCase() + packId.slice(1).replace(/_/g," ");
+          packId.charAt(0).toUpperCase() + packId.slice(1).replace(/_/g, " ");
         document.getElementById("loadingState").classList.add("hidden");
         document.getElementById("studyScreen").classList.remove("hidden");
         showCard();
-      } catch (err) {
+      } catch {
         document.getElementById("loadingState").innerHTML =
-          `<p class="text-red-400">Failed to load. Check Firestore rules.</p>`;
+          `<p class="text-red-400 text-center">Failed to load. Check Firestore rules.</p>`;
       }
     }
 
@@ -192,8 +250,16 @@
       document.getElementById("flipCard").classList.remove("flipped");
       document.getElementById("actionButtons").classList.add("hidden");
       const word = words[currentIndex];
-      document.getElementById("bmWord").textContent = word.bm;
-      document.getElementById("enWord").textContent = word.en;
+
+      if (userLevel === "primary") {
+        // Front = English, Back = BM
+        document.getElementById("frontWord").textContent = word.en;
+        document.getElementById("backWord").textContent  = word.bm;
+      } else {
+        // Front = BM, Back = English
+        document.getElementById("frontWord").textContent = word.bm;
+        document.getElementById("backWord").textContent  = word.en;
+      }
       document.getElementById("exampleSentence").textContent = word.example_bm || "";
       updateProgress();
     }
@@ -205,13 +271,12 @@
       setTimeout(() => document.getElementById("actionButtons").classList.remove("hidden"), 300);
     };
 
-    window.speakCurrent = function() {
+    window.speakBM = function() {
       const word = words[currentIndex];
       if (!word) return;
-      const utter = new SpeechSynthesisUtterance(word.bm);
-      utter.lang = "ms-MY";
-      utter.rate = 0.85;
-      speechSynthesis.speak(utter);
+      const u = new SpeechSynthesisUtterance(word.bm);
+      u.lang = "ms-MY"; u.rate = 0.85;
+      speechSynthesis.speak(u);
     };
 
     window.markWord = async function(result) {
@@ -220,8 +285,11 @@
         document.getElementById("knownCount").textContent = known;
         if (currentUser && !currentUser.isAnonymous) {
           const wordId = words[currentIndex].id;
-          await setDoc(doc(db, "users", currentUser.uid, "progress", wordId),
-            { status: "known", updatedAt: serverTimestamp() }, { merge: true });
+          await setDoc(
+            doc(db, "users", currentUser.uid, "progress", wordId),
+            { status: "known", updatedAt: serverTimestamp() },
+            { merge: true }
+          );
         }
       } else {
         skipped++;
@@ -241,12 +309,11 @@
       document.getElementById("studyScreen").classList.add("hidden");
       document.getElementById("completeScreen").classList.remove("hidden");
       document.getElementById("finalKnown").textContent = known;
-      document.getElementById("finalSkip").textContent = skipped;
+      document.getElementById("finalSkip").textContent  = skipped;
       document.getElementById("progressFill").style.width = "100%";
 
-      // Record session & award XP
       if (currentUser && !currentUser.isAnonymous) {
-        const xpGained = known * 5; // 5 XP per known word in study mode
+        const xpGained = known * 5;
         try {
           const result = await recordStudySession(currentUser.uid, xpGained);
           if (xpGained > 0) {
@@ -254,11 +321,10 @@
             document.getElementById("xpEarned").classList.remove("hidden");
           }
           if (result.leveledUp) {
-            document.getElementById("levelUpText").textContent =
-              `You're now a "${result.newLevel.title}"!`;
+            document.getElementById("levelUpText").textContent = `You're now "${result.newLevel.title}"!`;
             document.getElementById("levelUpBanner").classList.remove("hidden");
           }
-        } catch(e) { console.warn("Session record failed", e); }
+        } catch(e) { console.warn(e); }
       }
     }
 
@@ -266,7 +332,7 @@
       currentIndex = 0; known = 0; skipped = 0;
       shuffle(words);
       document.getElementById("knownCount").textContent = 0;
-      document.getElementById("skipCount").textContent = 0;
+      document.getElementById("skipCount").textContent  = 0;
       document.getElementById("xpEarned").classList.add("hidden");
       document.getElementById("levelUpBanner").classList.add("hidden");
       document.getElementById("completeScreen").classList.add("hidden");
