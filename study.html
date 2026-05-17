@@ -3,54 +3,64 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#16a34a"/>
+  <link rel="manifest" href="/manifest.json"/>
   <title>BM Vocab - Study</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    body { font-family: 'Nunito', sans-serif; padding-bottom: 80px; }
-    .flip-container { perspective: 1000px; }
-    .flip-card {
-      position:relative; width:100%; height:280px;
-      transform-style:preserve-3d;
-      transition:transform .55s cubic-bezier(.4,2,.6,1);
-      cursor:pointer;
-    }
-    .flip-card.flipped { transform: rotateY(180deg); }
-    .flip-front, .flip-back {
-      position:absolute; width:100%; height:100%;
-      backface-visibility:hidden; border-radius:1.5rem;
-      display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem;
-    }
-    /* Primary: EN front (blue) → BM back (green) */
-    .flip-front-primary { background: linear-gradient(135deg,#1d4ed8,#60a5fa); color:white; }
-    .flip-back-primary  { background: linear-gradient(135deg,#16a34a,#4ade80); color:white; transform:rotateY(180deg); }
-    /* Secondary: BM front (green) → EN back (blue) */
-    .flip-front-secondary { background: linear-gradient(135deg,#16a34a,#4ade80); color:white; }
-    .flip-back-secondary  { background: linear-gradient(135deg,#1d4ed8,#60a5fa); color:white; transform:rotateY(180deg); }
+    body { font-family:'Nunito',sans-serif; padding-bottom:80px; }
+    html.dark body            { background:#0f172a !important; }
+    html.dark .bg-white       { background:#1e293b !important; }
+    html.dark nav.bg-white    { background:#1e293b !important; }
+    html.dark .bottom-nav     { background:#1e293b !important; border-top-color:#334155 !important; }
+    html.dark .text-gray-800  { color:#f1f5f9 !important; }
+    html.dark .text-gray-500  { color:#94a3b8 !important; }
+    html.dark .text-gray-400  { color:#64748b !important; }
+    html.dark .bg-green-50    { background:#052e16 !important; }
+    html.dark .bg-red-50      { background:#450a0a !important; }
+    html.dark .bg-indigo-50   { background:#1e1b4b !important; }
+    html.dark .progress-bar   { background:#1e293b !important; }
+    html.dark .hint-primary   { background:#1e3a5f !important; border-color:#1d4ed8 !important; color:#93c5fd !important; }
+    html.dark .hint-secondary { background:#052e16 !important; border-color:#166534 !important; color:#4ade80 !important; }
+    html.dark .skeleton        { background:#334155 !important; }
+
+    .flip-container { perspective:1000px; }
+    .flip-card { position:relative; width:100%; height:280px; transform-style:preserve-3d; transition:transform .55s cubic-bezier(.4,2,.6,1); cursor:pointer; }
+    .flip-card.flipped { transform:rotateY(180deg); }
+    .flip-front,.flip-back { position:absolute; width:100%; height:100%; backface-visibility:hidden; border-radius:1.5rem; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem; }
+    .flip-front-primary   { background:linear-gradient(135deg,#1d4ed8,#60a5fa); color:white; }
+    .flip-back-primary    { background:linear-gradient(135deg,#16a34a,#4ade80); color:white; transform:rotateY(180deg); }
+    .flip-front-secondary { background:linear-gradient(135deg,#16a34a,#4ade80); color:white; }
+    .flip-back-secondary  { background:linear-gradient(135deg,#1d4ed8,#60a5fa); color:white; transform:rotateY(180deg); }
 
     .btn-know { background:linear-gradient(135deg,#16a34a,#4ade80); transition:transform .15s,box-shadow .15s; }
     .btn-know:hover { transform:translateY(-2px); box-shadow:0 8px 20px #16a34a55; }
     .btn-skip { background:linear-gradient(135deg,#dc2626,#f87171); transition:transform .15s,box-shadow .15s; }
     .btn-skip:hover { transform:translateY(-2px); box-shadow:0 8px 20px #dc262655; }
-    .progress-bar { height:8px; border-radius:99px; background:#dcfce7; overflow:hidden; }
+
+    .progress-bar  { height:8px; border-radius:99px; background:#dcfce7; overflow:hidden; }
     .progress-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,#16a34a,#4ade80); transition:width .4s ease; }
+
     @keyframes pulse-hint { 0%,100%{opacity:1} 50%{opacity:.4} }
-    .tap-hint { animation: pulse-hint 2s infinite; }
+    .tap-hint { animation:pulse-hint 2s infinite; }
     @keyframes pop-in { 0%{transform:scale(.7);opacity:0} 80%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
-    .pop-in { animation: pop-in .5s forwards; }
+    .pop-in { animation:pop-in .5s forwards; }
     .audio-btn { transition:transform .1s; }
     .audio-btn:active { transform:scale(.92); }
 
-    /* Level hint banner */
     .hint-primary   { background:#dbeafe; border:1.5px solid #93c5fd; color:#1e40af; }
     .hint-secondary { background:#dcfce7; border:1.5px solid #86efac; color:#166534; }
+    .offline-banner { background:#fef3c7; border:2px solid #fcd34d; }
+    html.dark .offline-banner { background:#1a1200 !important; border-color:#854d0e !important; color:#fcd34d !important; }
+    .skeleton { border-radius:1.5rem; background:#e5e7eb; }
 
-    /* Bottom nav */
     .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #f3f4f6; padding:8px 0 max(8px,env(safe-area-inset-bottom)); z-index:50; }
     .nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; flex:1; font-size:11px; font-weight:800; color:#9ca3af; text-decoration:none; transition:color .2s; }
     .nav-item.active { color:#16a34a; }
     .nav-icon { font-size:22px; line-height:1; }
   </style>
+  <script>(function(){const t=localStorage.getItem('bmvocab_theme');if(t==='dark')document.documentElement.classList.add('dark');})();</script>
 </head>
 <body class="bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen">
 
@@ -63,24 +73,29 @@
   </nav>
 
   <div class="max-w-md mx-auto px-4 py-5">
-
-    <!-- Level mode hint -->
+    <div id="offlineBanner" class="offline-banner hidden rounded-2xl px-4 py-2 mb-3 text-yellow-800 text-xs font-bold text-center">📶 Offline — showing cached words</div>
     <div id="levelHint" class="hidden rounded-2xl px-4 py-2 mb-4 text-xs font-bold text-center"></div>
+    <div class="progress-bar mb-5"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
 
-    <div class="progress-bar mb-5">
-      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    <!-- Skeleton -->
+    <div id="loadingState" class="space-y-4">
+      <div class="skeleton h-72 animate-pulse"></div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="skeleton h-16 animate-pulse"></div>
+        <div class="skeleton h-16 animate-pulse"></div>
+      </div>
     </div>
 
-    <div id="loadingState" class="text-center py-20 text-gray-400">
-      <div class="text-5xl mb-4">⏳</div><p>Loading flashcards...</p>
+    <!-- Error -->
+    <div id="errorState" class="hidden text-center py-20">
+      <div class="text-5xl mb-3">⚠️</div>
+      <p class="text-red-400 font-semibold mb-3">Failed to load words.</p>
+      <a href="home.html" class="bg-gray-100 text-gray-600 font-bold py-2 px-5 rounded-full text-sm">← Back</a>
     </div>
 
     <div id="studyScreen" class="hidden">
-
-      <!-- Flip Card -->
       <div class="flip-container mb-4">
         <div class="flip-card" id="flipCard" onclick="flipCard()">
-          <!-- Front face -->
           <div class="flip-front" id="cardFront">
             <p class="text-white/70 text-xs font-bold uppercase tracking-widest mb-3" id="frontLabel">Bahasa Malaysia</p>
             <p class="text-4xl font-black text-center" id="frontWord">—</p>
@@ -88,7 +103,6 @@
               onclick="event.stopPropagation(); speakBM()">🔊 Sebutan</button>
             <p class="mt-3 tap-hint text-white/60 text-xs">👆 Tap card to see meaning</p>
           </div>
-          <!-- Back face -->
           <div class="flip-back" id="cardBack">
             <p class="text-white/70 text-xs font-bold uppercase tracking-widest mb-3" id="backLabel">English</p>
             <p class="text-4xl font-black text-center" id="backWord">—</p>
@@ -99,15 +113,11 @@
         </div>
       </div>
 
-      <!-- Action buttons -->
       <div id="actionButtons" class="hidden flex gap-4 mb-5">
-        <button onclick="markWord('skip')"
-          class="btn-skip flex-1 text-white font-bold py-4 rounded-2xl text-lg shadow-md">❌ Not Yet</button>
-        <button onclick="markWord('know')"
-          class="btn-know flex-1 text-white font-bold py-4 rounded-2xl text-lg shadow-md">✅ I Know It!</button>
+        <button onclick="markWord('skip')" class="btn-skip flex-1 text-white font-bold py-4 rounded-2xl text-lg shadow-md">❌ Not Yet</button>
+        <button onclick="markWord('know')" class="btn-know flex-1 text-white font-bold py-4 rounded-2xl text-lg shadow-md">✅ I Know It!</button>
       </div>
 
-      <!-- Stats -->
       <div class="grid grid-cols-2 gap-3">
         <div class="bg-white rounded-2xl p-4 text-center shadow-sm">
           <p class="text-2xl font-black text-green-500" id="knownCount">0</p>
@@ -120,12 +130,12 @@
       </div>
     </div>
 
-    <!-- Complete screen -->
+    <!-- Complete -->
     <div id="completeScreen" class="hidden text-center py-6">
       <div class="pop-in bg-white rounded-3xl shadow-lg p-8">
         <div class="text-6xl mb-3">🎉</div>
         <h2 class="text-2xl font-black text-green-700 mb-1">Pack Complete!</h2>
-        <p class="text-gray-500 mb-3">Great job studying this pack!</p>
+        <p class="text-gray-500 mb-3">Great job!</p>
         <div id="xpEarned" class="bg-indigo-50 rounded-2xl p-3 mb-3 hidden">
           <p class="text-indigo-700 font-black text-lg" id="xpEarnedText">+0 XP</p>
           <p class="text-indigo-400 text-xs">earned this session</p>
@@ -136,14 +146,8 @@
           <p class="text-yellow-600 text-sm" id="levelUpText"></p>
         </div>
         <div class="grid grid-cols-2 gap-4 mb-5">
-          <div class="bg-green-50 rounded-2xl p-4">
-            <p class="text-3xl font-black text-green-600" id="finalKnown">0</p>
-            <p class="text-sm text-gray-500">Words Known</p>
-          </div>
-          <div class="bg-red-50 rounded-2xl p-4">
-            <p class="text-3xl font-black text-red-400" id="finalSkip">0</p>
-            <p class="text-sm text-gray-500">To Review</p>
-          </div>
+          <div class="bg-green-50 rounded-2xl p-4"><p class="text-3xl font-black text-green-600" id="finalKnown">0</p><p class="text-sm text-gray-500">Words Known</p></div>
+          <div class="bg-red-50 rounded-2xl p-4"><p class="text-3xl font-black text-red-400" id="finalSkip">0</p><p class="text-sm text-gray-500">To Review</p></div>
         </div>
         <div class="flex flex-col gap-3">
           <button onclick="restartStudy()" class="btn-know text-white font-bold py-3 rounded-2xl shadow">🔁 Study Again</button>
@@ -154,198 +158,139 @@
     </div>
   </div>
 
-  <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <div class="max-w-2xl mx-auto flex">
-      <a href="home.html" class="nav-item active"><span class="nav-icon">🏠</span>Home</a>
-      <a href="progress.html" class="nav-item"><span class="nav-icon">📊</span>Progress</a>
+      <a href="home.html"        class="nav-item active"><span class="nav-icon">🏠</span>Home</a>
+      <a href="progress.html"    class="nav-item"><span class="nav-icon">📊</span>Progress</a>
       <a href="leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Ranking</a>
-      <a href="profile.html" class="nav-item"><span class="nav-icon">👤</span>Profile</a>
+      <a href="profile.html"     class="nav-item"><span class="nav-icon">👤</span>Profile</a>
     </div>
   </nav>
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
     import { recordStudySession } from "./js/streak.js";
+    import { initTheme } from "./js/theme.js";
+    import { isOnline, getCachedWords, cacheWords } from "./js/cache.js";
     import { onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    let words = [], currentIndex = 0, isFlipped = false;
-    let known = 0, skipped = 0, currentUser = null;
-    let userLevel = null; // "primary" | "secondary"
-    // Primary: show EN first (hint), flip to BM
-    // Secondary: show BM first (harder), flip to EN
+    initTheme();
 
-    const params  = new URLSearchParams(window.location.search);
-    const packId  = params.get("pack") || "";
-    document.getElementById("quizLink").href = `quiz.html?pack=${packId}`;
+    let words=[], currentIndex=0, isFlipped=false, known=0, skipped=0;
+    let currentUser=null, userLevel=null;
+    const params=new URLSearchParams(window.location.search);
+    const packId=params.get("pack")||"";
+    document.getElementById("quizLink").href=`quiz.html?pack=${packId}`;
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) { window.location.href = "index.html"; return; }
-      currentUser = user;
-
-      // Load user level
+      if (!user) { window.location.href="index.html"; return; }
+      currentUser=user;
       if (!user.isAnonymous) {
-        try {
-          const snap = await getDoc(doc(db, "users", user.uid));
-          if (snap.exists()) userLevel = snap.data().schoolLevel || null;
-        } catch {}
+        try { const s=await getDoc(doc(db,"users",user.uid)); if(s.exists()) userLevel=s.data().schoolLevel||null; } catch {}
       }
-
       applyLevelStyles();
       await loadWords();
     });
 
-    function applyLevelStyles() {
-      const front = document.getElementById("cardFront");
-      const back  = document.getElementById("cardBack");
-
-      if (userLevel === "primary") {
-        // Show English first — easier (familiar language as hint)
-        front.className = "flip-front flip-front-primary";
-        back.className  = "flip-back flip-back-primary";
-        document.getElementById("frontLabel").textContent = "English";
-        document.getElementById("backLabel").textContent  = "Bahasa Malaysia";
-        const hint = document.getElementById("levelHint");
-        hint.className = "hint-primary rounded-2xl px-4 py-2 mb-4 text-xs font-bold text-center";
-        hint.textContent = "🏫 Primary Mode — English shown first as a hint";
+    function applyLevelStyles(){
+      const front=document.getElementById("cardFront");
+      const back =document.getElementById("cardBack");
+      const hint =document.getElementById("levelHint");
+      if (userLevel==="primary"){
+        front.className="flip-front flip-front-primary"; back.className="flip-back flip-back-primary";
+        document.getElementById("frontLabel").textContent="English";
+        document.getElementById("backLabel").textContent ="Bahasa Malaysia";
+        hint.className="hint-primary rounded-2xl px-4 py-2 mb-4 text-xs font-bold text-center";
+        hint.textContent="🏫 Primary Mode — English shown first as a hint";
         hint.classList.remove("hidden");
       } else {
-        // Secondary or guest: BM first (standard, harder)
-        front.className = "flip-front flip-front-secondary";
-        back.className  = "flip-back flip-back-secondary";
-        document.getElementById("frontLabel").textContent = "Bahasa Malaysia";
-        document.getElementById("backLabel").textContent  = "English";
-        if (userLevel === "secondary") {
-          const hint = document.getElementById("levelHint");
-          hint.className = "hint-secondary rounded-2xl px-4 py-2 mb-4 text-xs font-bold text-center";
-          hint.textContent = "🎓 Secondary Mode — Recall the English meaning";
+        front.className="flip-front flip-front-secondary"; back.className="flip-back flip-back-secondary";
+        document.getElementById("frontLabel").textContent="Bahasa Malaysia";
+        document.getElementById("backLabel").textContent ="English";
+        if (userLevel==="secondary"){
+          hint.className="hint-secondary rounded-2xl px-4 py-2 mb-4 text-xs font-bold text-center";
+          hint.textContent="🎓 Secondary Mode — Recall the English meaning";
           hint.classList.remove("hidden");
         }
       }
     }
 
-    async function loadWords() {
+    async function loadWords(){
       try {
-        const q = query(collection(db, "words"), where("pack", "==", packId));
-        const snapshot = await getDocs(q);
-        words = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        let fromCache=false;
+        if (isOnline()){
+          const q=query(collection(db,"words"),where("pack","==",packId));
+          const snap=await getDocs(q);
+          words=snap.docs.map(d=>({id:d.id,...d.data()}));
+          cacheWords(packId,words);
+        } else {
+          words=getCachedWords(packId)||[];
+          fromCache=true;
+          if (!words.length){ showError(); return; }
+        }
+        if (fromCache) document.getElementById("offlineBanner").classList.remove("hidden");
+        if (!words.length){ showError(); return; }
         shuffle(words);
-        document.getElementById("packTitle").textContent =
-          packId.charAt(0).toUpperCase() + packId.slice(1).replace(/_/g, " ");
+        document.getElementById("packTitle").textContent=packId.charAt(0).toUpperCase()+packId.slice(1).replace(/_/g," ");
         document.getElementById("loadingState").classList.add("hidden");
         document.getElementById("studyScreen").classList.remove("hidden");
         showCard();
       } catch {
-        document.getElementById("loadingState").innerHTML =
-          `<p class="text-red-400 text-center">Failed to load. Check Firestore rules.</p>`;
+        const cached=getCachedWords(packId);
+        if (cached?.length){ words=cached; document.getElementById("offlineBanner").classList.remove("hidden"); document.getElementById("loadingState").classList.add("hidden"); document.getElementById("studyScreen").classList.remove("hidden"); shuffle(words); showCard(); }
+        else showError();
       }
     }
 
-    function showCard() {
-      if (currentIndex >= words.length) { showComplete(); return; }
-      isFlipped = false;
+    function showError(){ document.getElementById("loadingState").classList.add("hidden"); document.getElementById("errorState").classList.remove("hidden"); }
+
+    function showCard(){
+      if (currentIndex>=words.length){ showComplete(); return; }
+      isFlipped=false;
       document.getElementById("flipCard").classList.remove("flipped");
       document.getElementById("actionButtons").classList.add("hidden");
-      const word = words[currentIndex];
-
-      if (userLevel === "primary") {
-        // Front = English, Back = BM
-        document.getElementById("frontWord").textContent = word.en;
-        document.getElementById("backWord").textContent  = word.bm;
-      } else {
-        // Front = BM, Back = English
-        document.getElementById("frontWord").textContent = word.bm;
-        document.getElementById("backWord").textContent  = word.en;
-      }
-      document.getElementById("exampleSentence").textContent = word.example_bm || "";
+      const w=words[currentIndex];
+      if (userLevel==="primary"){ document.getElementById("frontWord").textContent=w.en; document.getElementById("backWord").textContent=w.bm; }
+      else { document.getElementById("frontWord").textContent=w.bm; document.getElementById("backWord").textContent=w.en; }
+      document.getElementById("exampleSentence").textContent=w.example_bm||"";
       updateProgress();
     }
 
-    window.flipCard = function() {
-      if (isFlipped) return;
-      isFlipped = true;
-      document.getElementById("flipCard").classList.add("flipped");
-      setTimeout(() => document.getElementById("actionButtons").classList.remove("hidden"), 300);
+    window.flipCard=function(){ if(isFlipped)return; isFlipped=true; document.getElementById("flipCard").classList.add("flipped"); setTimeout(()=>document.getElementById("actionButtons").classList.remove("hidden"),300); };
+    window.speakBM=function(){ const w=words[currentIndex]; if(!w)return; const u=new SpeechSynthesisUtterance(w.bm); u.lang="ms-MY"; u.rate=0.85; speechSynthesis.speak(u); };
+
+    window.markWord=async function(result){
+      if (result==="know"){
+        known++; document.getElementById("knownCount").textContent=known;
+        if (currentUser&&!currentUser.isAnonymous)
+          await setDoc(doc(db,"users",currentUser.uid,"progress",words[currentIndex].id),{status:"known",updatedAt:serverTimestamp()},{merge:true});
+      } else { skipped++; document.getElementById("skipCount").textContent=skipped; }
+      currentIndex++; showCard();
     };
 
-    window.speakBM = function() {
-      const word = words[currentIndex];
-      if (!word) return;
-      const u = new SpeechSynthesisUtterance(word.bm);
-      u.lang = "ms-MY"; u.rate = 0.85;
-      speechSynthesis.speak(u);
-    };
+    function updateProgress(){ const pct=words.length?(currentIndex/words.length)*100:0; document.getElementById("progressFill").style.width=pct+"%"; document.getElementById("cardCounter").textContent=`${currentIndex+1} / ${words.length}`; }
 
-    window.markWord = async function(result) {
-      if (result === "know") {
-        known++;
-        document.getElementById("knownCount").textContent = known;
-        if (currentUser && !currentUser.isAnonymous) {
-          const wordId = words[currentIndex].id;
-          await setDoc(
-            doc(db, "users", currentUser.uid, "progress", wordId),
-            { status: "known", updatedAt: serverTimestamp() },
-            { merge: true }
-          );
-        }
-      } else {
-        skipped++;
-        document.getElementById("skipCount").textContent = skipped;
-      }
-      currentIndex++;
-      showCard();
-    };
-
-    function updateProgress() {
-      const pct = words.length ? (currentIndex / words.length) * 100 : 0;
-      document.getElementById("progressFill").style.width = pct + "%";
-      document.getElementById("cardCounter").textContent = `${currentIndex + 1} / ${words.length}`;
-    }
-
-    async function showComplete() {
+    async function showComplete(){
       document.getElementById("studyScreen").classList.add("hidden");
       document.getElementById("completeScreen").classList.remove("hidden");
-      document.getElementById("finalKnown").textContent = known;
-      document.getElementById("finalSkip").textContent  = skipped;
-      document.getElementById("progressFill").style.width = "100%";
-
-      if (currentUser && !currentUser.isAnonymous) {
-        const xpGained = known * 5;
+      document.getElementById("finalKnown").textContent=known;
+      document.getElementById("finalSkip").textContent=skipped;
+      document.getElementById("progressFill").style.width="100%";
+      if (currentUser&&!currentUser.isAnonymous){
+        const xpGained=known*5;
         try {
-          const result = await recordStudySession(currentUser.uid, xpGained);
-          if (xpGained > 0) {
-            document.getElementById("xpEarnedText").textContent = `+${xpGained} XP earned!`;
-            document.getElementById("xpEarned").classList.remove("hidden");
-          }
-          if (result.leveledUp) {
-            document.getElementById("levelUpText").textContent = `You're now "${result.newLevel.title}"!`;
-            document.getElementById("levelUpBanner").classList.remove("hidden");
-          }
-        } catch(e) { console.warn(e); }
+          const result=await recordStudySession(currentUser.uid,xpGained);
+          if (xpGained>0){ document.getElementById("xpEarnedText").textContent=`+${xpGained} XP earned!`; document.getElementById("xpEarned").classList.remove("hidden"); }
+          if (result.leveledUp){ document.getElementById("levelUpText").textContent=`You're now "${result.newLevel.title}"!`; document.getElementById("levelUpBanner").classList.remove("hidden"); }
+        } catch(e){console.warn(e);}
       }
     }
 
-    window.restartStudy = function() {
-      currentIndex = 0; known = 0; skipped = 0;
-      shuffle(words);
-      document.getElementById("knownCount").textContent = 0;
-      document.getElementById("skipCount").textContent  = 0;
-      document.getElementById("xpEarned").classList.add("hidden");
-      document.getElementById("levelUpBanner").classList.add("hidden");
-      document.getElementById("completeScreen").classList.add("hidden");
-      document.getElementById("studyScreen").classList.remove("hidden");
-      showCard();
-    };
-
-    function shuffle(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-    }
+    window.restartStudy=function(){ currentIndex=0; known=0; skipped=0; shuffle(words); document.getElementById("knownCount").textContent=0; document.getElementById("skipCount").textContent=0; document.getElementById("xpEarned").classList.add("hidden"); document.getElementById("levelUpBanner").classList.add("hidden"); document.getElementById("completeScreen").classList.add("hidden"); document.getElementById("studyScreen").classList.remove("hidden"); showCard(); };
+    function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} }
   </script>
 </body>
 </html>

@@ -3,125 +3,141 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#16a34a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <link rel="manifest" href="/manifest.json"/>
   <title>BM Vocab - Home</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    body { font-family: 'Nunito', sans-serif; padding-bottom: 80px; }
-    @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-    .fade-up { animation: fade-up .5s ease both; }
+    body { font-family:'Nunito',sans-serif; padding-bottom:80px; }
+    /* Dark mode */
+    html.dark body              { background:#0f172a; color:#e2e8f0; }
+    html.dark .bg-gray-50       { background:#0f172a !important; }
+    html.dark nav.bg-white      { background:#1e293b !important; }
+    html.dark .bottom-nav       { background:#1e293b !important; border-top-color:#334155 !important; }
+    html.dark .bottom-sheet     { background:#1e293b !important; }
+    html.dark .text-gray-800    { color:#f1f5f9 !important; }
+    html.dark .text-gray-700    { color:#e2e8f0 !important; }
+    html.dark .text-gray-500    { color:#94a3b8 !important; }
+    html.dark .text-gray-400    { color:#64748b !important; }
+    html.dark .bg-white         { background:#1e293b !important; }
+    html.dark .bg-gray-100      { background:#334155 !important; }
+    html.dark .pack-card        { filter:brightness(.88); }
+    html.dark .sheet-progress   { background:#334155 !important; }
+    html.dark .guest-banner     { background:#1a1200 !important; border-color:#854d0e !important; }
+    html.dark .skeleton         { background:#334155 !important; }
 
-    .avatar { width:38px; height:38px; border-radius:99px; background:linear-gradient(135deg,#16a34a,#4ade80); display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:16px; cursor:pointer; text-decoration:none; flex-shrink:0; }
-    .stats-card { background: linear-gradient(135deg,#16a34a,#4ade80); color:white; }
-    .guest-banner { background: linear-gradient(135deg,#fef3c7,#fde68a); border: 2px solid #fcd34d; }
+    @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation:fade-up .5s ease both; }
+
+    .avatar { width:38px;height:38px;border-radius:99px;background:linear-gradient(135deg,#16a34a,#4ade80);display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:16px;cursor:pointer;text-decoration:none;flex-shrink:0; }
+    .stats-card { background:linear-gradient(135deg,#16a34a,#4ade80);color:white; }
+    .guest-banner { background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #fcd34d; }
+    .offline-banner { background:#fef3c7;border:2px solid #fcd34d; }
+    html.dark .offline-banner { background:#1a1200 !important;border-color:#854d0e !important; }
 
     /* WOTD */
-    .wotd-card { background: linear-gradient(135deg,#1e1b4b,#4338ca,#6366f1); color:white; }
+    .wotd-card { background:linear-gradient(135deg,#1e1b4b,#4338ca,#6366f1);color:white; }
     @keyframes pulse-soft { 0%,100%{opacity:1} 50%{opacity:.7} }
-    .wotd-label { animation: pulse-soft 2.5s infinite; }
-    .flip-mini { perspective:600px; cursor:pointer; }
-    .flip-mini-inner { position:relative; width:100%; transition:transform .5s; transform-style:preserve-3d; }
+    .wotd-label { animation:pulse-soft 2.5s infinite; }
+    .flip-mini { perspective:600px;cursor:pointer; }
+    .flip-mini-inner { position:relative;width:100%;transition:transform .5s;transform-style:preserve-3d; }
     .flip-mini.flipped .flip-mini-inner { transform:rotateY(180deg); }
-    .flip-mini-front, .flip-mini-back { backface-visibility:hidden; border-radius:.75rem; padding:12px 16px; text-align:center; }
-    .flip-mini-back { position:absolute; top:0; left:0; width:100%; transform:rotateY(180deg); }
+    .flip-mini-front,.flip-mini-back { backface-visibility:hidden;border-radius:.75rem;padding:12px 16px;text-align:center; }
+    .flip-mini-back { position:absolute;top:0;left:0;width:100%;transform:rotateY(180deg); }
 
     /* Level badge */
-    .level-badge-primary   { background:#dcfce7; color:#166534; border:1.5px solid #86efac; }
-    .level-badge-secondary { background:#e0e7ff; color:#3730a3; border:1.5px solid #a5b4fc; }
+    .level-badge-primary   { background:#dcfce7;color:#166534;border:1.5px solid #86efac; }
+    .level-badge-secondary { background:#e0e7ff;color:#3730a3;border:1.5px solid #a5b4fc; }
+    html.dark .level-badge-primary   { background:#052e16;color:#4ade80; }
+    html.dark .level-badge-secondary { background:#1e1b4b;color:#818cf8; }
 
     /* Filter tabs */
-    .filter-tab { transition: background .2s, color .2s; cursor:pointer; }
-    .filter-tab.active-all       { background:#374151; color:white; }
-    .filter-tab.active-primary   { background:#16a34a; color:white; }
-    .filter-tab.active-secondary { background:#4f46e5; color:white; }
+    .filter-tab { transition:background .2s,color .2s;cursor:pointer; }
+    .filter-tab.active-all       { background:#374151;color:white; }
+    .filter-tab.active-primary   { background:#16a34a;color:white; }
+    .filter-tab.active-secondary { background:#4f46e5;color:white; }
 
-    /* Pack cards — tap opens bottom sheet */
-    .pack-card {
-      cursor:pointer;
-      transition: transform .18s, box-shadow .18s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .pack-card:hover  { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.12); }
-    .pack-card:active { transform: scale(.97); }
-
-    /* Lock overlay */
-    .pack-locked::after { content:'🔒'; position:absolute; top:10px; right:12px; font-size:18px; opacity:.7; }
+    /* Pack cards */
+    .pack-card { cursor:pointer;transition:transform .18s,box-shadow .18s;-webkit-tap-highlight-color:transparent; }
+    .pack-card:hover  { transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.12); }
+    .pack-card:active { transform:scale(.97); }
+    .pack-locked::after { content:'🔒';position:absolute;top:10px;right:12px;font-size:18px;opacity:.7; }
     .pack-locked { position:relative; }
 
-    /* ── Bottom Sheet ── */
-    .sheet-overlay {
-      position:fixed; inset:0; background:rgba(0,0,0,.45);
-      z-index:60; opacity:0; pointer-events:none;
-      transition: opacity .25s;
-    }
-    .sheet-overlay.open { opacity:1; pointer-events:auto; }
-    .bottom-sheet {
-      position:fixed; bottom:0; left:0; right:0; z-index:61;
-      background:white; border-radius:1.5rem 1.5rem 0 0;
-      padding:0 1.25rem 2rem;
-      transform: translateY(100%);
-      transition: transform .3s cubic-bezier(.4,0,.2,1);
-      max-width:480px; margin:0 auto;
-    }
-    .bottom-sheet.open { transform: translateY(0); }
-    .sheet-handle { width:40px; height:4px; background:#e5e7eb; border-radius:99px; margin:12px auto 20px; }
+    /* Bottom sheet */
+    .sheet-overlay { position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;opacity:0;pointer-events:none;transition:opacity .25s; }
+    .sheet-overlay.open { opacity:1;pointer-events:auto; }
+    .bottom-sheet { position:fixed;bottom:0;left:0;right:0;z-index:61;background:white;border-radius:1.5rem 1.5rem 0 0;padding:0 1.25rem 2rem;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);max-width:480px;margin:0 auto; }
+    .bottom-sheet.open { transform:translateY(0); }
+    .sheet-handle { width:40px;height:4px;background:#e5e7eb;border-radius:99px;margin:12px auto 20px; }
+    html.dark .sheet-handle { background:#334155; }
+
+    /* Skeleton */
+    .skeleton { border-radius:1.5rem;background:#e5e7eb; }
 
     /* Pack colors */
-    .pack-green  { background:linear-gradient(135deg,#dcfce7,#bbf7d0); border-color:#86efac; }
-    .pack-blue   { background:linear-gradient(135deg,#dbeafe,#bfdbfe); border-color:#93c5fd; }
-    .pack-yellow { background:linear-gradient(135deg,#fef9c3,#fde68a); border-color:#fcd34d; }
-    .pack-pink   { background:linear-gradient(135deg,#fce7f3,#fbcfe8); border-color:#f9a8d4; }
-    .pack-purple { background:linear-gradient(135deg,#ede9fe,#ddd6fe); border-color:#c4b5fd; }
-    .pack-orange { background:linear-gradient(135deg,#ffedd5,#fed7aa); border-color:#fdba74; }
-    .pack-teal   { background:linear-gradient(135deg,#ccfbf1,#99f6e4); border-color:#5eead4; }
-    .pack-red    { background:linear-gradient(135deg,#fee2e2,#fecaca); border-color:#fca5a5; }
-    .pack-lime   { background:linear-gradient(135deg,#ecfccb,#d9f99d); border-color:#bef264; }
-    .pack-sky    { background:linear-gradient(135deg,#e0f2fe,#bae6fd); border-color:#7dd3fc; }
-    .pack-rose   { background:linear-gradient(135deg,#fff1f2,#fecdd3); border-color:#fda4af; }
-    .pack-amber  { background:linear-gradient(135deg,#fffbeb,#fef3c7); border-color:#fde68a; }
-    .pack-cyan   { background:linear-gradient(135deg,#ecfeff,#cffafe); border-color:#a5f3fc; }
-    .pack-violet { background:linear-gradient(135deg,#f5f3ff,#ede9fe); border-color:#ddd6fe; }
-    .pack-emerald{ background:linear-gradient(135deg,#ecfdf5,#d1fae5); border-color:#a7f3d0; }
-    .pack-fuchsia{ background:linear-gradient(135deg,#fdf4ff,#fae8ff); border-color:#f0abfc; }
+    .pack-green  { background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-color:#86efac; }
+    .pack-blue   { background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-color:#93c5fd; }
+    .pack-yellow { background:linear-gradient(135deg,#fef9c3,#fde68a);border-color:#fcd34d; }
+    .pack-pink   { background:linear-gradient(135deg,#fce7f3,#fbcfe8);border-color:#f9a8d4; }
+    .pack-purple { background:linear-gradient(135deg,#ede9fe,#ddd6fe);border-color:#c4b5fd; }
+    .pack-orange { background:linear-gradient(135deg,#ffedd5,#fed7aa);border-color:#fdba74; }
+    .pack-teal   { background:linear-gradient(135deg,#ccfbf1,#99f6e4);border-color:#5eead4; }
+    .pack-red    { background:linear-gradient(135deg,#fee2e2,#fecaca);border-color:#fca5a5; }
+    .pack-lime   { background:linear-gradient(135deg,#ecfccb,#d9f99d);border-color:#bef264; }
+    .pack-sky    { background:linear-gradient(135deg,#e0f2fe,#bae6fd);border-color:#7dd3fc; }
+    .pack-rose   { background:linear-gradient(135deg,#fff1f2,#fecdd3);border-color:#fda4af; }
+    .pack-amber  { background:linear-gradient(135deg,#fffbeb,#fef3c7);border-color:#fde68a; }
+    .pack-cyan   { background:linear-gradient(135deg,#ecfeff,#cffafe);border-color:#a5f3fc; }
+    .pack-violet { background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-color:#ddd6fe; }
+    .pack-emerald{ background:linear-gradient(135deg,#ecfdf5,#d1fae5);border-color:#a7f3d0; }
+    .pack-fuchsia{ background:linear-gradient(135deg,#fdf4ff,#fae8ff);border-color:#f0abfc; }
 
     /* Bottom nav */
-    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #f3f4f6; padding:8px 0 max(8px,env(safe-area-inset-bottom)); z-index:50; }
-    .nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; flex:1; font-size:11px; font-weight:800; color:#9ca3af; text-decoration:none; transition:color .2s; }
+    .bottom-nav { position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #f3f4f6;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:50; }
+    .nav-item { display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;font-size:11px;font-weight:800;color:#9ca3af;text-decoration:none;transition:color .2s; }
     .nav-item.active { color:#16a34a; }
-    .nav-icon { font-size:22px; line-height:1; }
+    .nav-icon { font-size:22px;line-height:1; }
   </style>
+  <script>
+    (function(){
+      const t=localStorage.getItem('bmvocab_theme');
+      if(t==='dark') document.documentElement.classList.add('dark');
+    })();
+    if('serviceWorker' in navigator){
+      window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('SW:',e)));
+    }
+  </script>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-  <!-- ── Bottom Sheet Overlay ── -->
+  <!-- Bottom Sheet Overlay -->
   <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
   <div class="bottom-sheet" id="bottomSheet">
     <div class="sheet-handle"></div>
-    <!-- Sheet content filled by JS -->
     <div class="flex items-center gap-4 mb-5">
       <div class="text-5xl" id="sheetEmoji">📖</div>
       <div>
         <h3 class="font-black text-gray-800 text-xl" id="sheetName">Pack Name</h3>
-        <p class="text-gray-400 text-sm font-semibold" id="sheetMeta">30 words · Primary</p>
+        <p class="text-gray-400 text-sm font-semibold" id="sheetMeta">30 words</p>
       </div>
     </div>
-    <p class="text-gray-500 text-sm mb-5" id="sheetDesc">Choose how you want to learn this pack.</p>
+    <p class="text-gray-500 text-sm mb-5" id="sheetDesc">Choose how to learn.</p>
     <div class="grid grid-cols-2 gap-3 mb-3">
-      <a id="sheetStudyBtn" href="#"
-        class="flex flex-col items-center bg-green-50 hover:bg-green-100 border-2 border-green-200 rounded-2xl py-5 transition-colors">
+      <a id="sheetStudyBtn" href="#" class="flex flex-col items-center bg-green-50 hover:bg-green-100 border-2 border-green-200 rounded-2xl py-5 transition-colors">
         <span class="text-3xl mb-1">📚</span>
-        <span class="font-black text-green-700">Study</span>
+        <span class="font-black text-green-700" data-i18n="iKnowIt">Study</span>
         <span class="text-xs text-green-500 mt-0.5">Flashcards</span>
       </a>
-      <a id="sheetQuizBtn" href="#"
-        class="flex flex-col items-center bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 rounded-2xl py-5 transition-colors">
+      <a id="sheetQuizBtn" href="#" class="flex flex-col items-center bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 rounded-2xl py-5 transition-colors">
         <span class="text-3xl mb-1">🎯</span>
         <span class="font-black text-indigo-700">Quiz</span>
         <span class="text-xs text-indigo-400 mt-0.5">Test yourself</span>
       </a>
     </div>
-    <!-- Pack progress bar in sheet -->
-    <div id="sheetProgress" class="bg-gray-50 rounded-2xl px-4 py-3">
+    <div class="bg-gray-50 sheet-progress rounded-2xl px-4 py-3">
       <div class="flex justify-between text-xs font-bold text-gray-500 mb-1">
         <span>Your progress</span>
         <span id="sheetProgressLabel">0 / 30</span>
@@ -148,13 +164,19 @@
 
   <div class="max-w-2xl mx-auto px-5 py-5">
 
+    <!-- Offline banner -->
+    <div id="offlineBanner" class="offline-banner hidden rounded-2xl px-4 py-2 mb-4 text-yellow-800 text-xs font-bold text-center">
+      📶 <span data-i18n="offline">Offline — showing cached data</span>
+    </div>
+
     <!-- Guest banner -->
     <div id="guestBanner" class="guest-banner hidden rounded-2xl px-5 py-4 mb-5 flex items-start gap-3 fade-up">
       <span class="text-2xl">👤</span>
       <div>
-        <p class="font-black text-yellow-800 text-sm">You're in Guest Mode</p>
-        <p class="text-yellow-700 text-xs mt-0.5">Progress won't be saved.
-          <a href="index.html?signout=1" class="underline font-bold">Sign in</a> to track your learning!
+        <p class="font-black text-yellow-800 text-sm" data-i18n="guestMode">You're in Guest Mode</p>
+        <p class="text-yellow-700 text-xs mt-0.5">
+          <span data-i18n="guestDesc">Progress won't be saved.</span>
+          <button onclick="showModal()" class="underline font-bold ml-1" data-i18n="signIn">Sign in</button>
         </p>
       </div>
     </div>
@@ -166,7 +188,7 @@
       <div class="grid grid-cols-3 gap-3">
         <div class="bg-white/20 rounded-2xl p-3 text-center">
           <p class="text-white font-black text-xl" id="statWords">—</p>
-          <p class="text-green-100 text-xs font-semibold">Words Known</p>
+          <p class="text-green-100 text-xs font-semibold" data-i18n="wordsKnown">Words Known</p>
         </div>
         <div class="bg-white/20 rounded-2xl p-3 text-center">
           <p class="text-white font-black text-xl" id="statXP">—</p>
@@ -174,7 +196,7 @@
         </div>
         <div class="bg-white/20 rounded-2xl p-3 text-center">
           <p class="text-white font-black text-xl" id="statStreak">—</p>
-          <p class="text-green-100 text-xs font-semibold">Day Streak</p>
+          <p class="text-green-100 text-xs font-semibold" data-i18n="dayStreak">Day Streak</p>
         </div>
       </div>
     </div>
@@ -182,14 +204,14 @@
     <!-- Word of the Day -->
     <div id="wotdSection" class="wotd-card rounded-3xl p-5 mb-5 shadow-md fade-up hidden" style="animation-delay:.05s">
       <div class="flex items-center justify-between mb-3">
-        <span class="wotd-label text-indigo-200 text-xs font-black uppercase tracking-widest">✨ Word of the Day</span>
+        <span class="wotd-label text-indigo-200 text-xs font-black uppercase tracking-widest">✨ <span data-i18n="wordOfDay">Word of the Day</span></span>
         <span class="text-indigo-300 text-xs font-semibold" id="wotdDate"></span>
       </div>
       <div class="flip-mini" id="wotdFlip" onclick="flipWotd()">
         <div class="flip-mini-inner">
           <div class="flip-mini-front bg-white/15">
             <p class="text-white font-black text-3xl mb-1" id="wotdBM">—</p>
-            <p class="text-indigo-200 text-xs">👆 Tap to reveal meaning</p>
+            <p class="text-indigo-200 text-xs" data-i18n="tapReveal">👆 Tap to reveal meaning</p>
           </div>
           <div class="flip-mini-back bg-white/15">
             <p class="text-indigo-200 text-xs mb-1">English</p>
@@ -199,34 +221,44 @@
         </div>
       </div>
       <div class="flex gap-2 mt-3">
-        <button onclick="speakWotd()" class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-xl text-sm transition-colors">🔊 Pronounce</button>
-        <a id="wotdStudyLink" href="home.html" class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-xl text-sm text-center transition-colors">📚 Study Pack</a>
+        <button onclick="speakWotd()" class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-xl text-sm transition-colors" data-i18n="pronounce">🔊 Pronounce</button>
+        <a id="wotdStudyLink" href="home.html" class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-xl text-sm text-center transition-colors" data-i18n="studyPack">📚 Study Pack</a>
       </div>
     </div>
 
-    <!-- Filter tabs + heading -->
+    <!-- Pack filter + heading -->
     <div class="flex items-center justify-between mb-3 fade-up" style="animation-delay:.08s">
-      <h3 class="text-lg font-black text-gray-700">📚 Word Packs</h3>
+      <h3 class="text-lg font-black text-gray-700" data-i18n="wordPacks">📚 Word Packs</h3>
       <div class="flex bg-white rounded-2xl p-1 shadow-sm gap-1">
-        <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabAll"       onclick="setFilter('all')">All</button>
+        <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabAll"       onclick="setFilter('all')"       data-i18n="all">All</button>
         <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabPrimary"   onclick="setFilter('primary')">🏫</button>
         <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabSecondary" onclick="setFilter('secondary')">🎓</button>
       </div>
     </div>
-    <p class="text-xs text-gray-400 font-semibold mb-4 fade-up" style="animation-delay:.09s" id="packCount">Loading...</p>
+    <p class="text-xs text-gray-400 font-semibold mb-4" id="packCount"></p>
 
-    <!-- Skeleton -->
+    <!-- Skeleton loading -->
     <div id="loadingState" class="grid grid-cols-2 gap-4">
-      <div class="bg-gray-200 rounded-3xl h-40 animate-pulse"></div>
-      <div class="bg-gray-200 rounded-3xl h-40 animate-pulse"></div>
-      <div class="bg-gray-200 rounded-3xl h-40 animate-pulse"></div>
-      <div class="bg-gray-200 rounded-3xl h-40 animate-pulse"></div>
+      <div class="skeleton h-40 animate-pulse"></div>
+      <div class="skeleton h-40 animate-pulse"></div>
+      <div class="skeleton h-40 animate-pulse"></div>
+      <div class="skeleton h-40 animate-pulse"></div>
     </div>
 
     <div id="packsGrid" class="grid grid-cols-2 gap-4 hidden"></div>
+
+    <!-- Empty state -->
     <div id="emptyState" class="hidden text-center py-16">
       <div class="text-6xl mb-4">📭</div>
-      <p class="text-gray-400 text-sm">No packs found. Run seed.html to import words.</p>
+      <p class="font-black text-gray-600 mb-1">No packs found</p>
+      <p class="text-gray-400 text-sm">Run seed.html to import words.</p>
+    </div>
+
+    <!-- Error state -->
+    <div id="errorState" class="hidden text-center py-16">
+      <div class="text-6xl mb-4">⚠️</div>
+      <p class="text-red-400 font-semibold text-sm mb-3" data-i18n="failedLoad">Failed to load. Check your connection.</p>
+      <button onclick="location.reload()" class="bg-gray-100 text-gray-600 font-bold py-2 px-5 rounded-full text-sm">Retry</button>
     </div>
 
   </div>
@@ -234,241 +266,211 @@
   <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <div class="max-w-2xl mx-auto flex">
-      <a href="home.html" class="nav-item active"><span class="nav-icon">🏠</span>Home</a>
-      <a href="progress.html" class="nav-item"><span class="nav-icon">📊</span>Progress</a>
-      <a href="leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Ranking</a>
-      <a href="profile.html" class="nav-item"><span class="nav-icon">👤</span>Profile</a>
+      <a href="home.html"        class="nav-item active"><span class="nav-icon">🏠</span><span data-i18n="home">Home</span></a>
+      <a href="progress.html"    class="nav-item"><span class="nav-icon">📊</span><span data-i18n="progress">Progress</span></a>
+      <a href="leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span><span data-i18n="ranking">Ranking</span></a>
+      <a href="profile.html"     class="nav-item"><span class="nav-icon">👤</span><span data-i18n="profile">Profile</span></a>
     </div>
   </nav>
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
     import { getUserProfile } from "./js/streak.js";
-    import { onAuthStateChanged }
-      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { collection, getDocs, doc, getDoc }
-      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { initTheme } from "./js/theme.js";
+    import { initLang, applyTranslations } from "./js/i18n.js";
+    import { showSignInModal } from "./js/guest.js";
+    import { isOnline, smartLoad, getCachedPacks, cachePacks, getCachedAllWords, cacheAllWords } from "./js/cache.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const COLORS = ["pack-green","pack-blue","pack-yellow","pack-pink","pack-purple","pack-orange","pack-teal","pack-red","pack-lime","pack-sky","pack-rose","pack-amber","pack-cyan","pack-violet","pack-emerald","pack-fuchsia"];
-    let allPacks    = [];
-    let allWords    = [];
-    let knownIds    = new Set();
-    let userLevel   = null;
-    let activeFilter = "all";
-    let wotdWord    = null;
-    let currentUid  = null;
+    initTheme(); initLang(); applyTranslations();
+    window.showModal = showSignInModal;
+
+    const COLORS=["pack-green","pack-blue","pack-yellow","pack-pink","pack-purple","pack-orange","pack-teal","pack-red","pack-lime","pack-sky","pack-rose","pack-amber","pack-cyan","pack-violet","pack-emerald","pack-fuchsia"];
+    let allPacks=[], allWords=[], knownIds=new Set(), userLevel=null, activeFilter="all", wotdWord=null;
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) { window.location.href = "index.html"; return; }
-      const isGuest = user.isAnonymous;
-      currentUid = user.uid;
+      if (!user) { window.location.href="index.html"; return; }
+      const isGuest=user.isAnonymous;
 
       if (isGuest) {
         document.getElementById("guestBanner").classList.remove("hidden");
-        document.getElementById("userName").textContent = "Guest";
-        document.getElementById("userAvatar").textContent = "👤";
-        ["statWords","statXP","statStreak"].forEach(id => document.getElementById(id).textContent = "—");
+        document.getElementById("userName").textContent="Guest";
+        document.getElementById("userAvatar").textContent="👤";
+        ["statWords","statXP","statStreak"].forEach(id=>document.getElementById(id).textContent="—");
       } else {
-        // Check onboarding
         try {
-          const snap = await getDoc(doc(db, "users", user.uid));
-          if (!snap.exists() || !snap.data().onboardingDone) {
-            window.location.href = "onboarding.html"; return;
-          }
-          const data = snap.data();
-          userLevel = data.schoolLevel || null;
+          const snap=await getDoc(doc(db,"users",user.uid));
+          if (!snap.exists()||!snap.data().onboardingDone){ window.location.href="onboarding.html"; return; }
+          const data=snap.data();
+          userLevel=data.schoolLevel||null;
           if (userLevel) {
-            activeFilter = userLevel;
-            setFilterUI(userLevel);
-            const badge = document.getElementById("levelBadge");
-            badge.textContent = userLevel === "primary" ? "🏫 Primary" : "🎓 Secondary";
-            badge.className = `text-xs font-black px-3 py-1 rounded-full level-badge-${userLevel}`;
+            activeFilter=userLevel; setFilterUI(userLevel);
+            const badge=document.getElementById("levelBadge");
+            badge.textContent=userLevel==="primary"?"🏫 Primary":"🎓 Secondary";
+            badge.className=`text-xs font-black px-3 py-1 rounded-full level-badge-${userLevel}`;
             badge.classList.remove("hidden");
           }
         } catch {}
-
-        const name = user.displayName || user.email || "Student";
-        document.getElementById("userName").textContent = name.split(" ")[0];
-        document.getElementById("userAvatar").textContent = name.charAt(0).toUpperCase();
+        const name=user.displayName||user.email||"Student";
+        document.getElementById("userName").textContent=name.split(" ")[0];
+        document.getElementById("userAvatar").textContent=name.charAt(0).toUpperCase();
         loadUserStats(user.uid);
       }
 
-      // Load packs + words + progress in parallel for sheet progress bars
       await Promise.all([loadPacksAndWords(user), loadWordOfTheDay(userLevel)]);
     });
 
     async function loadUserStats(uid) {
       try {
-        const [progressSnap, profile] = await Promise.all([
-          getDocs(collection(db, "users", uid, "progress")),
+        const [progressSnap,profile]=await Promise.all([
+          getDocs(collection(db,"users",uid,"progress")),
           getUserProfile(uid)
         ]);
-        knownIds = new Set(progressSnap.docs.filter(d => d.data().status === "known").map(d => d.id));
-        document.getElementById("statWords").textContent  = knownIds.size;
-        document.getElementById("statXP").textContent     = (profile.xp || 0) + " XP";
-        const streak = profile.streak || 0;
-        document.getElementById("statStreak").textContent = streak > 0 ? `🔥 ${streak}` : "0";
-      } catch {
-        document.getElementById("statWords").textContent = "0";
-      }
+        knownIds=new Set(progressSnap.docs.filter(d=>d.data().status==="known").map(d=>d.id));
+        document.getElementById("statWords").textContent=knownIds.size;
+        document.getElementById("statXP").textContent=(profile.xp||0)+" XP";
+        const streak=profile.streak||0;
+        document.getElementById("statStreak").textContent=streak>0?`🔥 ${streak}`:"0";
+      } catch { document.getElementById("statWords").textContent="0"; }
     }
 
     async function loadPacksAndWords(user) {
       try {
-        const [packSnap, wordSnap] = await Promise.all([
-          getDocs(collection(db, "packs")),
-          getDocs(collection(db, "words")),
-        ]);
-        allPacks  = packSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => (a.order||99) - (b.order||99));
-        allWords  = wordSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        let fromCache=false;
+        if (isOnline()) {
+          const [packSnap,wordSnap]=await Promise.all([
+            getDocs(collection(db,"packs")),
+            getDocs(collection(db,"words")),
+          ]);
+          allPacks=packSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||99)-(b.order||99));
+          allWords=wordSnap.docs.map(d=>({id:d.id,...d.data()}));
+          cachePacks(allPacks); cacheAllWords(allWords);
+        } else {
+          allPacks=getCachedPacks()||[];
+          allWords=getCachedAllWords()||[];
+          fromCache=true;
+        }
 
-        // Load progress for sheet bars (non-guest)
+        if (fromCache) document.getElementById("offlineBanner").classList.remove("hidden");
+
         if (!user.isAnonymous) {
           try {
-            const progSnap = await getDocs(collection(db, "users", user.uid, "progress"));
-            knownIds = new Set(progSnap.docs.filter(d => d.data().status === "known").map(d => d.id));
+            const prog=await getDocs(collection(db,"users",user.uid,"progress"));
+            knownIds=new Set(prog.docs.filter(d=>d.data().status==="known").map(d=>d.id));
           } catch {}
         }
 
         document.getElementById("loadingState").classList.add("hidden");
+        if (allPacks.length===0) { document.getElementById("emptyState").classList.remove("hidden"); return; }
         renderPacks();
-      } catch {
-        document.getElementById("loadingState").innerHTML =
-          `<p class="text-red-400 text-sm col-span-2 text-center py-8">Failed to load packs.</p>`;
+      } catch(err) {
+        document.getElementById("loadingState").classList.add("hidden");
+        document.getElementById("errorState").classList.remove("hidden");
       }
     }
 
     function renderPacks() {
-      const grid = document.getElementById("packsGrid");
-      grid.classList.remove("hidden");
-      grid.innerHTML = "";
-
-      const visible = activeFilter === "all"
-        ? allPacks
-        : allPacks.filter(p => p.level === activeFilter);
-
-      document.getElementById("packCount").textContent =
-        `${visible.length} pack${visible.length !== 1 ? "s" : ""}` +
-        (activeFilter !== "all" ? ` · ${activeFilter}` : "");
-
-      if (visible.length === 0) {
-        document.getElementById("emptyState").classList.remove("hidden"); return;
-      }
+      const grid=document.getElementById("packsGrid");
+      grid.classList.remove("hidden"); grid.innerHTML="";
       document.getElementById("emptyState").classList.add("hidden");
 
-      visible.forEach((pack, i) => {
-        const color   = COLORS[allPacks.indexOf(pack) % COLORS.length];
-        const delay   = (i * 0.05).toFixed(2);
-        const isLocked = userLevel === "primary" && pack.level === "secondary";
-        const levelTag = pack.level === "secondary"
-          ? `<span class="text-xs bg-indigo-100 text-indigo-600 font-bold px-2 py-0.5 rounded-full">Secondary</span>`
-          : `<span class="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">Primary</span>`;
+      const visible=activeFilter==="all" ? allPacks : allPacks.filter(p=>p.level===activeFilter);
+      document.getElementById("packCount").textContent=`${visible.length} pack${visible.length!==1?"s":""}${activeFilter!=="all"?" · "+activeFilter:""}`;
 
-        // Per-pack progress
-        const packWords  = allWords.filter(w => w.pack === pack.id);
-        const packKnown  = packWords.filter(w => knownIds.has(w.id)).length;
-        const packPct    = packWords.length ? Math.round((packKnown / packWords.length) * 100) : 0;
+      if (visible.length===0) { document.getElementById("emptyState").classList.remove("hidden"); grid.classList.add("hidden"); return; }
 
-        const div = document.createElement("div");
-        div.className = `pack-card ${color} border-2 rounded-3xl p-5 shadow-sm fade-up ${isLocked ? "pack-locked" : ""}`;
-        div.style.animationDelay = delay + "s";
-        div.innerHTML = `
-          <div class="text-4xl mb-2">${pack.emoji || "📖"}</div>
+      visible.forEach((pack,i)=>{
+        const color=COLORS[allPacks.indexOf(pack)%COLORS.length];
+        const delay=(i*0.05).toFixed(2);
+        const isLocked=userLevel==="primary"&&pack.level==="secondary";
+        const packWords=allWords.filter(w=>w.pack===pack.id);
+        const packKnown=packWords.filter(w=>knownIds.has(w.id)).length;
+        const packPct=packWords.length?Math.round((packKnown/packWords.length)*100):0;
+        const levelTag=pack.level==="secondary"
+          ?`<span class="text-xs bg-indigo-100 text-indigo-600 font-bold px-2 py-0.5 rounded-full">Secondary</span>`
+          :`<span class="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">Primary</span>`;
+
+        const div=document.createElement("div");
+        div.className=`pack-card ${color} border-2 rounded-3xl p-5 shadow-sm fade-up ${isLocked?"pack-locked":""}`;
+        div.style.animationDelay=delay+"s";
+        div.innerHTML=`
+          <div class="text-4xl mb-2">${pack.emoji||"📖"}</div>
           <h4 class="font-black text-gray-800 text-sm leading-tight mb-1">${pack.name}</h4>
           <div class="mb-2">${levelTag}</div>
-          <p class="text-gray-500 text-xs font-semibold mb-2">${pack.wordCount || "?"} words</p>
-          <!-- Mini progress bar on card -->
+          <p class="text-gray-500 text-xs font-semibold mb-2">${pack.wordCount||"?"} words</p>
           <div class="h-1.5 bg-black/10 rounded-full overflow-hidden">
             <div class="h-full bg-black/25 rounded-full" style="width:${packPct}%"></div>
           </div>
           <p class="text-xs text-gray-500 font-semibold mt-1">${packKnown}/${packWords.length} known</p>`;
 
-        if (!isLocked) {
-          div.onclick = () => openSheet(pack, packWords.length, packKnown);
-        } else {
-          div.onclick = () => {
-            div.classList.add("shake-brief");
-            setTimeout(() => div.classList.remove("shake-brief"), 400);
-          };
-        }
+        div.onclick=isLocked ? null : ()=>openSheet(pack,packWords.length,packKnown);
+        if (isLocked) div.style.opacity=".6";
         grid.appendChild(div);
       });
     }
 
-    // ── Bottom sheet ─────────────────────────────────────────────
-    function openSheet(pack, total, known) {
-      const pct = total ? Math.round((known / total) * 100) : 0;
-      document.getElementById("sheetEmoji").textContent       = pack.emoji || "📖";
-      document.getElementById("sheetName").textContent        = pack.name;
-      document.getElementById("sheetMeta").textContent        =
-        `${total} words · ${pack.level === "secondary" ? "Secondary 🎓" : "Primary 🏫"}`;
-      document.getElementById("sheetDesc").textContent        =
-        `You know ${known} of ${total} words (${pct}%). Ready to study or quiz?`;
-      document.getElementById("sheetStudyBtn").href           = `study.html?pack=${pack.id}`;
-      document.getElementById("sheetQuizBtn").href            = `quiz.html?pack=${pack.id}`;
-      document.getElementById("sheetProgressLabel").textContent = `${known} / ${total}`;
-      document.getElementById("sheetProgressBar").style.width = pct + "%";
+    function openSheet(pack,total,known) {
+      const pct=total?Math.round((known/total)*100):0;
+      document.getElementById("sheetEmoji").textContent=pack.emoji||"📖";
+      document.getElementById("sheetName").textContent=pack.name;
+      document.getElementById("sheetMeta").textContent=`${total} words · ${pack.level==="secondary"?"Secondary 🎓":"Primary 🏫"}`;
+      document.getElementById("sheetDesc").textContent=`You know ${known} of ${total} words (${pct}%). Ready to study or quiz?`;
+      document.getElementById("sheetStudyBtn").href=`study.html?pack=${pack.id}`;
+      document.getElementById("sheetQuizBtn").href=`quiz.html?pack=${pack.id}`;
+      document.getElementById("sheetProgressLabel").textContent=`${known} / ${total}`;
+      document.getElementById("sheetProgressBar").style.width=pct+"%";
       document.getElementById("sheetOverlay").classList.add("open");
       document.getElementById("bottomSheet").classList.add("open");
     }
 
-    window.closeSheet = function() {
+    window.closeSheet=function(){
       document.getElementById("sheetOverlay").classList.remove("open");
       document.getElementById("bottomSheet").classList.remove("open");
     };
-    // Swipe down to close
-    let touchStartY = 0;
-    document.getElementById("bottomSheet").addEventListener("touchstart", e => { touchStartY = e.touches[0].clientY; });
-    document.getElementById("bottomSheet").addEventListener("touchend",   e => {
-      if (e.changedTouches[0].clientY - touchStartY > 60) closeSheet();
-    });
 
-    // ── Word of the Day ──────────────────────────────────────────
+    // Swipe down to close sheet
+    let ty=0;
+    document.getElementById("bottomSheet").addEventListener("touchstart",e=>{ty=e.touches[0].clientY;});
+    document.getElementById("bottomSheet").addEventListener("touchend",e=>{if(e.changedTouches[0].clientY-ty>60)closeSheet();});
+
     async function loadWordOfTheDay(level) {
       try {
-        const today   = new Date();
-        const allSnap = await getDocs(collection(db, "words"));
-        let pool = allSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        if (level) {
-          const levelPool = pool.filter(w => w.level === level);
-          if (levelPool.length > 0) pool = levelPool;
+        const today=new Date();
+        let pool=allWords.length?allWords:(getCachedAllWords()||[]);
+        if (!pool.length) {
+          const snap=await getDocs(collection(db,"words"));
+          pool=snap.docs.map(d=>({id:d.id,...d.data()}));
         }
-        const seed = today.getFullYear() * 10000 + (today.getMonth()+1) * 100 + today.getDate();
-        wotdWord = pool[seed % pool.length];
-        document.getElementById("wotdBM").textContent      = wotdWord.bm;
-        document.getElementById("wotdEN").textContent      = wotdWord.en;
-        document.getElementById("wotdExample").textContent = wotdWord.example_bm || "";
-        document.getElementById("wotdDate").textContent    =
-          today.toLocaleDateString("en-MY", { day:"numeric", month:"short" });
-        document.getElementById("wotdStudyLink").href      = `study.html?pack=${wotdWord.pack}`;
+        if (level) { const lp=pool.filter(w=>w.level===level); if(lp.length) pool=lp; }
+        const seed=today.getFullYear()*10000+(today.getMonth()+1)*100+today.getDate();
+        wotdWord=pool[seed%pool.length];
+        if (!wotdWord) return;
+        document.getElementById("wotdBM").textContent=wotdWord.bm;
+        document.getElementById("wotdEN").textContent=wotdWord.en;
+        document.getElementById("wotdExample").textContent=wotdWord.example_bm||"";
+        document.getElementById("wotdDate").textContent=today.toLocaleDateString("en-MY",{day:"numeric",month:"short"});
+        document.getElementById("wotdStudyLink").href=`study.html?pack=${wotdWord.pack}`;
         document.getElementById("wotdSection").classList.remove("hidden");
-      } catch(e) { console.warn("WOTD:", e); }
+      } catch(e){console.warn("WOTD:",e);}
     }
 
-    window.flipWotd  = () => document.getElementById("wotdFlip").classList.toggle("flipped");
-    window.speakWotd = () => {
+    window.flipWotd =()=>document.getElementById("wotdFlip").classList.toggle("flipped");
+    window.speakWotd=()=>{
       if (!wotdWord) return;
-      const u = new SpeechSynthesisUtterance(wotdWord.bm);
-      u.lang = "ms-MY"; u.rate = 0.85; speechSynthesis.speak(u);
+      const u=new SpeechSynthesisUtterance(wotdWord.bm);
+      u.lang="ms-MY"; u.rate=0.85; speechSynthesis.speak(u);
     };
 
-    // ── Filters ──────────────────────────────────────────────────
-    window.setFilter = function(filter) {
-      activeFilter = filter;
-      setFilterUI(filter);
-      renderPacks();
+    window.setFilter=function(filter){
+      activeFilter=filter; setFilterUI(filter); renderPacks();
     };
-
-    function setFilterUI(filter) {
-      ["all","primary","secondary"].forEach(f => {
-        const btn = document.getElementById(`tab${f.charAt(0).toUpperCase()+f.slice(1)}`);
-        if (btn) btn.classList.remove("active-all","active-primary","active-secondary");
+    function setFilterUI(filter){
+      ["all","primary","secondary"].forEach(f=>{
+        document.getElementById(`tab${f.charAt(0).toUpperCase()+f.slice(1)}`)?.classList.remove("active-all","active-primary","active-secondary");
       });
-      const active = document.getElementById(`tab${filter.charAt(0).toUpperCase()+filter.slice(1)}`);
-      if (active) active.classList.add(`active-${filter}`);
+      document.getElementById(`tab${filter.charAt(0).toUpperCase()+filter.slice(1)}`)?.classList.add(`active-${filter}`);
     }
-
     setFilterUI(activeFilter);
   </script>
 </body>

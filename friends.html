@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#16a34a"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <title>BM Vocab - Friends</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family:'Nunito',sans-serif; padding-bottom:80px; }
+    html.dark body            { background:#0f172a; color:#e2e8f0; }
+    html.dark .bg-white       { background:#1e293b !important; }
+    html.dark .bg-gray-50     { background:#0f172a !important; }
+    html.dark .text-gray-800  { color:#f1f5f9 !important; }
+    html.dark .text-gray-700  { color:#e2e8f0 !important; }
+    html.dark .text-gray-500  { color:#94a3b8 !important; }
+    html.dark .text-gray-400  { color:#64748b !important; }
+    html.dark nav.bg-white    { background:#1e293b !important; }
+    html.dark .bottom-nav     { background:#1e293b !important; border-top-color:#334155 !important; }
+    html.dark input           { background:#0f172a !important; color:#f1f5f9 !important; border-color:#334155 !important; }
+    html.dark .border-gray-100{ border-color:#334155 !important; }
+    html.dark .bg-indigo-50   { background:#1e1b4b !important; }
+    html.dark .bg-green-50    { background:#052e16 !important; }
+
+    @keyframes fade-up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation:fade-up .4s ease both; }
+    input:focus { outline:none; border-color:#6366f1 !important; box-shadow:0 0 0 3px #e0e7ff; }
+
+    /* Friend code display */
+    .code-box { background:linear-gradient(135deg,#4f46e5,#818cf8); border-radius:1.25rem; padding:1.25rem; text-align:center; color:white; }
+    .code-text { font-family:monospace; font-size:1.75rem; font-weight:900; letter-spacing:.3em; }
+
+    /* Friend card */
+    .friend-card { border:2px solid #f3f4f6; border-radius:1.25rem; padding:1rem 1.25rem; display:flex; align-items:center; gap:.875rem; }
+    .friend-avatar { width:44px; height:44px; border-radius:99px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:900; color:white; flex-shrink:0; }
+
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #f3f4f6; padding:8px 0 max(8px,env(safe-area-inset-bottom)); z-index:50; }
+    .nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; flex:1; font-size:11px; font-weight:800; color:#9ca3af; text-decoration:none; transition:color .2s; }
+    .nav-item.active { color:#6366f1; }
+    .nav-icon { font-size:22px; line-height:1; }
+
+    @keyframes pop { 0%{transform:scale(.8);opacity:0} 80%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
+    .pop { animation:pop .3s forwards; }
+  </style>
+  <script>(function(){const t=localStorage.getItem('bmvocab_theme');if(t==='dark')document.documentElement.classList.add('dark');})();</script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <nav class="bg-white shadow-sm sticky top-0 z-10">
+    <div class="max-w-lg mx-auto px-5 py-4 flex items-center justify-between">
+      <a href="leaderboard.html" class="text-indigo-600 font-bold">← Back</a>
+      <h1 class="font-black text-gray-800">👫 Friends</h1>
+      <div class="w-10"></div>
+    </div>
+  </nav>
+
+  <div class="max-w-lg mx-auto px-5 py-6 space-y-5">
+
+    <!-- Loading / guest notice -->
+    <div id="loadingState" class="text-center py-20 text-gray-400">
+      <div class="text-5xl mb-3 animate-bounce">👫</div>
+      <p class="font-semibold">Loading friends...</p>
+    </div>
+
+    <div id="guestNotice" class="hidden text-center py-16 fade-up">
+      <div class="text-6xl mb-4">🔐</div>
+      <h3 class="font-black text-gray-700 text-xl mb-2">Sign In to Add Friends</h3>
+      <p class="text-gray-400 text-sm mb-5">Friends features require an account.</p>
+      <button onclick="showModal()" class="inline-block bg-indigo-500 text-white font-black py-3 px-6 rounded-2xl">Sign In</button>
+    </div>
+
+    <div id="mainContent" class="hidden space-y-5">
+
+      <!-- Your friend code -->
+      <div class="fade-up">
+        <h3 class="font-black text-gray-700 mb-3">🎫 Your Friend Code</h3>
+        <div class="code-box">
+          <p class="text-indigo-200 text-xs font-bold uppercase mb-2">Share this code with friends</p>
+          <p class="code-text" id="myCode">——————</p>
+          <button onclick="copyCode()" class="mt-3 bg-white/20 hover:bg-white/30 text-white font-bold px-5 py-2 rounded-full text-sm transition-colors">
+            📋 Copy Code
+          </button>
+        </div>
+      </div>
+
+      <!-- Add friend -->
+      <div class="bg-white rounded-3xl shadow-sm p-5 fade-up" style="animation-delay:.07s">
+        <h3 class="font-black text-gray-700 mb-3">➕ Add a Friend</h3>
+        <div class="flex gap-2">
+          <input type="text" id="friendCodeInput" placeholder="Enter friend code..."
+            class="flex-1 border-2 border-indigo-200 rounded-2xl px-4 py-3 font-bold text-gray-700 text-sm uppercase tracking-wider"
+            maxlength="8" autocomplete="off"/>
+          <button onclick="addFriend()"
+            class="bg-indigo-500 hover:bg-indigo-600 text-white font-black px-5 py-3 rounded-2xl transition-colors">
+            Add
+          </button>
+        </div>
+        <p id="addMsg" class="text-sm text-center mt-2 font-semibold hidden"></p>
+      </div>
+
+      <!-- Friends list -->
+      <div class="bg-white rounded-3xl shadow-sm p-5 fade-up" style="animation-delay:.12s">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-black text-gray-700">My Friends</h3>
+          <span class="text-xs text-gray-400 font-semibold" id="friendCount">0 friends</span>
+        </div>
+
+        <div id="friendsList" class="space-y-3">
+          <!-- Loading skeleton -->
+          <div class="bg-gray-100 rounded-2xl h-16 animate-pulse"></div>
+          <div class="bg-gray-100 rounded-2xl h-16 animate-pulse"></div>
+        </div>
+
+        <div id="noFriendsState" class="hidden text-center py-8">
+          <div class="text-4xl mb-2">🤝</div>
+          <p class="text-gray-400 font-semibold text-sm">No friends yet! Share your code above.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <div class="max-w-2xl mx-auto flex">
+      <a href="home.html"        class="nav-item"><span class="nav-icon">🏠</span>Home</a>
+      <a href="progress.html"    class="nav-item"><span class="nav-icon">📊</span>Progress</a>
+      <a href="leaderboard.html" class="nav-item active"><span class="nav-icon">🏆</span>Ranking</a>
+      <a href="profile.html"     class="nav-item"><span class="nav-icon">👤</span>Profile</a>
+    </div>
+  </nav>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { getLevel } from "./js/streak.js";
+    import { initTheme } from "./js/theme.js";
+    import { showSignInModal } from "./js/guest.js";
+    import { onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, query, where, limit }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    initTheme();
+    window.showModal = showSignInModal;
+
+    const AVATAR_COLORS = ["#16a34a","#2563eb","#d97706","#db2777","#7c3aed","#ea580c","#0d9488","#dc2626"];
+
+    let currentUser = null;
+    let myCode = "";
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href="index.html"; return; }
+      if (user.isAnonymous) {
+        document.getElementById("loadingState").classList.add("hidden");
+        document.getElementById("guestNotice").classList.remove("hidden");
+        return;
+      }
+      currentUser = user;
+      // Friend code = first 6 chars of UID (uppercase)
+      myCode = user.uid.slice(0,6).toUpperCase();
+      document.getElementById("myCode").textContent = myCode;
+      document.getElementById("loadingState").classList.add("hidden");
+      document.getElementById("mainContent").classList.remove("hidden");
+      await loadFriends();
+    });
+
+    window.copyCode = function() {
+      navigator.clipboard.writeText(myCode).then(() => {
+        const btn = event.target;
+        btn.textContent = "✅ Copied!";
+        setTimeout(() => btn.textContent = "📋 Copy Code", 2000);
+      }).catch(() => {
+        // Fallback
+        prompt("Copy your friend code:", myCode);
+      });
+    };
+
+    window.addFriend = async function() {
+      const input = document.getElementById("friendCodeInput");
+      const code  = input.value.trim().toUpperCase();
+      if (code.length < 6) { showMsg("addMsg","Please enter a valid 6-character code.",true); return; }
+      if (code === myCode) { showMsg("addMsg","That's your own code! Share it with a friend.",true); return; }
+
+      showMsg("addMsg","Searching...",false);
+
+      try {
+        // Find user with this code (first 6 chars of UID)
+        // We query users collection — this requires Firestore index on uid prefix
+        // Simpler: just try to get the doc if we construct the prefix match
+        // Since uid is the doc ID, we can't query by prefix directly.
+        // Instead we store friendCode as a field during onboarding.
+        const q = query(collection(db,"users"), where("friendCode","==",code), limit(1));
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+          showMsg("addMsg","Friend code not found. Check and try again.",true); return;
+        }
+
+        const friendDoc  = snap.docs[0];
+        const friendUid  = friendDoc.id;
+        const friendData = friendDoc.data();
+
+        if (friendUid === currentUser.uid) {
+          showMsg("addMsg","That's your own code!",true); return;
+        }
+
+        // Check already friends
+        const existing = await getDoc(doc(db,"users",currentUser.uid,"friends",friendUid));
+        if (existing.exists()) {
+          showMsg("addMsg","Already friends! ✅",false); return;
+        }
+
+        // Add friend (mutual)
+        await Promise.all([
+          setDoc(doc(db,"users",currentUser.uid,"friends",friendUid), {
+            displayName: friendData.displayName||"Student",
+            xp:          friendData.xp||0,
+            addedAt:     new Date().toISOString(),
+          }),
+          setDoc(doc(db,"users",friendUid,"friends",currentUser.uid), {
+            displayName: currentUser.displayName||"Student",
+            xp:          currentUser.xp||0,
+            addedAt:     new Date().toISOString(),
+          }),
+        ]);
+
+        showMsg("addMsg",`🎉 Added ${friendData.displayName||"friend"} successfully!`,false);
+        input.value = "";
+        await loadFriends();
+      } catch(e) {
+        console.error(e);
+        showMsg("addMsg","Failed to add friend. Try again.",true);
+      }
+    };
+
+    async function loadFriends() {
+      const list = document.getElementById("friendsList");
+      list.innerHTML = `<div class="bg-gray-100 rounded-2xl h-16 animate-pulse"></div><div class="bg-gray-100 rounded-2xl h-16 animate-pulse"></div>`;
+
+      try {
+        const snap = await getDocs(collection(db,"users",currentUser.uid,"friends"));
+        const friends = snap.docs.map(d => ({ uid:d.id, ...d.data() }));
+
+        // Fetch fresh profiles for XP/level
+        const profiles = await Promise.allSettled(
+          friends.map(f => getDoc(doc(db,"users",f.uid)))
+        );
+
+        const enriched = friends.map((f,i) => {
+          const pSnap = profiles[i];
+          if (pSnap.status==="fulfilled" && pSnap.value.exists()) {
+            const p = pSnap.value.data();
+            return { ...f, xp:p.xp||0, streak:p.streak||0, displayName:p.displayName||f.displayName };
+          }
+          return f;
+        }).sort((a,b) => (b.xp||0)-(a.xp||0));
+
+        document.getElementById("friendCount").textContent = `${enriched.length} friend${enriched.length!==1?"s":""}`;
+        list.innerHTML = "";
+
+        if (enriched.length === 0) {
+          document.getElementById("noFriendsState").classList.remove("hidden");
+          return;
+        }
+        document.getElementById("noFriendsState").classList.add("hidden");
+
+        enriched.forEach((friend,i) => {
+          const color = AVATAR_COLORS[i % AVATAR_COLORS.length];
+          const lv    = getLevel(friend.xp||0);
+          const initial = (friend.displayName||"?").charAt(0).toUpperCase();
+          const div = document.createElement("div");
+          div.className="friend-card pop";
+          div.style.animationDelay = (i*0.05)+"s";
+          div.innerHTML=`
+            <div class="friend-avatar" style="background:${color}">${initial}</div>
+            <div class="flex-1 min-w-0">
+              <p class="font-black text-gray-800 truncate">${friend.displayName||"Student"}</p>
+              <p class="text-xs text-gray-400 font-semibold">${lv.title} · ${friend.xp||0} XP · 🔥 ${friend.streak||0}</p>
+            </div>
+            <button onclick="removeFriend('${friend.uid}')"
+              class="text-red-300 hover:text-red-500 font-bold text-xs px-2 py-1 rounded-lg transition-colors">
+              Remove
+            </button>`;
+          list.appendChild(div);
+        });
+      } catch(e) {
+        list.innerHTML=`<p class="text-red-400 text-sm text-center py-4">Failed to load friends.</p>`;
+      }
+    }
+
+    window.removeFriend = async function(friendUid) {
+      if (!confirm("Remove this friend?")) return;
+      try {
+        await deleteDoc(doc(db,"users",currentUser.uid,"friends",friendUid));
+        await loadFriends();
+      } catch { alert("Failed to remove. Try again."); }
+    };
+
+    function showMsg(id, msg, isError) {
+      const el=document.getElementById(id);
+      el.textContent=msg;
+      el.className=`text-sm text-center mt-2 font-semibold ${isError?"text-red-500":"text-green-600"}`;
+      el.classList.remove("hidden");
+      if (!isError) setTimeout(()=>el.classList.add("hidden"),3000);
+    }
+  </script>
+</body>
+</html>
