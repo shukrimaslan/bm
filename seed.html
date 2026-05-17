@@ -20,14 +20,33 @@
     <p class="text-gray-500 text-sm mt-1">Imports <strong>480 words</strong> across <strong>16 packs</strong> into your Firebase project.</p>
   </div>
 
-  <div class="bg-yellow-50 border-2 border-yellow-200 rounded-2xl px-5 py-4 mb-6 text-sm text-yellow-800">
-    ⚠️ <strong>One-time use only.</strong> Run this once, then delete <code>seed.html</code> from your project.
+  <!-- Login section — shown when not signed in -->
+  <div id="loginSection" class="hidden">
+    <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl px-5 py-4 mb-5 text-sm text-blue-800">
+      🔐 <strong>Sign in required.</strong> Firestore rules require authentication before writing data.
+    </div>
+    <button id="googleSignInBtn"
+      class="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-200 hover:border-green-400 font-bold py-3 rounded-2xl mb-3 transition-colors">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5"/>
+      Sign in with Google to continue
+    </button>
   </div>
 
-  <button id="seedBtn"
-    class="w-full bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-2xl text-lg mb-5 transition-colors">
-    🚀 Import All Data
-  </button>
+  <!-- Seed section — shown when signed in -->
+  <div id="seedSection" class="hidden">
+    <div class="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 mb-4 flex items-center justify-between">
+      <p class="text-green-700 text-sm font-semibold" id="loggedInAs">Signed in</p>
+      <button id="signOutBtn" class="text-xs text-gray-400 hover:text-red-400 font-bold">Sign Out</button>
+    </div>
+
+    <div class="bg-yellow-50 border-2 border-yellow-200 rounded-2xl px-5 py-4 mb-5 text-sm text-yellow-800">
+      ⚠️ <strong>One-time use only.</strong> Run this once, then delete <code>seed.html</code> from your project.
+    </div>
+
+    <button id="seedBtn"
+      class="w-full bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-2xl text-lg mb-5 transition-colors">
+      🚀 Import All Data
+    </button>
 
   <div id="progressBar" class="hidden mb-4">
     <div class="flex justify-between text-xs text-gray-500 font-semibold mb-1">
@@ -44,12 +63,16 @@
   <p id="doneMsg" class="hidden text-center font-black text-green-600 text-lg mt-4">
     ✅ Done! You can now delete seed.html and open your app.
   </p>
+
+  </div><!-- end seedSection -->
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, doc, setDoc, addDoc, getDocs, deleteDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   const app = initializeApp({
     apiKey: "AIzaSyAFuvzd-72WvP0A-q_3eBrUPvCNWoWaYf8",
@@ -59,7 +82,32 @@
     messagingSenderId: "954424022104",
     appId: "1:954424022104:web:4ec9bb65cb22239c9d262d"
   });
-  const db = getFirestore(app);
+  const db   = getFirestore(app);
+  const auth = getAuth(app);
+
+  // ── Auth state — show/hide login vs seed UI ──────────────────
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("seedSection").classList.remove("hidden");
+      document.getElementById("loggedInAs").textContent = `Signed in as: ${user.email || user.displayName || "User"}`;
+    } else {
+      document.getElementById("loginSection").classList.remove("hidden");
+      document.getElementById("seedSection").classList.add("hidden");
+    }
+  });
+
+  document.getElementById("googleSignInBtn").addEventListener("click", async () => {
+    try {
+      await signInWithPopup(auth, new GoogleAuthProvider());
+    } catch(e) {
+      alert("Sign-in failed: " + e.message);
+    }
+  });
+
+  document.getElementById("signOutBtn").addEventListener("click", async () => {
+    await signOut(auth);
+  });
 
   // =============================================
   //  10 PACKS — 30 WORDS EACH = 300 WORDS TOTAL
