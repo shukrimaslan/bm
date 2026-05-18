@@ -42,10 +42,10 @@
     @keyframes pulse-soft { 0%,100%{opacity:1} 50%{opacity:.7} }
     .wotd-label { animation:pulse-soft 2.5s infinite; }
     .flip-mini { perspective:600px;cursor:pointer; }
-    .flip-mini-inner { position:relative;width:100%;transition:transform .5s;transform-style:preserve-3d; }
+    .flip-mini-inner { position:relative;width:100%;height:90px;transition:transform .5s;transform-style:preserve-3d; }
     .flip-mini.flipped .flip-mini-inner { transform:rotateY(180deg); }
-    .flip-mini-front,.flip-mini-back { backface-visibility:hidden;border-radius:.75rem;padding:12px 16px;text-align:center; }
-    .flip-mini-back { position:absolute;top:0;left:0;width:100%;transform:rotateY(180deg); }
+    .flip-mini-front,.flip-mini-back { backface-visibility:hidden;border-radius:.75rem;padding:12px 16px;text-align:center;position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center; }
+    .flip-mini-back { transform:rotateY(180deg); }
 
     /* Level badge */
     .level-badge-primary   { background:#dcfce7;color:#166534;border:1.5px solid #86efac; }
