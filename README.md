@@ -1,4 +1,4 @@
-# 🇲🇾 BM Vocab — Belajar Bahasa Malaysia
+# 🇲🇾 BM Vocab 2 — Belajar Bahasa Malaysia
 
 **An interactive, gamified Bahasa Malaysia vocabulary learning web app for primary and secondary school students in Malaysia.**
 
