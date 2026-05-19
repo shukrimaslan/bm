@@ -11,21 +11,51 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
     body { font-family:'Nunito',sans-serif; padding-bottom:80px; }
-    /* Dark mode */
+
+    /* ── Dark mode ── */
     html.dark body              { background:#0f172a; color:#e2e8f0; }
     html.dark .bg-gray-50       { background:#0f172a !important; }
     html.dark nav.bg-white      { background:#1e293b !important; }
     html.dark .bottom-nav       { background:#1e293b !important; border-top-color:#334155 !important; }
     html.dark .bottom-sheet     { background:#1e293b !important; }
+    html.dark .sheet-handle     { background:#334155 !important; }
     html.dark .text-gray-800    { color:#f1f5f9 !important; }
     html.dark .text-gray-700    { color:#e2e8f0 !important; }
+    html.dark .text-gray-600    { color:#cbd5e1 !important; }
     html.dark .text-gray-500    { color:#94a3b8 !important; }
     html.dark .text-gray-400    { color:#64748b !important; }
     html.dark .bg-white         { background:#1e293b !important; }
     html.dark .bg-gray-100      { background:#334155 !important; }
-    html.dark .pack-card        { filter:brightness(.88); }
+
+    /* Pack cards: use brightness filter to darken the light gradients,
+       then force text to always be dark (legible on light-ish bg) */
+    html.dark .pack-card        { filter:brightness(.82) saturate(.9); }
+    /* These colours stay dark even in dark mode so text on pack cards is always readable */
+    .pack-card h4               { color:#1e293b !important; }
+    .pack-card p                { color:#374151 !important; }
+    .pack-card .level-tag-primary   { background:rgba(255,255,255,.5) !important; color:#14532d !important; }
+    .pack-card .level-tag-secondary { background:rgba(255,255,255,.5) !important; color:#312e81 !important; }
+
+    /* Bottom sheet content */
+    html.dark #sheetName        { color:#f1f5f9 !important; }
+    html.dark #sheetMeta        { color:#94a3b8 !important; }
+    html.dark #sheetDesc        { color:#94a3b8 !important; }
     html.dark .sheet-progress   { background:#334155 !important; }
+    html.dark .bg-green-50      { background:#052e16 !important; }
+    html.dark .bg-indigo-50     { background:#1e1b4b !important; }
+    html.dark .border-green-200 { border-color:#166534 !important; }
+    html.dark .border-indigo-200{ border-color:#3730a3 !important; }
+    html.dark .text-green-700   { color:#4ade80 !important; }
+    html.dark .text-indigo-700  { color:#818cf8 !important; }
+
+    /* WOTD */
     html.dark .guest-banner     { background:#1a1200 !important; border-color:#854d0e !important; }
+    html.dark .offline-banner   { background:#1a1200 !important; border-color:#854d0e !important; color:#fcd34d !important; }
+
+    /* Level badges in navbar */
+    html.dark .level-badge-primary   { background:#052e16 !important; color:#4ade80 !important; border-color:#166534 !important; }
+    html.dark .level-badge-secondary { background:#1e1b4b !important; color:#818cf8 !important; border-color:#3730a3 !important; }
+
     html.dark .skeleton         { background:#334155 !important; }
 
     @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
@@ -33,9 +63,8 @@
 
     .avatar { width:38px;height:38px;border-radius:99px;background:linear-gradient(135deg,#16a34a,#4ade80);display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:16px;cursor:pointer;text-decoration:none;flex-shrink:0; }
     .stats-card { background:linear-gradient(135deg,#16a34a,#4ade80);color:white; }
-    .guest-banner { background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #fcd34d; }
+    .guest-banner   { background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #fcd34d; }
     .offline-banner { background:#fef3c7;border:2px solid #fcd34d; }
-    html.dark .offline-banner { background:#1a1200 !important;border-color:#854d0e !important; }
 
     /* WOTD */
     .wotd-card { background:linear-gradient(135deg,#1e1b4b,#4338ca,#6366f1);color:white; }
@@ -50,8 +79,6 @@
     /* Level badge */
     .level-badge-primary   { background:#dcfce7;color:#166534;border:1.5px solid #86efac; }
     .level-badge-secondary { background:#e0e7ff;color:#3730a3;border:1.5px solid #a5b4fc; }
-    html.dark .level-badge-primary   { background:#052e16;color:#4ade80; }
-    html.dark .level-badge-secondary { background:#1e1b4b;color:#818cf8; }
 
     /* Filter tabs */
     .filter-tab { transition:background .2s,color .2s;cursor:pointer; }
@@ -72,9 +99,7 @@
     .bottom-sheet { position:fixed;bottom:0;left:0;right:0;z-index:61;background:white;border-radius:1.5rem 1.5rem 0 0;padding:0 1.25rem 2rem;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);max-width:480px;margin:0 auto; }
     .bottom-sheet.open { transform:translateY(0); }
     .sheet-handle { width:40px;height:4px;background:#e5e7eb;border-radius:99px;margin:12px auto 20px; }
-    html.dark .sheet-handle { background:#334155; }
 
-    /* Skeleton */
     .skeleton { border-radius:1.5rem;background:#e5e7eb; }
 
     /* Pack colors */
@@ -102,13 +127,8 @@
     .nav-icon { font-size:22px;line-height:1; }
   </style>
   <script>
-    (function(){
-      const t=localStorage.getItem('bmvocab_theme');
-      if(t==='dark') document.documentElement.classList.add('dark');
-    })();
-    if('serviceWorker' in navigator){
-      window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('SW:',e)));
-    }
+    (function(){const t=localStorage.getItem('bmvocab_theme');if(t==='dark')document.documentElement.classList.add('dark');})();
+    if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
   </script>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -128,7 +148,7 @@
     <div class="grid grid-cols-2 gap-3 mb-3">
       <a id="sheetStudyBtn" href="#" class="flex flex-col items-center bg-green-50 hover:bg-green-100 border-2 border-green-200 rounded-2xl py-5 transition-colors">
         <span class="text-3xl mb-1">📚</span>
-        <span class="font-black text-green-700" data-i18n="iKnowIt">Study</span>
+        <span class="font-black text-green-700">Study</span>
         <span class="text-xs text-green-500 mt-0.5">Flashcards</span>
       </a>
       <a id="sheetQuizBtn" href="#" class="flex flex-col items-center bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 rounded-2xl py-5 transition-colors">
@@ -164,19 +184,16 @@
 
   <div class="max-w-2xl mx-auto px-5 py-5">
 
-    <!-- Offline banner -->
     <div id="offlineBanner" class="offline-banner hidden rounded-2xl px-4 py-2 mb-4 text-yellow-800 text-xs font-bold text-center">
-      📶 <span data-i18n="offline">Offline — showing cached data</span>
+      📶 Offline — showing cached data
     </div>
 
-    <!-- Guest banner -->
     <div id="guestBanner" class="guest-banner hidden rounded-2xl px-5 py-4 mb-5 flex items-start gap-3 fade-up">
       <span class="text-2xl">👤</span>
       <div>
-        <p class="font-black text-yellow-800 text-sm" data-i18n="guestMode">You're in Guest Mode</p>
-        <p class="text-yellow-700 text-xs mt-0.5">
-          <span data-i18n="guestDesc">Progress won't be saved.</span>
-          <button onclick="showModal()" class="underline font-bold ml-1" data-i18n="signIn">Sign in</button>
+        <p class="font-black text-yellow-800 text-sm">You're in Guest Mode</p>
+        <p class="text-yellow-700 text-xs mt-0.5">Progress won't be saved.
+          <button onclick="showModal()" class="underline font-bold">Sign in</button>
         </p>
       </div>
     </div>
@@ -188,7 +205,7 @@
       <div class="grid grid-cols-3 gap-3">
         <div class="bg-white/20 rounded-2xl p-3 text-center">
           <p class="text-white font-black text-xl" id="statWords">—</p>
-          <p class="text-green-100 text-xs font-semibold" data-i18n="wordsKnown">Words Known</p>
+          <p class="text-green-100 text-xs font-semibold">Words Known</p>
         </div>
         <div class="bg-white/20 rounded-2xl p-3 text-center">
           <p class="text-white font-black text-xl" id="statXP">—</p>
@@ -196,7 +213,7 @@
         </div>
         <div class="bg-white/20 rounded-2xl p-3 text-center">
           <p class="text-white font-black text-xl" id="statStreak">—</p>
-          <p class="text-green-100 text-xs font-semibold" data-i18n="dayStreak">Day Streak</p>
+          <p class="text-green-100 text-xs font-semibold">Day Streak</p>
         </div>
       </div>
     </div>
@@ -204,72 +221,65 @@
     <!-- Word of the Day -->
     <div id="wotdSection" class="wotd-card rounded-3xl p-5 mb-5 shadow-md fade-up hidden" style="animation-delay:.05s">
       <div class="flex items-center justify-between mb-3">
-        <span class="wotd-label text-indigo-200 text-xs font-black uppercase tracking-widest">✨ <span data-i18n="wordOfDay">Word of the Day</span></span>
+        <span class="wotd-label text-indigo-200 text-xs font-black uppercase tracking-widest">✨ Word of the Day</span>
         <span class="text-indigo-300 text-xs font-semibold" id="wotdDate"></span>
       </div>
       <div class="flip-mini" id="wotdFlip" onclick="flipWotd()">
         <div class="flip-mini-inner">
           <div class="flip-mini-front bg-white/15">
-            <p class="text-white font-black text-3xl mb-1" id="wotdBM">—</p>
-            <p class="text-indigo-200 text-xs" data-i18n="tapReveal">👆 Tap to reveal meaning</p>
+            <p class="text-white font-black text-2xl mb-1" id="wotdBM">—</p>
+            <p class="text-indigo-200 text-xs">👆 Tap to reveal meaning</p>
           </div>
           <div class="flip-mini-back bg-white/15">
-            <p class="text-indigo-200 text-xs mb-1">English</p>
-            <p class="text-white font-black text-2xl mb-1" id="wotdEN">—</p>
+            <p class="text-indigo-200 text-xs mb-0.5">English</p>
+            <p class="text-white font-black text-xl mb-0.5" id="wotdEN">—</p>
             <p class="text-indigo-200 text-xs italic" id="wotdExample"></p>
           </div>
         </div>
       </div>
       <div class="flex gap-2 mt-3">
-        <button onclick="speakWotd()" class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-xl text-sm transition-colors" data-i18n="pronounce">🔊 Pronounce</button>
-        <a id="wotdStudyLink" href="home.html" class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-xl text-sm text-center transition-colors" data-i18n="studyPack">📚 Study Pack</a>
+        <button onclick="speakWotd()" class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-xl text-sm transition-colors">🔊 Pronounce</button>
+        <a id="wotdStudyLink" href="home.html" class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-xl text-sm text-center transition-colors">📚 Study Pack</a>
       </div>
     </div>
 
-    <!-- Pack filter + heading -->
+    <!-- Filter tabs -->
     <div class="flex items-center justify-between mb-3 fade-up" style="animation-delay:.08s">
-      <h3 class="text-lg font-black text-gray-700" data-i18n="wordPacks">📚 Word Packs</h3>
+      <h3 class="text-lg font-black text-gray-700">📚 Word Packs</h3>
       <div class="flex bg-white rounded-2xl p-1 shadow-sm gap-1">
-        <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabAll"       onclick="setFilter('all')"       data-i18n="all">All</button>
+        <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabAll"       onclick="setFilter('all')">All</button>
         <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabPrimary"   onclick="setFilter('primary')">🏫</button>
         <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabSecondary" onclick="setFilter('secondary')">🎓</button>
       </div>
     </div>
     <p class="text-xs text-gray-400 font-semibold mb-4" id="packCount"></p>
 
-    <!-- Skeleton loading -->
     <div id="loadingState" class="grid grid-cols-2 gap-4">
       <div class="skeleton h-40 animate-pulse"></div>
       <div class="skeleton h-40 animate-pulse"></div>
       <div class="skeleton h-40 animate-pulse"></div>
       <div class="skeleton h-40 animate-pulse"></div>
     </div>
-
     <div id="packsGrid" class="grid grid-cols-2 gap-4 hidden"></div>
-
-    <!-- Empty state -->
     <div id="emptyState" class="hidden text-center py-16">
       <div class="text-6xl mb-4">📭</div>
       <p class="font-black text-gray-600 mb-1">No packs found</p>
       <p class="text-gray-400 text-sm">Run seed.html to import words.</p>
     </div>
-
-    <!-- Error state -->
     <div id="errorState" class="hidden text-center py-16">
       <div class="text-6xl mb-4">⚠️</div>
-      <p class="text-red-400 font-semibold text-sm mb-3" data-i18n="failedLoad">Failed to load. Check your connection.</p>
+      <p class="text-red-400 font-semibold text-sm mb-3">Failed to load. Check your connection.</p>
       <button onclick="location.reload()" class="bg-gray-100 text-gray-600 font-bold py-2 px-5 rounded-full text-sm">Retry</button>
     </div>
-
   </div>
 
   <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <div class="max-w-2xl mx-auto flex">
-      <a href="home.html"        class="nav-item active"><span class="nav-icon">🏠</span><span data-i18n="home">Home</span></a>
-      <a href="progress.html"    class="nav-item"><span class="nav-icon">📊</span><span data-i18n="progress">Progress</span></a>
-      <a href="leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span><span data-i18n="ranking">Ranking</span></a>
-      <a href="profile.html"     class="nav-item"><span class="nav-icon">👤</span><span data-i18n="profile">Profile</span></a>
+      <a href="home.html"        class="nav-item active"><span class="nav-icon">🏠</span>Home</a>
+      <a href="progress.html"    class="nav-item"><span class="nav-icon">📊</span>Progress</a>
+      <a href="leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Ranking</a>
+      <a href="profile.html"     class="nav-item"><span class="nav-icon">👤</span>Profile</a>
     </div>
   </nav>
 
@@ -279,7 +289,7 @@
     import { initTheme } from "./js/theme.js";
     import { initLang, applyTranslations } from "./js/i18n.js";
     import { showSignInModal } from "./js/guest.js";
-    import { isOnline, smartLoad, getCachedPacks, cachePacks, getCachedAllWords, cacheAllWords } from "./js/cache.js";
+    import { isOnline, getCachedPacks, cachePacks, getCachedAllWords, cacheAllWords } from "./js/cache.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -287,12 +297,11 @@
     window.showModal = showSignInModal;
 
     const COLORS=["pack-green","pack-blue","pack-yellow","pack-pink","pack-purple","pack-orange","pack-teal","pack-red","pack-lime","pack-sky","pack-rose","pack-amber","pack-cyan","pack-violet","pack-emerald","pack-fuchsia"];
-    let allPacks=[], allWords=[], knownIds=new Set(), userLevel=null, activeFilter="all", wotdWord=null;
+    let allPacks=[],allWords=[],knownIds=new Set(),userLevel=null,activeFilter="all",wotdWord=null;
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href="index.html"; return; }
       const isGuest=user.isAnonymous;
-
       if (isGuest) {
         document.getElementById("guestBanner").classList.remove("hidden");
         document.getElementById("userName").textContent="Guest";
@@ -317,17 +326,16 @@
         document.getElementById("userAvatar").textContent=name.charAt(0).toUpperCase();
         loadUserStats(user.uid);
       }
-
       await Promise.all([loadPacksAndWords(user), loadWordOfTheDay(userLevel)]);
     });
 
     async function loadUserStats(uid) {
       try {
-        const [progressSnap,profile]=await Promise.all([
+        const [progSnap,profile]=await Promise.all([
           getDocs(collection(db,"users",uid,"progress")),
           getUserProfile(uid)
         ]);
-        knownIds=new Set(progressSnap.docs.filter(d=>d.data().status==="known").map(d=>d.id));
+        knownIds=new Set(progSnap.docs.filter(d=>d.data().status==="known").map(d=>d.id));
         document.getElementById("statWords").textContent=knownIds.size;
         document.getElementById("statXP").textContent=(profile.xp||0)+" XP";
         const streak=profile.streak||0;
@@ -339,32 +347,21 @@
       try {
         let fromCache=false;
         if (isOnline()) {
-          const [packSnap,wordSnap]=await Promise.all([
-            getDocs(collection(db,"packs")),
-            getDocs(collection(db,"words")),
-          ]);
-          allPacks=packSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||99)-(b.order||99));
-          allWords=wordSnap.docs.map(d=>({id:d.id,...d.data()}));
+          const [ps,ws]=await Promise.all([getDocs(collection(db,"packs")),getDocs(collection(db,"words"))]);
+          allPacks=ps.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||99)-(b.order||99));
+          allWords=ws.docs.map(d=>({id:d.id,...d.data()}));
           cachePacks(allPacks); cacheAllWords(allWords);
         } else {
-          allPacks=getCachedPacks()||[];
-          allWords=getCachedAllWords()||[];
-          fromCache=true;
+          allPacks=getCachedPacks()||[]; allWords=getCachedAllWords()||[]; fromCache=true;
         }
-
         if (fromCache) document.getElementById("offlineBanner").classList.remove("hidden");
-
         if (!user.isAnonymous) {
-          try {
-            const prog=await getDocs(collection(db,"users",user.uid,"progress"));
-            knownIds=new Set(prog.docs.filter(d=>d.data().status==="known").map(d=>d.id));
-          } catch {}
+          try { const p=await getDocs(collection(db,"users",user.uid,"progress")); knownIds=new Set(p.docs.filter(d=>d.data().status==="known").map(d=>d.id)); } catch {}
         }
-
         document.getElementById("loadingState").classList.add("hidden");
-        if (allPacks.length===0) { document.getElementById("emptyState").classList.remove("hidden"); return; }
+        if (!allPacks.length) { document.getElementById("emptyState").classList.remove("hidden"); return; }
         renderPacks();
-      } catch(err) {
+      } catch {
         document.getElementById("loadingState").classList.add("hidden");
         document.getElementById("errorState").classList.remove("hidden");
       }
@@ -374,37 +371,39 @@
       const grid=document.getElementById("packsGrid");
       grid.classList.remove("hidden"); grid.innerHTML="";
       document.getElementById("emptyState").classList.add("hidden");
-
-      const visible=activeFilter==="all" ? allPacks : allPacks.filter(p=>p.level===activeFilter);
+      const visible=activeFilter==="all"?allPacks:allPacks.filter(p=>p.level===activeFilter);
       document.getElementById("packCount").textContent=`${visible.length} pack${visible.length!==1?"s":""}${activeFilter!=="all"?" · "+activeFilter:""}`;
+      if (!visible.length) { document.getElementById("emptyState").classList.remove("hidden"); grid.classList.add("hidden"); return; }
 
-      if (visible.length===0) { document.getElementById("emptyState").classList.remove("hidden"); grid.classList.add("hidden"); return; }
-
-      visible.forEach((pack,i)=>{
+      visible.forEach((pack,i) => {
         const color=COLORS[allPacks.indexOf(pack)%COLORS.length];
         const delay=(i*0.05).toFixed(2);
         const isLocked=userLevel==="primary"&&pack.level==="secondary";
         const packWords=allWords.filter(w=>w.pack===pack.id);
         const packKnown=packWords.filter(w=>knownIds.has(w.id)).length;
         const packPct=packWords.length?Math.round((packKnown/packWords.length)*100):0;
-        const levelTag=pack.level==="secondary"
-          ?`<span class="text-xs bg-indigo-100 text-indigo-600 font-bold px-2 py-0.5 rounded-full">Secondary</span>`
-          :`<span class="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">Primary</span>`;
+        // Level tag with explicit class for dark mode override
+        const tagCls=pack.level==="secondary"?"level-tag-secondary":"level-tag-primary";
+        const tagText=pack.level==="secondary"?"Secondary":"Primary";
+        const tagEmoji=pack.level==="secondary"?"🎓":"🏫";
 
         const div=document.createElement("div");
         div.className=`pack-card ${color} border-2 rounded-3xl p-5 shadow-sm fade-up ${isLocked?"pack-locked":""}`;
         div.style.animationDelay=delay+"s";
+        // Force text dark on pack cards always — not affected by dark mode text overrides
         div.innerHTML=`
           <div class="text-4xl mb-2">${pack.emoji||"📖"}</div>
-          <h4 class="font-black text-gray-800 text-sm leading-tight mb-1">${pack.name}</h4>
-          <div class="mb-2">${levelTag}</div>
-          <p class="text-gray-500 text-xs font-semibold mb-2">${pack.wordCount||"?"} words</p>
-          <div class="h-1.5 bg-black/10 rounded-full overflow-hidden">
-            <div class="h-full bg-black/25 rounded-full" style="width:${packPct}%"></div>
+          <h4 class="font-black text-sm leading-tight mb-1" style="color:#1e293b">${pack.name}</h4>
+          <div class="mb-2">
+            <span class="${tagCls} text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(255,255,255,.55)">${tagEmoji} ${tagText}</span>
           </div>
-          <p class="text-xs text-gray-500 font-semibold mt-1">${packKnown}/${packWords.length} known</p>`;
+          <p class="text-xs font-semibold mb-2" style="color:#374151">${pack.wordCount||"?"} words</p>
+          <div class="h-1.5 rounded-full overflow-hidden" style="background:rgba(0,0,0,.12)">
+            <div class="h-full rounded-full" style="width:${packPct}%;background:rgba(0,0,0,.3)"></div>
+          </div>
+          <p class="text-xs font-semibold mt-1" style="color:#374151">${packKnown}/${packWords.length} known</p>`;
 
-        div.onclick=isLocked ? null : ()=>openSheet(pack,packWords.length,packKnown);
+        div.onclick=isLocked?null:()=>openSheet(pack,packWords.length,packKnown);
         if (isLocked) div.style.opacity=".6";
         grid.appendChild(div);
       });
@@ -423,13 +422,10 @@
       document.getElementById("sheetOverlay").classList.add("open");
       document.getElementById("bottomSheet").classList.add("open");
     }
-
     window.closeSheet=function(){
       document.getElementById("sheetOverlay").classList.remove("open");
       document.getElementById("bottomSheet").classList.remove("open");
     };
-
-    // Swipe down to close sheet
     let ty=0;
     document.getElementById("bottomSheet").addEventListener("touchstart",e=>{ty=e.touches[0].clientY;});
     document.getElementById("bottomSheet").addEventListener("touchend",e=>{if(e.changedTouches[0].clientY-ty>60)closeSheet();});
@@ -438,10 +434,7 @@
       try {
         const today=new Date();
         let pool=allWords.length?allWords:(getCachedAllWords()||[]);
-        if (!pool.length) {
-          const snap=await getDocs(collection(db,"words"));
-          pool=snap.docs.map(d=>({id:d.id,...d.data()}));
-        }
+        if (!pool.length) { const s=await getDocs(collection(db,"words")); pool=s.docs.map(d=>({id:d.id,...d.data()})); }
         if (level) { const lp=pool.filter(w=>w.level===level); if(lp.length) pool=lp; }
         const seed=today.getFullYear()*10000+(today.getMonth()+1)*100+today.getDate();
         wotdWord=pool[seed%pool.length];
@@ -454,22 +447,12 @@
         document.getElementById("wotdSection").classList.remove("hidden");
       } catch(e){console.warn("WOTD:",e);}
     }
-
-    window.flipWotd =()=>document.getElementById("wotdFlip").classList.toggle("flipped");
-    window.speakWotd=()=>{
-      if (!wotdWord) return;
-      const u=new SpeechSynthesisUtterance(wotdWord.bm);
-      u.lang="ms-MY"; u.rate=0.85; speechSynthesis.speak(u);
-    };
-
-    window.setFilter=function(filter){
-      activeFilter=filter; setFilterUI(filter); renderPacks();
-    };
-    function setFilterUI(filter){
-      ["all","primary","secondary"].forEach(f=>{
-        document.getElementById(`tab${f.charAt(0).toUpperCase()+f.slice(1)}`)?.classList.remove("active-all","active-primary","active-secondary");
-      });
-      document.getElementById(`tab${filter.charAt(0).toUpperCase()+filter.slice(1)}`)?.classList.add(`active-${filter}`);
+    window.flipWotd=()=>document.getElementById("wotdFlip").classList.toggle("flipped");
+    window.speakWotd=()=>{if(!wotdWord)return;const u=new SpeechSynthesisUtterance(wotdWord.bm);u.lang="ms-MY";u.rate=0.85;speechSynthesis.speak(u);};
+    window.setFilter=function(f){activeFilter=f;setFilterUI(f);renderPacks();};
+    function setFilterUI(f){
+      ["all","primary","secondary"].forEach(x=>{document.getElementById(`tab${x.charAt(0).toUpperCase()+x.slice(1)}`)?.classList.remove("active-all","active-primary","active-secondary");});
+      document.getElementById(`tab${f.charAt(0).toUpperCase()+f.slice(1)}`)?.classList.add(`active-${f}`);
     }
     setFilterUI(activeFilter);
   </script>

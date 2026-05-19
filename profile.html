@@ -10,39 +10,46 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
     body { font-family:'Nunito',sans-serif; padding-bottom:80px; transition:background .3s,color .3s; }
-    /* Dark mode */
+
+    /* ── Dark mode ── */
     html.dark body            { background:#0f172a; color:#e2e8f0; }
     html.dark .section-card   { background:#1e293b !important; box-shadow:0 2px 12px rgba(0,0,0,.4) !important; }
     html.dark .bg-gray-50     { background:#0f172a !important; }
+    html.dark .bg-gray-100    { background:#334155 !important; }
+    html.dark .text-gray-800  { color:#f1f5f9 !important; }
     html.dark .text-gray-700  { color:#e2e8f0 !important; }
+    html.dark .text-gray-600  { color:#cbd5e1 !important; }
     html.dark .text-gray-500  { color:#94a3b8 !important; }
     html.dark .text-gray-400  { color:#64748b !important; }
-    html.dark .text-gray-800  { color:#f1f5f9 !important; }
     html.dark nav.bg-white    { background:#1e293b !important; }
     html.dark .bottom-nav     { background:#1e293b !important; border-top-color:#334155 !important; }
     html.dark input           { background:#0f172a !important; color:#f1f5f9 !important; border-color:#334155 !important; }
-    html.dark .bg-gray-100    { background:#334155 !important; }
-    html.dark .bg-indigo-50   { background:#1e1b4b !important; }
-    html.dark .bg-red-50      { background:#450a0a !important; }
-    html.dark .level-pill     { background:#1e293b !important; border-color:#334155 !important; color:#cbd5e1 !important; }
-    html.dark .border-red-100 { border-color:#450a0a !important; }
     html.dark .bg-green-50    { background:#052e16 !important; }
-    html.dark .border-green-200{ border-color:#166534 !important; }
+    html.dark .border-green-200 { border-color:#166534 !important; }
+    html.dark .text-green-800 { color:#4ade80 !important; }
+    html.dark .text-green-700 { color:#4ade80 !important; }
+    html.dark .bg-red-50      { background:#450a0a !important; }
+    html.dark .border-red-100 { border-color:#450a0a !important; }
+    html.dark .text-red-500   { color:#f87171 !important; }
+    html.dark .text-red-600   { color:#f87171 !important; }
+    html.dark .bg-indigo-50   { background:#1e1b4b !important; }
+    html.dark .bg-indigo-100  { background:#312e81 !important; }
+    html.dark .text-indigo-700 { color:#a5b4fc !important; }
+    html.dark .text-indigo-600 { color:#a5b4fc !important; }
+    html.dark .text-indigo-400 { color:#818cf8 !important; }
+    html.dark .level-pill     { background:#1e293b !important; border-color:#334155 !important; color:#cbd5e1 !important; }
+    html.dark .friends-btn    { background:#1e1b4b !important; border-color:#3730a3 !important; color:#a5b4fc !important; }
 
     @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
     .fade-up { animation:fade-up .45s ease both; }
+
     input:focus { outline:none; border-color:#16a34a !important; box-shadow:0 0 0 3px #bbf7d0; }
     .avatar-ring  { background:linear-gradient(135deg,#16a34a,#4ade80); padding:4px; border-radius:99px; display:inline-block; }
     .avatar-inner { width:88px; height:88px; border-radius:99px; background:linear-gradient(135deg,#166534,#16a34a); display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:900; color:white; border:4px solid white; }
     .save-btn { transition:transform .15s,box-shadow .15s; }
     .save-btn:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(22,163,74,.35); }
     .section-card { background:white; border-radius:1.5rem; box-shadow:0 2px 12px rgba(0,0,0,.07); padding:1.5rem; margin-bottom:1rem; }
-    .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:#166534; color:white; font-weight:800; font-size:14px; padding:12px 24px; border-radius:99px; box-shadow:0 8px 24px rgba(0,0,0,.2); opacity:0; transition:opacity .3s; pointer-events:none; white-space:nowrap; z-index:99; }
-    .toast.show { opacity:1; }
-    .level-pill { border:2px solid #e5e7eb; background:white; border-radius:99px; padding:8px 16px; font-weight:800; font-size:13px; color:#6b7280; cursor:pointer; transition:all .15s; }
-    .level-pill:hover { border-color:#9ca3af; }
-    .level-pill.active-primary   { border-color:#16a34a; background:#f0fdf4; color:#166534; }
-    .level-pill.active-secondary { border-color:#4f46e5; background:#eef2ff; color:#3730a3; }
+
     /* Toggle switch */
     .toggle-switch { position:relative; width:52px; height:28px; flex-shrink:0; }
     .toggle-switch input { opacity:0; width:0; height:0; }
@@ -50,25 +57,36 @@
     .toggle-slider:before { content:''; position:absolute; width:22px; height:22px; left:3px; top:3px; background:white; border-radius:99px; transition:.3s; }
     input:checked + .toggle-slider { background:#16a34a; }
     input:checked + .toggle-slider:before { transform:translateX(24px); }
-    /* Bottom nav */
+
+    /* Level pills */
+    .level-pill { border:2px solid #e5e7eb; background:white; border-radius:99px; padding:8px 16px; font-weight:800; font-size:13px; color:#6b7280; cursor:pointer; transition:all .15s; }
+    .level-pill:hover { border-color:#9ca3af; }
+    .level-pill.active-primary   { border-color:#16a34a; background:#f0fdf4; color:#166534; }
+    .level-pill.active-secondary { border-color:#4f46e5; background:#eef2ff; color:#3730a3; }
+    html.dark .level-pill.active-primary   { background:#052e16 !important; color:#4ade80 !important; }
+    html.dark .level-pill.active-secondary { background:#1e1b4b !important; color:#818cf8 !important; }
+
+    /* Friends button */
+    .friends-btn { display:flex; align-items:center; gap:.75rem; width:100%; padding:.875rem 1rem; background:#eef2ff; color:#4338ca; font-weight:800; border-radius:1rem; transition:background .2s; border:2px solid #c7d2fe; font-size:.9rem; }
+    .friends-btn:hover { background:#e0e7ff; }
+
+    /* Toast */
+    .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:#166534; color:white; font-weight:800; font-size:14px; padding:12px 24px; border-radius:99px; box-shadow:0 8px 24px rgba(0,0,0,.2); opacity:0; transition:opacity .3s; pointer-events:none; white-space:nowrap; z-index:99; }
+    .toast.show { opacity:1; }
+
     .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #f3f4f6; padding:8px 0 max(8px,env(safe-area-inset-bottom)); z-index:50; }
     .nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; flex:1; font-size:11px; font-weight:800; color:#9ca3af; text-decoration:none; transition:color .2s; }
     .nav-item.active { color:#16a34a; }
     .nav-icon { font-size:22px; line-height:1; }
   </style>
-  <script>
-    (function(){
-      const t=localStorage.getItem('bmvocab_theme');
-      if(t==='dark') document.documentElement.classList.add('dark');
-    })();
-  </script>
+  <script>(function(){const t=localStorage.getItem('bmvocab_theme');if(t==='dark')document.documentElement.classList.add('dark');})();</script>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
   <nav class="bg-white shadow-sm sticky top-0 z-10">
     <div class="max-w-lg mx-auto px-5 py-4 flex items-center justify-between">
       <div class="flex items-center gap-2"><span class="text-2xl">🇲🇾</span><h1 class="text-xl font-black text-green-700">BM Vocab</h1></div>
-      <h2 class="font-black text-gray-700" data-i18n="profile">Profile</h2>
+      <h2 class="font-black text-gray-700">👤 Profile</h2>
       <div class="w-10"></div>
     </div>
   </nav>
@@ -88,26 +106,38 @@
     <!-- Guest: sign in prompt -->
     <div id="guestSignInCard" class="hidden section-card fade-up bg-green-50 border-2 border-green-200 text-center mb-4">
       <div class="text-4xl mb-2">🔐</div>
-      <h3 class="font-black text-gray-800 mb-1" data-i18n="saveProgress">Save Your Progress</h3>
+      <h3 class="font-black text-gray-800 mb-1">Save Your Progress</h3>
       <p class="text-gray-500 text-sm mb-4">Sign in to track words, streaks, XP and appear on the leaderboard.</p>
       <button id="guestSignInBtn"
         class="block w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-2xl transition-colors">
-        🔐 <span data-i18n="signIn">Sign In</span> / Create Account
+        🔐 Sign In / Create Account
       </button>
     </div>
 
-    <!-- XP + Level (non-guest) -->
+    <!-- XP + Level -->
     <div id="levelCard" class="hidden section-card fade-up mb-4" style="animation-delay:.05s">
       <div class="flex items-center justify-between">
-        <div><p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5" data-i18n="currentRank">Current Rank</p><p class="font-black text-indigo-700 text-lg" id="profileLevel">—</p></div>
-        <div class="text-right"><p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">XP</p><p class="font-black text-gray-800 text-lg" id="profileXP">0</p></div>
+        <div><p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Current Rank</p><p class="font-black text-indigo-700 text-lg" id="profileLevel">—</p></div>
+        <div class="text-right"><p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Total XP</p><p class="font-black text-gray-800 text-lg" id="profileXP">0</p></div>
         <div class="text-right"><p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Streak</p><p class="font-black text-orange-500 text-lg" id="profileStreak">🔥 0</p></div>
       </div>
     </div>
 
-    <!-- School level (non-guest) -->
-    <div id="schoolCard" class="hidden section-card fade-up" style="animation-delay:.07s">
-      <h3 class="font-black text-gray-700 mb-3" data-i18n="schoolLevel">🏫 School Level</h3>
+    <!-- Friends list button — non-guest only -->
+    <div id="friendsCard" class="hidden section-card fade-up" style="animation-delay:.07s">
+      <h3 class="font-black text-gray-700 mb-3">👫 Friends</h3>
+      <a href="friends.html" class="friends-btn">
+        <span class="text-2xl">👫</span>
+        <div>
+          <p class="font-black">Friends List</p>
+          <p class="text-xs font-semibold opacity-70">Add, edit & remove friends</p>
+        </div>
+      </a>
+    </div>
+
+    <!-- School level -->
+    <div id="schoolCard" class="hidden section-card fade-up" style="animation-delay:.09s">
+      <h3 class="font-black text-gray-700 mb-3">🏫 School Level</h3>
       <div class="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3 mb-4">
         <div><p class="text-xs font-bold text-gray-400 uppercase">Level</p><p class="font-black text-gray-800" id="schoolLevelShow">—</p></div>
         <div class="text-right"><p class="text-xs font-bold text-gray-400 uppercase">Year</p><p class="font-black text-gray-800" id="schoolYearShow">—</p></div>
@@ -124,32 +154,30 @@
       <p id="levelMsg" class="text-sm text-center mt-2 font-semibold hidden"></p>
     </div>
 
-    <!-- Edit name (non-guest) -->
-    <div id="nameCard" class="hidden section-card fade-up" style="animation-delay:.09s">
-      <h3 class="font-black text-gray-700 mb-4" data-i18n="editName">✏️ Edit Display Name</h3>
+    <!-- Edit name -->
+    <div id="nameCard" class="hidden section-card fade-up" style="animation-delay:.11s">
+      <h3 class="font-black text-gray-700 mb-4">✏️ Edit Display Name</h3>
       <input type="text" id="nameInput" placeholder="Enter your name"
         class="w-full border-2 border-gray-200 rounded-2xl px-4 py-3 font-semibold text-gray-700 mb-4"/>
-      <button id="saveNameBtn" class="save-btn w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-2xl" data-i18n="saveName">Save Name</button>
+      <button id="saveNameBtn" class="save-btn w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-2xl">Save Name</button>
       <p id="nameMsg" class="text-sm text-center mt-2 font-semibold hidden"></p>
     </div>
 
     <!-- Change password -->
-    <div id="passwordSection" class="hidden section-card fade-up" style="animation-delay:.11s">
-      <h3 class="font-black text-gray-700 mb-4" data-i18n="changePass">🔑 Change Password</h3>
+    <div id="passwordSection" class="hidden section-card fade-up" style="animation-delay:.13s">
+      <h3 class="font-black text-gray-700 mb-4">🔑 Change Password</h3>
       <input type="password" id="newPasswordInput" placeholder="At least 6 characters"
         class="w-full border-2 border-gray-200 rounded-2xl px-4 py-3 font-semibold text-gray-700 mb-4" autocomplete="new-password"/>
-      <button id="savePasswordBtn" class="save-btn w-full bg-blue-500 hover:bg-blue-600 text-white font-black py-3 rounded-2xl" data-i18n="updatePass">Update Password</button>
+      <button id="savePasswordBtn" class="save-btn w-full bg-blue-500 hover:bg-blue-600 text-white font-black py-3 rounded-2xl">Update Password</button>
       <p id="passwordMsg" class="text-sm text-center mt-2 font-semibold hidden"></p>
     </div>
 
-    <!-- Preferences (dark mode + language) -->
-    <div class="section-card fade-up" style="animation-delay:.13s">
+    <!-- Preferences -->
+    <div class="section-card fade-up" style="animation-delay:.15s">
       <h3 class="font-black text-gray-700 mb-4">⚙️ Preferences</h3>
-
-      <!-- Dark mode toggle -->
       <div class="flex items-center justify-between mb-4">
         <div>
-          <p class="font-bold text-gray-700 text-sm" data-i18n="darkMode">Dark Mode</p>
+          <p class="font-bold text-gray-700 text-sm">Dark Mode</p>
           <p class="text-xs text-gray-400">Easy on the eyes at night</p>
         </div>
         <label class="toggle-switch">
@@ -157,11 +185,9 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
-
-      <!-- Language toggle -->
       <div class="flex items-center justify-between">
         <div>
-          <p class="font-bold text-gray-700 text-sm" data-i18n="language">Language / Bahasa</p>
+          <p class="font-bold text-gray-700 text-sm">Language / Bahasa</p>
           <p class="text-xs text-gray-400">UI language for the app</p>
         </div>
         <button id="langToggleBtn"
@@ -172,20 +198,20 @@
     </div>
 
     <!-- Account info -->
-    <div class="section-card fade-up" style="animation-delay:.15s">
+    <div class="section-card fade-up" style="animation-delay:.17s">
       <h3 class="font-black text-gray-700 mb-3">ℹ️ Account Info</h3>
       <div class="space-y-3">
         <div class="flex justify-between"><span class="text-sm font-bold text-gray-500">Account Type</span><span class="text-sm font-black text-gray-700" id="accountType">—</span></div>
-        <div class="flex justify-between"><span class="text-sm font-bold text-gray-500">User ID</span><span class="text-xs font-mono text-gray-400" id="userId">—</span></div>
+        <div class="flex justify-between"><span class="text-sm font-bold text-gray-500">Friend Code</span><span class="text-sm font-black font-mono text-gray-700 tracking-widest" id="friendCodeDisplay">—</span></div>
         <div class="flex justify-between"><span class="text-sm font-bold text-gray-500">Member Since</span><span class="text-sm font-bold text-gray-700" id="memberSince">—</span></div>
       </div>
     </div>
 
     <!-- Danger zone -->
-    <div class="section-card fade-up border-2 border-red-100" style="animation-delay:.17s">
+    <div class="section-card fade-up border-2 border-red-100" style="animation-delay:.19s">
       <h3 class="font-black text-red-500 mb-3">⚠️ Danger Zone</h3>
-      <button id="logoutBtn" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-black py-3 rounded-2xl mb-3" data-i18n="logout">🚪 Log Out</button>
-      <button id="deleteAccountBtn" class="hidden w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-2xl text-sm" data-i18n="deleteAcc">🗑️ Delete Account & All Progress</button>
+      <button id="logoutBtn" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-black py-3 rounded-2xl mb-3">🚪 Log Out</button>
+      <button id="deleteAccountBtn" class="hidden w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-2xl text-sm">🗑️ Delete Account & All Progress</button>
       <p id="deleteNote" class="hidden text-xs text-gray-400 text-center mt-2">Deleting is permanent and cannot be undone.</p>
     </div>
 
@@ -196,10 +222,10 @@
   <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <div class="max-w-2xl mx-auto flex">
-      <a href="home.html"        class="nav-item"><span class="nav-icon">🏠</span><span data-i18n="home">Home</span></a>
-      <a href="progress.html"    class="nav-item"><span class="nav-icon">📊</span><span data-i18n="progress">Progress</span></a>
-      <a href="leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span><span data-i18n="ranking">Ranking</span></a>
-      <a href="profile.html"     class="nav-item active"><span class="nav-icon">👤</span><span data-i18n="profile">Profile</span></a>
+      <a href="home.html"        class="nav-item"><span class="nav-icon">🏠</span>Home</a>
+      <a href="progress.html"    class="nav-item"><span class="nav-icon">📊</span>Progress</a>
+      <a href="leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Ranking</a>
+      <a href="profile.html"     class="nav-item active"><span class="nav-icon">👤</span>Profile</a>
     </div>
   </nav>
 
@@ -208,28 +234,26 @@
     import { getUserProfile, getLevel, calcCurrentSchoolYear, getSchoolYearLabel } from "./js/streak.js";
     import { initTheme, toggleTheme, getTheme } from "./js/theme.js";
     import { initLang, toggleLang, applyTranslations, getLang } from "./js/i18n.js";
-    import { showSignInModal, signOutAndRedirect } from "./js/guest.js";
+    import { showSignInModal } from "./js/guest.js";
     import { onAuthStateChanged, signOut, updateProfile, updatePassword, deleteUser }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { doc, getDoc, updateDoc, collection, getDocs, deleteDoc }
+    import { doc, getDoc, updateDoc, setDoc, collection, getDocs, deleteDoc }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    initTheme();
-    initLang();
+    initTheme(); initLang(); applyTranslations();
 
-    // Sync dark mode toggle state
-    document.getElementById("darkModeToggle").checked = getTheme() === "dark";
+    document.getElementById("darkModeToggle").checked = getTheme()==="dark";
     document.getElementById("darkModeToggle").onchange = () => toggleTheme();
     document.getElementById("langToggleBtn").onclick   = () => { toggleLang(); applyTranslations(); };
 
     let currentUser=null, newLevel=null, newYearNum=null;
 
-    function showToast(msg,isError=false){
+    function showToast(msg,isError=false) {
       const t=document.getElementById("toast");
       t.textContent=msg; t.style.background=isError?"#991b1b":"#166534";
       t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2800);
     }
-    function showMsg(id,msg,isError=false){
+    function showMsg(id,msg,isError=false) {
       const el=document.getElementById(id);
       el.textContent=msg;
       el.className=`text-sm text-center mt-2 font-semibold ${isError?"text-red-500":"text-green-600"}`;
@@ -244,58 +268,63 @@
       const isEmail  = user.providerData.some(p=>p.providerId==="password");
       const name     = user.displayName||(isGuest?"Guest":"Student");
 
-      document.getElementById("displayNameShow").textContent = name;
-      document.getElementById("avatarDisplay").textContent   = isGuest?"👤":name.charAt(0).toUpperCase();
-      document.getElementById("emailShow").textContent       = user.email||"";
-      document.getElementById("userId").textContent          = user.uid.slice(0,16)+"...";
-      document.getElementById("memberSince").textContent     = user.metadata.creationTime
-        ? new Date(user.metadata.creationTime).toLocaleDateString("en-MY",{year:"numeric",month:"short",day:"numeric"}) : "—";
-      document.getElementById("accountType").textContent     = isGuest?"Guest":isGoogle?"Google":"Email";
+      document.getElementById("displayNameShow").textContent=name;
+      document.getElementById("avatarDisplay").textContent=isGuest?"👤":name.charAt(0).toUpperCase();
+      document.getElementById("emailShow").textContent=user.email||"";
+      document.getElementById("accountType").textContent=isGuest?"Guest":isGoogle?"Google":"Email";
+      document.getElementById("memberSince").textContent=user.metadata.creationTime
+        ?new Date(user.metadata.creationTime).toLocaleDateString("en-MY",{year:"numeric",month:"short",day:"numeric"}):"—";
 
       if (isGuest) {
         document.getElementById("guestBadge").classList.remove("hidden");
         document.getElementById("guestSignInCard").classList.remove("hidden");
+        document.getElementById("friendCodeDisplay").textContent="—";
       } else {
         document.getElementById("nameCard").classList.remove("hidden");
         document.getElementById("schoolCard").classList.remove("hidden");
+        document.getElementById("friendsCard").classList.remove("hidden");
         document.getElementById("deleteAccountBtn").classList.remove("hidden");
         document.getElementById("deleteNote").classList.remove("hidden");
         if (isEmail) document.getElementById("passwordSection").classList.remove("hidden");
 
-        try {
-          const profile = await getUserProfile(user.uid);
-          const lv = getLevel(profile.xp||0);
-          document.getElementById("levelCard").classList.remove("hidden");
-          document.getElementById("profileLevel").textContent  = lv.title;
-          document.getElementById("profileXP").textContent     = (profile.xp||0)+" XP";
-          document.getElementById("profileStreak").textContent = `🔥 ${profile.streak||0}`;
+        // Friend code = first 6 of UID
+        const friendCode=user.uid.slice(0,6).toUpperCase();
+        document.getElementById("friendCodeDisplay").textContent=friendCode;
 
-          const schoolLevel = profile.schoolLevel||null;
-          const yearNum     = profile.schoolYearNum||null;
-          const yearSetIn   = profile.schoolYearSetIn||new Date().getFullYear();
-          if (schoolLevel && yearNum) {
-            const currentYearNum = calcCurrentSchoolYear(yearNum, yearSetIn);
-            document.getElementById("schoolLevelShow").textContent =
-              schoolLevel==="primary"?"🏫 Primary":"🎓 Secondary";
-            document.getElementById("schoolYearShow").textContent =
-              getSchoolYearLabel(schoolLevel, currentYearNum);
+        try {
+          const profile=await getUserProfile(user.uid);
+          const lv=getLevel(profile.xp||0);
+          document.getElementById("levelCard").classList.remove("hidden");
+          document.getElementById("profileLevel").textContent=lv.title;
+          document.getElementById("profileXP").textContent=(profile.xp||0)+" XP";
+          document.getElementById("profileStreak").textContent=`🔥 ${profile.streak||0}`;
+
+          const schoolLevel=profile.schoolLevel||null;
+          const yearNum=profile.schoolYearNum||null;
+          const yearSetIn=profile.schoolYearSetIn||new Date().getFullYear();
+          if (schoolLevel&&yearNum) {
+            const currentYearNum=calcCurrentSchoolYear(yearNum,yearSetIn);
+            document.getElementById("schoolLevelShow").textContent=schoolLevel==="primary"?"🏫 Primary":"🎓 Secondary";
+            document.getElementById("schoolYearShow").textContent=getSchoolYearLabel(schoolLevel,currentYearNum);
             document.getElementById(`pill${schoolLevel.charAt(0).toUpperCase()+schoolLevel.slice(1)}`).classList.add(`active-${schoolLevel}`);
             newLevel=schoolLevel;
           }
+
+          // Ensure friendCode is backfilled
+          if (!profile.friendCode) {
+            await setDoc(doc(db,"users",user.uid),{friendCode},{ merge:true });
+          }
         } catch(e){console.warn(e);}
-        document.getElementById("nameInput").value = user.displayName||"";
+        document.getElementById("nameInput").value=user.displayName||"";
       }
     });
 
-    // Guest sign-in button
-    document.getElementById("guestSignInBtn")?.addEventListener("click", () => showSignInModal());
+    document.getElementById("guestSignInBtn")?.addEventListener("click",()=>showSignInModal());
 
-    // School level change
-    window.selectNewLevel = function(level) {
+    window.selectNewLevel=function(level){
       newLevel=level; newYearNum=null;
       ["primary","secondary"].forEach(l=>{
-        document.getElementById(`pill${l.charAt(0).toUpperCase()+l.slice(1)}`)
-          .classList.remove("active-primary","active-secondary");
+        document.getElementById(`pill${l.charAt(0).toUpperCase()+l.slice(1)}`).classList.remove("active-primary","active-secondary");
       });
       document.getElementById(`pill${level.charAt(0).toUpperCase()+level.slice(1)}`).classList.add(`active-${level}`);
       const isPrimary=level==="primary";
@@ -319,12 +348,10 @@
       document.getElementById("saveLevelBtn").classList.add("hidden");
     };
 
-    document.getElementById("saveLevelBtn")?.addEventListener("click", async()=>{
+    document.getElementById("saveLevelBtn")?.addEventListener("click",async()=>{
       if (!newLevel||!newYearNum) return;
       try {
-        await updateDoc(doc(db,"users",currentUser.uid),{
-          schoolLevel:newLevel, schoolYearNum:newYearNum, schoolYearSetIn:new Date().getFullYear()
-        });
+        await updateDoc(doc(db,"users",currentUser.uid),{schoolLevel:newLevel,schoolYearNum:newYearNum,schoolYearSetIn:new Date().getFullYear()});
         document.getElementById("schoolLevelShow").textContent=newLevel==="primary"?"🏫 Primary":"🎓 Secondary";
         document.getElementById("schoolYearShow").textContent=getSchoolYearLabel(newLevel,newYearNum);
         document.getElementById("saveLevelBtn").classList.add("hidden");
@@ -333,7 +360,7 @@
       } catch { showMsg("levelMsg","Failed to save.",true); }
     });
 
-    document.getElementById("saveNameBtn")?.addEventListener("click", async()=>{
+    document.getElementById("saveNameBtn")?.addEventListener("click",async()=>{
       const name=document.getElementById("nameInput").value.trim();
       if (!name){showMsg("nameMsg","Please enter a name.",true);return;}
       if (name.length>30){showMsg("nameMsg","Name too long.",true);return;}
@@ -345,7 +372,7 @@
       } catch { showMsg("nameMsg","Failed.",true); }
     });
 
-    document.getElementById("savePasswordBtn")?.addEventListener("click", async()=>{
+    document.getElementById("savePasswordBtn")?.addEventListener("click",async()=>{
       const pw=document.getElementById("newPasswordInput").value;
       if (!pw||pw.length<6){showMsg("passwordMsg","Password must be 6+ characters.",true);return;}
       try {
@@ -357,11 +384,11 @@
       }
     });
 
-    document.getElementById("logoutBtn").addEventListener("click", async()=>{
+    document.getElementById("logoutBtn").addEventListener("click",async()=>{
       await signOut(auth); window.location.href="index.html";
     });
 
-    document.getElementById("deleteAccountBtn")?.addEventListener("click", async()=>{
+    document.getElementById("deleteAccountBtn")?.addEventListener("click",async()=>{
       if (!confirm("⚠️ Permanently delete your account and all progress?\n\nThis cannot be undone.")) return;
       try {
         const snap=await getDocs(collection(db,"users",currentUser.uid,"progress"));

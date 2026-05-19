@@ -10,11 +10,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
     body { font-family:'Nunito',sans-serif; padding-bottom:80px; }
+
+    /* ── Dark mode ── */
     html.dark body            { background:#0f172a; color:#e2e8f0; }
     html.dark .bg-white       { background:#1e293b !important; }
     html.dark .bg-gray-50     { background:#0f172a !important; }
+    html.dark .bg-gray-100    { background:#334155 !important; }
     html.dark .text-gray-800  { color:#f1f5f9 !important; }
     html.dark .text-gray-700  { color:#e2e8f0 !important; }
+    html.dark .text-gray-600  { color:#cbd5e1 !important; }
     html.dark .text-gray-500  { color:#94a3b8 !important; }
     html.dark .text-gray-400  { color:#64748b !important; }
     html.dark nav.bg-white    { background:#1e293b !important; }
@@ -22,29 +26,53 @@
     html.dark .stat-card      { background:#1e293b !important; }
     html.dark .bar-track      { background:#334155 !important; }
     html.dark .bg-indigo-50   { background:#1e1b4b !important; }
-    html.dark .bg-gray-100    { background:#334155 !important; }
-    html.dark .badge-locked   { opacity:.25 !important; }
+    /* Force indigo text visible in dark indigo bg */
+    html.dark .text-indigo-700 { color:#a5b4fc !important; }
+    html.dark .text-indigo-400 { color:#818cf8 !important; }
+    html.dark .text-indigo-600 { color:#a5b4fc !important; }
+    html.dark .text-indigo-500 { color:#818cf8 !important; }
+    /* Gray bg in dark mode */
+    html.dark .bg-gray-50.rounded-2xl { background:#334155 !important; }
 
-    @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-    .fade-up { animation:fade-up .45s ease both; }
+    /* Collapsible toggle buttons — NO hover background in mobile
+       Use active state only (tap feedback) */
+    .collapse-btn { -webkit-tap-highlight-color:transparent; }
+    .collapse-btn:active { background:rgba(0,0,0,.04); }
+    html.dark .collapse-btn:active { background:rgba(255,255,255,.06) !important; }
+
+    /* Collapsible body */
+    .collapsible-body { overflow:hidden; transition:max-height .35s cubic-bezier(.4,0,.2,1), opacity .3s; max-height:3000px; opacity:1; }
+    .collapsible-body.collapsed { max-height:0 !important; opacity:0; padding-bottom:0 !important; }
+
+    /* Badges — text always dark on their light coloured backgrounds */
+    .badge { border-radius:1.25rem; padding:10px; text-align:center; border:2px solid transparent; transition:transform .15s; }
+    .badge:hover { transform:translateY(-2px); }
+    .badge-earned { box-shadow:0 4px 12px rgba(0,0,0,.1); }
+    .badge-locked { filter:grayscale(1); opacity:.35; }
+    /* Badge text always dark — badge backgrounds are pastel light colours */
+    .badge p.badge-name { color:#1e293b !important; }
+    .badge p.badge-desc { color:#374151 !important; }
+    /* In dark mode, slightly lighten the badge backgrounds for contrast */
+    html.dark .badge { filter: brightness(.75) saturate(.8); }
+    html.dark .badge.badge-locked { filter:grayscale(1) brightness(.5); opacity:.3; }
+    html.dark .badge p.badge-name { color:#f1f5f9 !important; }
+    html.dark .badge p.badge-desc { color:#cbd5e1 !important; }
+
+    /* Rank cards in leaderboard (shared style reference) */
+    .stat-card { background:white; border-radius:1.25rem; padding:1rem; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.07); }
     .bar-track { height:10px; background:#f3f4f6; border-radius:99px; overflow:hidden; }
     .bar-fill  { height:100%; border-radius:99px; transition:width 1s cubic-bezier(.4,0,.2,1); }
 
-    /* Collapsible sections */
-    .collapsible-body { overflow:hidden; transition:max-height .35s cubic-bezier(.4,0,.2,1), opacity .3s; max-height:2000px; opacity:1; }
-    .collapsible-body.collapsed { max-height:0; opacity:0; padding-bottom:0 !important; }
-    .badge { border-radius:1.25rem; padding:10px; text-align:center; border:2px solid transparent; transition:transform .15s; }
-    .badge:hover { transform:translateY(-2px); }
-    .badge-locked { filter:grayscale(1); opacity:.35; }
-    .badge-earned { box-shadow:0 4px 12px rgba(0,0,0,.1); }
-    .stat-card { background:white; border-radius:1.25rem; padding:1rem; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.07); }
-    .ring-svg  { transform:rotate(-90deg); }
-    .ring-bg   { fill:none; stroke:#f3f4f6; stroke-width:10; }
-    .ring-prog { fill:none; stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1); }
+    /* Offline banner */
+    .offline-banner { background:#fef3c7; border:2px solid #fcd34d; }
+    html.dark .offline-banner { background:#1a1200 !important; border-color:#854d0e !important; color:#fcd34d !important; }
 
     /* Skeleton */
     .skeleton { border-radius:1.5rem; background:#e5e7eb; }
     html.dark .skeleton { background:#334155 !important; }
+
+    @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation:fade-up .45s ease both; }
 
     .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #f3f4f6; padding:8px 0 max(8px,env(safe-area-inset-bottom)); z-index:50; }
     .nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; flex:1; font-size:11px; font-weight:800; color:#9ca3af; text-decoration:none; transition:color .2s; }
@@ -58,19 +86,18 @@
   <nav class="bg-white shadow-sm sticky top-0 z-10">
     <div class="max-w-lg mx-auto px-5 py-4 flex items-center justify-between">
       <div class="flex items-center gap-2"><span class="text-2xl">🇲🇾</span><h1 class="text-xl font-black text-green-700">BM Vocab</h1></div>
-      <h2 class="font-black text-gray-700">📊 <span data-i18n="progress">Progress</span></h2>
+      <h2 class="font-black text-gray-700">📊 Progress</h2>
       <div class="w-10"></div>
     </div>
   </nav>
 
   <div class="max-w-lg mx-auto px-5 py-6">
 
-    <!-- Offline banner -->
-    <div id="offlineBanner" class="hidden bg-yellow-50 border-2 border-yellow-200 rounded-2xl px-4 py-3 mb-4 text-yellow-800 text-xs font-bold text-center">
+    <div id="offlineBanner" class="offline-banner hidden rounded-2xl px-4 py-3 mb-4 text-yellow-800 text-xs font-bold text-center">
       📶 Offline — showing cached data
     </div>
 
-    <!-- Loading skeleton -->
+    <!-- Skeletons -->
     <div id="loadingState" class="space-y-4">
       <div class="skeleton h-36 animate-pulse"></div>
       <div class="grid grid-cols-4 gap-2">
@@ -86,18 +113,15 @@
     <div id="guestNotice" class="hidden text-center py-16 fade-up">
       <div class="text-6xl mb-4">👤</div>
       <h3 class="font-black text-gray-700 text-xl mb-2">No Progress to Show</h3>
-      <p class="text-gray-400 text-sm mb-5" data-i18n="signInSave">Sign in to track your progress!</p>
-      <button onclick="showModal()"
-        class="inline-block bg-green-500 text-white font-black py-3 px-6 rounded-2xl">
-        🔐 <span data-i18n="signIn">Sign In</span>
-      </button>
+      <p class="text-gray-400 text-sm mb-5">Sign in to track your progress!</p>
+      <button onclick="showModal()" class="inline-block bg-green-500 text-white font-black py-3 px-6 rounded-2xl">🔐 Sign In</button>
     </div>
 
-    <!-- Error state -->
+    <!-- Error -->
     <div id="errorState" class="hidden text-center py-16 fade-up">
       <div class="text-6xl mb-4">⚠️</div>
       <h3 class="font-black text-gray-700 mb-2">Failed to Load</h3>
-      <p class="text-gray-400 text-sm mb-4" data-i18n="failedLoad">Check your connection and try again.</p>
+      <p class="text-gray-400 text-sm mb-4">Check your connection and try again.</p>
       <button onclick="location.reload()" class="bg-gray-100 text-gray-600 font-bold py-2 px-5 rounded-full text-sm">Retry</button>
     </div>
 
@@ -107,13 +131,16 @@
       <div class="bg-white rounded-3xl shadow-sm p-6 mb-4 fade-up">
         <div class="flex items-center gap-6">
           <div class="relative flex-shrink-0" style="width:100px;height:100px">
-            <svg class="ring-svg" width="100" height="100" viewBox="0 0 100 100">
-              <circle class="ring-bg" cx="50" cy="50" r="40"/>
-              <circle class="ring-prog" id="ringProg" cx="50" cy="50" r="40" stroke="#16a34a" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+            <svg style="transform:rotate(-90deg)" width="100" height="100" viewBox="0 0 100 100">
+              <circle fill="none" stroke="#f3f4f6" stroke-width="10" cx="50" cy="50" r="40"/>
+              <circle fill="none" stroke-width="10" stroke-linecap="round" cx="50" cy="50" r="40"
+                id="ringProg" stroke="#16a34a"
+                stroke-dasharray="251.2" stroke-dashoffset="251.2"
+                style="transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)"/>
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center">
               <span class="text-xl font-black text-green-700" id="ringPct">0%</span>
-              <span class="text-xs text-gray-400 font-semibold" data-i18n="mastered">mastered</span>
+              <span class="text-xs text-gray-400 font-semibold">mastered</span>
             </div>
           </div>
           <div>
@@ -128,7 +155,7 @@
         </div>
       </div>
 
-      <!-- Stats -->
+      <!-- 4 stat cards -->
       <div class="grid grid-cols-4 gap-2 mb-4 fade-up" style="animation-delay:.07s">
         <div class="stat-card"><p class="text-2xl mb-1">🔥</p><p class="font-black text-gray-800" id="statStreak">0</p><p class="text-xs text-gray-400 font-semibold">Streak</p></div>
         <div class="stat-card"><p class="text-2xl mb-1">⭐</p><p class="font-black text-gray-800" id="statXP">0</p><p class="text-xs text-gray-400 font-semibold">XP</p></div>
@@ -136,12 +163,12 @@
         <div class="stat-card"><p class="text-2xl mb-1">📦</p><p class="font-black text-gray-800" id="statPacksDone">0</p><p class="text-xs text-gray-400 font-semibold">Done</p></div>
       </div>
 
-      <!-- Pack progress (collapsible) -->
+      <!-- Pack Progress (collapsible) -->
       <div class="bg-white rounded-3xl shadow-sm mb-4 fade-up overflow-hidden" style="animation-delay:.1s">
-        <button onclick="toggleSection('packSection','packChevron')"
-          class="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors rounded-3xl">
-          <h3 class="font-black text-gray-700" data-i18n="packProgress">📚 Pack Progress</h3>
-          <span id="packChevron" class="text-gray-400 font-black text-lg" style="transition:transform .3s">▾</span>
+        <button class="collapse-btn w-full flex items-center justify-between px-6 py-4 text-left rounded-3xl"
+          onclick="toggleSection('packSection','packChevron')">
+          <h3 class="font-black text-gray-700">📚 Pack Progress</h3>
+          <span id="packChevron" class="text-gray-400 font-black text-lg" style="transition:transform .3s;display:inline-block">▾</span>
         </button>
         <div id="packSection" class="collapsible-body px-6 pb-5">
           <div id="packProgressList" class="space-y-4"></div>
@@ -150,13 +177,13 @@
 
       <!-- Achievements (collapsible) -->
       <div class="bg-white rounded-3xl shadow-sm mb-4 fade-up overflow-hidden" style="animation-delay:.14s">
-        <button onclick="toggleSection('badgeSection','badgeChevron')"
-          class="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors rounded-3xl">
+        <button class="collapse-btn w-full flex items-center justify-between px-6 py-4 text-left rounded-3xl"
+          onclick="toggleSection('badgeSection','badgeChevron')">
           <div class="flex items-center gap-2">
-            <h3 class="font-black text-gray-700" data-i18n="achievements">🏅 Achievements</h3>
+            <h3 class="font-black text-gray-700">🏅 Achievements</h3>
             <span class="text-xs font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full" id="badgeCount">0 / 0</span>
           </div>
-          <span id="badgeChevron" class="text-gray-400 font-black text-lg" style="transition:transform .3s">▾</span>
+          <span id="badgeChevron" class="text-gray-400 font-black text-lg" style="transition:transform .3s;display:inline-block">▾</span>
         </button>
         <div id="badgeSection" class="collapsible-body px-6 pb-5">
           <p class="text-xs text-gray-400 mb-4">Earn badges by reaching milestones</p>
@@ -164,14 +191,14 @@
         </div>
       </div>
 
-      <!-- Level progress (collapsible) -->
+      <!-- Level Progress (collapsible) -->
       <div class="bg-white rounded-3xl shadow-sm mb-4 fade-up overflow-hidden" style="animation-delay:.18s">
-        <button onclick="toggleSection('levelSection','levelChevron')"
-          class="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors rounded-3xl">
-          <h3 class="font-black text-gray-700" data-i18n="levelProgress">⚡ Level Progress</h3>
+        <button class="collapse-btn w-full flex items-center justify-between px-6 py-4 text-left rounded-3xl"
+          onclick="toggleSection('levelSection','levelChevron')">
+          <h3 class="font-black text-gray-700">⚡ Level Progress</h3>
           <div class="flex items-center gap-2">
             <span class="text-sm font-black text-indigo-600" id="levelLabel">Level 1</span>
-            <span id="levelChevron" class="text-gray-400 font-black text-lg" style="transition:transform .3s">▾</span>
+            <span id="levelChevron" class="text-gray-400 font-black text-lg" style="transition:transform .3s;display:inline-block">▾</span>
           </div>
         </button>
         <div id="levelSection" class="collapsible-body px-6 pb-5">
@@ -183,8 +210,14 @@
             <span id="xpNext">50 XP to next level</span>
           </div>
           <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
-            <div class="bg-indigo-50 rounded-2xl p-3 text-center"><p class="font-black text-indigo-700" id="levelTitle">Pelajar Baru</p><p class="text-indigo-400 text-xs">Current</p></div>
-            <div class="bg-gray-50 rounded-2xl p-3 text-center"><p class="font-black text-gray-500" id="nextLevelTitle">Pelajar Aktif</p><p class="text-gray-400 text-xs">Next</p></div>
+            <div class="bg-indigo-50 rounded-2xl p-3 text-center">
+              <p class="font-black text-indigo-700" id="levelTitle">Pelajar Baru</p>
+              <p class="text-indigo-400 text-xs">Current</p>
+            </div>
+            <div class="bg-gray-50 rounded-2xl p-3 text-center">
+              <p class="font-black text-gray-500" id="nextLevelTitle">Pelajar Aktif</p>
+              <p class="text-gray-400 text-xs">Next</p>
+            </div>
           </div>
           <div class="mt-4" id="allLevelsList"></div>
         </div>
@@ -196,10 +229,10 @@
   <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <div class="max-w-2xl mx-auto flex">
-      <a href="home.html"        class="nav-item"><span class="nav-icon">🏠</span><span data-i18n="home">Home</span></a>
-      <a href="progress.html"    class="nav-item active"><span class="nav-icon">📊</span><span data-i18n="progress">Progress</span></a>
-      <a href="leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span><span data-i18n="ranking">Ranking</span></a>
-      <a href="profile.html"     class="nav-item"><span class="nav-icon">👤</span><span data-i18n="profile">Profile</span></a>
+      <a href="home.html"        class="nav-item"><span class="nav-icon">🏠</span>Home</a>
+      <a href="progress.html"    class="nav-item active"><span class="nav-icon">📊</span>Progress</a>
+      <a href="leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Ranking</a>
+      <a href="profile.html"     class="nav-item"><span class="nav-icon">👤</span>Profile</a>
     </div>
   </nav>
 
@@ -207,37 +240,36 @@
     import { db, auth } from "./js/firebase.js";
     import { getUserProfile, getLevel, LEVELS } from "./js/streak.js";
     import { initTheme } from "./js/theme.js";
-    import { initLang, applyTranslations } from "./js/i18n.js";
     import { showSignInModal } from "./js/guest.js";
     import { isOnline, getCachedAllWords, cacheAllWords, getCachedPacks, cachePacks } from "./js/cache.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    initTheme(); initLang(); applyTranslations();
+    initTheme();
     window.showModal = showSignInModal;
 
     const PACK_COLORS=["#16a34a","#2563eb","#d97706","#db2777","#7c3aed","#ea580c","#0d9488","#dc2626","#65a30d","#0284c7","#e11d48","#b45309","#0891b2","#7c3aed","#059669","#c026d3"];
     const BADGES=[
-      {emoji:"🌱",name:"First Word",    desc:"Know your 1st word",       check:s=>s.known>=1},
-      {emoji:"🔟",name:"Ten Words",     desc:"Know 10 words",            check:s=>s.known>=10},
-      {emoji:"⭐",name:"Star Student",  desc:"Know 50 words",            check:s=>s.known>=50},
-      {emoji:"💯",name:"Century!",      desc:"Know 100 words",           check:s=>s.known>=100},
-      {emoji:"🎯",name:"Halfway There", desc:"Know 240 words",           check:s=>s.known>=240},
-      {emoji:"🏆",name:"Vocab Master",  desc:"Know all 480 words",       check:s=>s.known>=480},
-      {emoji:"📦",name:"Pack Complete", desc:"Finish 1 pack",            check:s=>s.packsCompleted>=1},
-      {emoji:"🎒",name:"Pack Hunter",   desc:"Finish 5 packs",           check:s=>s.packsCompleted>=5},
-      {emoji:"🌟",name:"All Packs!",    desc:"Finish all 16 packs",      check:s=>s.packsCompleted>=16},
-      {emoji:"🔥",name:"On Fire!",      desc:"3-day streak",             check:s=>s.streak>=3},
-      {emoji:"🗓️",name:"Week Warrior",  desc:"7-day streak",            check:s=>s.streak>=7},
-      {emoji:"📅",name:"Fortnight",     desc:"14-day streak",            check:s=>s.streak>=14},
-      {emoji:"🌙",name:"Month Master",  desc:"30-day streak",            check:s=>s.streak>=30},
-      {emoji:"⚡",name:"XP Starter",    desc:"Earn 50 XP",               check:s=>s.xp>=50},
-      {emoji:"💎",name:"XP Legend",     desc:"Earn 1,000 XP",            check:s=>s.xp>=1000},
-      {emoji:"🎓",name:"Secondary Pro", desc:"Know 30+ secondary words", check:s=>s.secondaryKnown>=30},
-      {emoji:"🏫",name:"Primary Hero",  desc:"Know all primary words",   check:s=>s.primaryKnown>=180},
+      {emoji:"🌱",name:"First Word",     desc:"Know your 1st word",       check:s=>s.known>=1},
+      {emoji:"🔟",name:"Ten Words",      desc:"Know 10 words",            check:s=>s.known>=10},
+      {emoji:"⭐",name:"Star Student",   desc:"Know 50 words",            check:s=>s.known>=50},
+      {emoji:"💯",name:"Century!",       desc:"Know 100 words",           check:s=>s.known>=100},
+      {emoji:"🎯",name:"Halfway There",  desc:"Know 240 words",           check:s=>s.known>=240},
+      {emoji:"🏆",name:"Vocab Master",   desc:"Know all 480 words",       check:s=>s.known>=480},
+      {emoji:"📦",name:"Pack Complete",  desc:"Finish 1 pack",            check:s=>s.packsCompleted>=1},
+      {emoji:"🎒",name:"Pack Hunter",    desc:"Finish 5 packs",           check:s=>s.packsCompleted>=5},
+      {emoji:"🌟",name:"All Packs!",     desc:"Finish all 16 packs",      check:s=>s.packsCompleted>=16},
+      {emoji:"🔥",name:"On Fire!",       desc:"3-day streak",             check:s=>s.streak>=3},
+      {emoji:"🗓️",name:"Week Warrior",  desc:"7-day streak",             check:s=>s.streak>=7},
+      {emoji:"📅",name:"Fortnight",      desc:"14-day streak",            check:s=>s.streak>=14},
+      {emoji:"🌙",name:"Month Master",   desc:"30-day streak",            check:s=>s.streak>=30},
+      {emoji:"⚡",name:"XP Starter",     desc:"Earn 50 XP",               check:s=>s.xp>=50},
+      {emoji:"💎",name:"XP Legend",      desc:"Earn 1,000 XP",            check:s=>s.xp>=1000},
+      {emoji:"🎓",name:"Secondary Pro",  desc:"Know 30+ secondary words", check:s=>s.secondaryKnown>=30},
+      {emoji:"🏫",name:"Primary Hero",   desc:"Know all primary words",   check:s=>s.primaryKnown>=180},
       {emoji:"⏱️",name:"Speed Demon",   desc:"Earn 500 XP total",        check:s=>s.xp>=500},
-      {emoji:"🦸",name:"Comeback Kid",  desc:"Study 3+ different packs", check:s=>s.packsStarted>=3},
-      {emoji:"🌈",name:"Rainbow Learner",desc:"Start 5+ packs",          check:s=>s.packsStarted>=5},
+      {emoji:"🦸",name:"Comeback Kid",   desc:"Study 3+ different packs", check:s=>s.packsStarted>=3},
+      {emoji:"🌈",name:"Rainbow Learner",desc:"Start 5+ packs",           check:s=>s.packsStarted>=5},
     ];
     const BADGE_BG=["#dcfce7","#dbeafe","#fef9c3","#fce7f3","#ede9fe","#ffedd5","#ccfbf1","#fee2e2","#fef3c7","#e0f2fe","#f3e8ff","#ecfccb","#fdf4ff","#ecfdf5","#fff7ed","#f0fdf4","#dbeafe","#fef2f2","#f5f3ff","#ecfdf5"];
 
@@ -254,45 +286,38 @@
     async function buildReport(user) {
       try {
         let packs, allWords, fromCache=false;
-
         if (isOnline()) {
-          const [packsSnap, wordsSnap] = await Promise.all([
-            getDocs(collection(db,"packs")),
-            getDocs(collection(db,"words")),
-          ]);
-          packs    = packsSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||99)-(b.order||99));
-          allWords = wordsSnap.docs.map(d=>({id:d.id,...d.data()}));
+          const [ps,ws]=await Promise.all([getDocs(collection(db,"packs")),getDocs(collection(db,"words"))]);
+          packs=ps.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||99)-(b.order||99));
+          allWords=ws.docs.map(d=>({id:d.id,...d.data()}));
           cachePacks(packs); cacheAllWords(allWords);
         } else {
-          packs    = getCachedPacks()    || [];
-          allWords = getCachedAllWords() || [];
-          fromCache = true;
+          packs=getCachedPacks()||[]; allWords=getCachedAllWords()||[]; fromCache=true;
         }
-
         if (fromCache) document.getElementById("offlineBanner").classList.remove("hidden");
 
-        const [progressSnap, profile] = await Promise.all([
+        const [progSnap,profile]=await Promise.all([
           getDocs(collection(db,"users",user.uid,"progress")),
           getUserProfile(user.uid)
         ]);
 
-        const knownIds       = new Set(progressSnap.docs.filter(d=>d.data().status==="known").map(d=>d.id));
-        const packStats      = packs.map(p=>{ const pw=allWords.filter(w=>w.pack===p.id); return {...p,total:pw.length,known:pw.filter(w=>knownIds.has(w.id)).length}; });
-        const totalKnown     = knownIds.size;
-        const totalWords     = allWords.length;
-        const packsCompleted = packStats.filter(p=>p.total>0&&p.known===p.total).length;
-        const packsStarted   = packStats.filter(p=>p.known>0).length;
-        const secondaryKnown = allWords.filter(w=>w.level==="secondary"&&knownIds.has(w.id)).length;
-        const primaryKnown   = allWords.filter(w=>w.level==="primary"&&knownIds.has(w.id)).length;
-        const overallPct     = totalWords?Math.round((totalKnown/totalWords)*100):0;
-        const xp             = profile.xp||0;
-        const streak         = profile.streak||0;
-        const stats          = {known:totalKnown,total:totalWords,packsCompleted,packsStarted,secondaryKnown,primaryKnown,streak,xp};
-        const earnedBadges   = BADGES.filter(b=>b.check(stats)).length;
-        const lv             = getLevel(xp);
-        const xpInLv         = xp-lv.minXP;
-        const xpNeeded       = lv.next.minXP-lv.minXP;
-        const lvPct          = xpNeeded?Math.min(100,Math.round((xpInLv/xpNeeded)*100)):100;
+        const knownIds       =new Set(progSnap.docs.filter(d=>d.data().status==="known").map(d=>d.id));
+        const packStats      =packs.map(p=>{const pw=allWords.filter(w=>w.pack===p.id);return{...p,total:pw.length,known:pw.filter(w=>knownIds.has(w.id)).length};});
+        const totalKnown     =knownIds.size;
+        const totalWords     =allWords.length;
+        const packsCompleted =packStats.filter(p=>p.total>0&&p.known===p.total).length;
+        const packsStarted   =packStats.filter(p=>p.known>0).length;
+        const secondaryKnown =allWords.filter(w=>w.level==="secondary"&&knownIds.has(w.id)).length;
+        const primaryKnown   =allWords.filter(w=>w.level==="primary"&&knownIds.has(w.id)).length;
+        const overallPct     =totalWords?Math.round((totalKnown/totalWords)*100):0;
+        const xp             =profile.xp||0;
+        const streak         =profile.streak||0;
+        const stats          ={known:totalKnown,total:totalWords,packsCompleted,packsStarted,secondaryKnown,primaryKnown,streak,xp};
+        const earnedBadges   =BADGES.filter(b=>b.check(stats)).length;
+        const lv             =getLevel(xp);
+        const xpInLv         =xp-lv.minXP;
+        const xpNeeded       =lv.next.minXP-lv.minXP;
+        const lvPct          =xpNeeded?Math.min(100,Math.round((xpInLv/xpNeeded)*100)):100;
 
         document.getElementById("loadingState").classList.add("hidden");
         document.getElementById("reportContent").classList.remove("hidden");
@@ -319,10 +344,10 @@
         document.getElementById("xpCurrent").textContent=`${xp} XP`;
         document.getElementById("xpNext").textContent=lv.idx===LEVELS.length-1?"Max level reached!":`${lv.next.minXP-xp} XP to next level`;
 
-        setTimeout(()=>{ const c=2*Math.PI*40; document.getElementById("ringProg").style.strokeDashoffset=c-(overallPct/100)*c; },200);
-        setTimeout(()=>{ document.getElementById("xpBar").style.width=lvPct+"%"; },300);
+        setTimeout(()=>{const c=2*Math.PI*40;document.getElementById("ringProg").style.strokeDashoffset=c-(overallPct/100)*c;},200);
+        setTimeout(()=>{document.getElementById("xpBar").style.width=lvPct+"%";},300);
 
-        // Pack bars
+        // Pack progress bars
         const pl=document.getElementById("packProgressList");
         pl.innerHTML="";
         packStats.forEach((pack,i)=>{
@@ -336,7 +361,7 @@
             <div class="bar-track"><div class="bar-fill pack-bar" data-pct="${pct}" style="background:${color};width:0%"></div></div>
           </div>`;
         });
-        setTimeout(()=>{ document.querySelectorAll(".pack-bar").forEach((b,i)=>{ setTimeout(()=>{ b.style.width=b.dataset.pct+"%"; },i*50); }); },400);
+        setTimeout(()=>document.querySelectorAll(".pack-bar").forEach((b,i)=>setTimeout(()=>b.style.width=b.dataset.pct+"%",i*50)),400);
 
         // Badges
         const bg=document.getElementById("badgeGrid");
@@ -344,20 +369,21 @@
         document.getElementById("badgeCount").textContent=`${earnedBadges} / ${BADGES.length}`;
         BADGES.forEach((badge,i)=>{
           const earned=badge.check(stats);
-          bg.innerHTML+=`<div class="badge ${earned?"badge-earned":"badge-locked"}" style="background:${BADGE_BG[i%BADGE_BG.length]}">
-            <div class="text-3xl mb-1">${badge.emoji}</div>
-            <p class="text-xs font-black text-gray-700 leading-tight">${badge.name}</p>
-            <p class="text-xs text-gray-400 mt-0.5 leading-tight">${badge.desc}</p>
-          </div>`;
+          bg.innerHTML+=`
+            <div class="badge ${earned?"badge-earned":"badge-locked"}" style="background:${BADGE_BG[i%BADGE_BG.length]}">
+              <div class="text-3xl mb-1">${badge.emoji}</div>
+              <p class="text-xs font-black leading-tight badge-name">${badge.name}</p>
+              <p class="text-xs mt-0.5 leading-tight badge-desc">${badge.desc}</p>
+            </div>`;
         });
 
-        // All levels
+        // All levels list
         const ll=document.getElementById("allLevelsList");
         ll.innerHTML=`<p class="text-xs font-bold text-gray-400 mb-2">All Levels:</p>`;
         LEVELS.forEach((lvl,i)=>{
           const isReached=xp>=lvl.minXP;
           const isCurrent=lv.idx===i;
-          ll.innerHTML+=`<div class="flex items-center gap-2 py-1 ${isCurrent?"opacity-100":"opacity-60"}">
+          ll.innerHTML+=`<div class="flex items-center gap-2 py-1">
             <span class="text-sm">${isReached?"✅":"⚪"}</span>
             <span class="text-xs font-black ${isCurrent?"text-indigo-600":"text-gray-500"}">${lvl.title}</span>
             <span class="text-xs text-gray-400 ml-auto">${lvl.minXP} XP</span>
@@ -365,47 +391,40 @@
           </div>`;
         });
 
+        restoreCollapsed();
+
       } catch(err) {
         console.error(err);
         document.getElementById("loadingState").classList.add("hidden");
         document.getElementById("errorState").classList.remove("hidden");
       }
     }
-    // ── Collapsible sections ──────────────────────────────────────
-    // Store state in localStorage so preference persists
+
+    // ── Collapsible ───────────────────────────────────────────────
     const COLLAPSE_KEY = 'bmvocab_progress_collapsed';
-    function getCollapsed() {
-      try { return JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || {}; } catch { return {}; }
-    }
-    function saveCollapsed(state) {
-      try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(state)); } catch {}
-    }
+    function getCollapsed() { try{return JSON.parse(localStorage.getItem(COLLAPSE_KEY))||{};}catch{return{};} }
+    function saveCollapsed(s) { try{localStorage.setItem(COLLAPSE_KEY,JSON.stringify(s));}catch{} }
 
     window.toggleSection = function(sectionId, chevronId) {
-      const section = document.getElementById(sectionId);
-      const chevron = document.getElementById(chevronId);
-      const isNowCollapsed = !section.classList.contains('collapsed');
-      section.classList.toggle('collapsed', isNowCollapsed);
-      chevron.style.transform = isNowCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
-      const state = getCollapsed();
-      state[sectionId] = isNowCollapsed;
-      saveCollapsed(state);
+      const section=document.getElementById(sectionId);
+      const chevron=document.getElementById(chevronId);
+      const nowCollapsed=!section.classList.contains('collapsed');
+      section.classList.toggle('collapsed',nowCollapsed);
+      chevron.style.transform=nowCollapsed?'rotate(-90deg)':'rotate(0deg)';
+      const state=getCollapsed(); state[sectionId]=nowCollapsed; saveCollapsed(state);
     };
 
-    // Restore collapsed state on load
     function restoreCollapsed() {
-      const state = getCollapsed();
-      ['packSection','badgeSection','levelSection'].forEach(id => {
-        const chevronMap = { packSection:'packChevron', badgeSection:'badgeChevron', levelSection:'levelChevron' };
-        if (state[id]) {
-          document.getElementById(id)?.classList.add('collapsed');
-          const ch = document.getElementById(chevronMap[id]);
-          if (ch) ch.style.transform = 'rotate(-90deg)';
+      const state=getCollapsed();
+      const map={packSection:'packChevron',badgeSection:'badgeChevron',levelSection:'levelChevron'};
+      Object.entries(map).forEach(([sid,cid])=>{
+        if (state[sid]) {
+          document.getElementById(sid)?.classList.add('collapsed');
+          const ch=document.getElementById(cid);
+          if (ch) ch.style.transform='rotate(-90deg)';
         }
       });
     }
-    restoreCollapsed();
-
   </script>
 </body>
 </html>
