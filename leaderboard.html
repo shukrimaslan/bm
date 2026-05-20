@@ -43,20 +43,9 @@
     html.dark .rank-other { background:#1e293b !important; border-color:#334155 !important; filter:none; }
     html.dark .rank-me    { border-color:#6366f1 !important; filter:none; }
 
-    /* Rank card text — always forced dark on the coloured backgrounds */
-    .rank-card-name { color:#1e293b; }
-    .rank-card-sub  { color:#374151; }
-    html.dark .rank-1 .rank-card-name,
-    html.dark .rank-2 .rank-card-name,
-    html.dark .rank-3 .rank-card-name { color:#f1f5f9 !important; }
-    html.dark .rank-1 .rank-card-sub,
-    html.dark .rank-2 .rank-card-sub,
-    html.dark .rank-3 .rank-card-sub  { color:#e2e8f0 !important; }
-    /* rank-other and rank-me use the global dark text rules */
-    html.dark .rank-other .rank-card-name,
-    html.dark .rank-me    .rank-card-name { color:#f1f5f9 !important; }
-    html.dark .rank-other .rank-card-sub,
-    html.dark .rank-me    .rank-card-sub  { color:#94a3b8 !important; }
+    /* rank-card text colours are now handled via inline styles in renderList()
+       to guarantee correct colours in both light and dark mode regardless of
+       CSS specificity conflicts. */
 
     .avatar-sm  { width:42px;height:42px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:white;flex-shrink:0; }
     .bar-track  { height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden;flex:1; }
@@ -203,6 +192,13 @@
     initTheme();
     window.showModal = showSignInModal;
 
+    // Re-render leaderboard when dark mode is toggled (colours change)
+    new MutationObserver(() => {
+      if (document.getElementById("leaderList")?.children.length > 0) {
+        loadCurrentTab();
+      }
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
     const AVATAR_COLORS=["#16a34a","#2563eb","#d97706","#db2777","#7c3aed","#ea580c","#0d9488","#dc2626"];
     const RANK_MEDALS=["🥇","🥈","🥉"];
     let currentUser=null, activeTab="global";
@@ -239,24 +235,36 @@
 
     async function loadGlobal() {
       try {
-        const q=query(collection(db,"users"),orderBy("xp","desc"),limit(50));
-        const snap=await getDocs(q);
-        const users=snap.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>(u.xp||0)>0);
+        const q    = query(collection(db,"users"),orderBy("xp","desc"),limit(50));
+        const snap = await getDocs(q);
+        // Normalise: add nickname/realName fields so renderList works consistently
+        const users = snap.docs
+          .map(d => ({
+            uid:         d.id,
+            displayName: d.data().displayName || `User`,
+            realName:    d.data().displayName || "",
+            nickname:    "",   // global tab never has personal nicknames
+            xp:          d.data().xp    || 0,
+            streak:      d.data().streak|| 0,
+            schoolLevel: d.data().schoolLevel || null,
+          }))
+          .filter(u => u.xp > 0);
+
         document.getElementById("loadingState").classList.add("hidden");
         if (!users.length) { document.getElementById("emptyGlobal").classList.remove("hidden"); return; }
-        const myIdx=users.findIndex(u=>u.uid===currentUser.uid);
-        showMyRank(myIdx,users,currentUser);
-        renderList(users,myIdx);
-        // No friends button on global tab
+        const myIdx = users.findIndex(u => u.uid === currentUser.uid);
+        showMyRank(myIdx, users, currentUser);
+        renderList(users, myIdx);
       } catch(err) {
         document.getElementById("loadingState").classList.add("hidden");
-        document.getElementById("errorMsg").textContent="Failed to load global ranking. "+( err.message||"");
+        document.getElementById("errorMsg").textContent = "Failed to load global ranking. " + (err.message||"");
         document.getElementById("errorState").classList.remove("hidden");
       }
     }
 
     async function loadFriends() {
       try {
+        // Load MY friends sub-collection — contains nicknames I set
         const friendsSnap=await getDocs(collection(db,"users",currentUser.uid,"friends"));
         document.getElementById("loadingState").classList.add("hidden");
 
@@ -264,16 +272,38 @@
           document.getElementById("emptyFriends").classList.remove("hidden"); return;
         }
 
-        const friendUids=friendsSnap.docs.map(d=>d.id);
+        // friendsMap: uid → { displayName, nickname } from MY friends list
+        const friendsMap = {};
+        friendsSnap.docs.forEach(d => { friendsMap[d.id] = d.data(); });
+        const friendUids = Object.keys(friendsMap);
+
+        // Fetch fresh profiles for XP/streak
         const profiles=await Promise.allSettled(friendUids.map(uid=>getDoc(doc(db,"users",uid))));
 
         let users=profiles
           .filter(r=>r.status==="fulfilled"&&r.value.exists())
-          .map(r=>({uid:r.value.id,...r.value.data()}));
+          .map(r=>{
+            const uid=r.value.id;
+            const p=r.value.data();
+            const friendEntry=friendsMap[uid]||{};
+            return {
+              uid,
+              // Use MY nickname for this friend if set, else their real displayName
+              displayName: friendEntry.nickname || p.displayName || `User`,
+              realName:    p.displayName||"",
+              nickname:    friendEntry.nickname||"",
+              xp:          p.xp||0,
+              streak:      p.streak||0,
+              schoolLevel: p.schoolLevel||null,
+            };
+          });
 
-        // Add self
+        // Add self (no nickname for yourself)
         const selfSnap=await getDoc(doc(db,"users",currentUser.uid));
-        if (selfSnap.exists()) users.push({uid:currentUser.uid,...selfSnap.data()});
+        if (selfSnap.exists()) {
+          const s=selfSnap.data();
+          users.push({uid:currentUser.uid, displayName:currentUser.displayName||"Me", realName:"", nickname:"", xp:s.xp||0, streak:s.streak||0});
+        }
 
         users=users.sort((a,b)=>(b.xp||0)-(a.xp||0));
 
@@ -283,7 +313,7 @@
         showMyRank(myIdx,users,currentUser);
         renderList(users,myIdx);
 
-        // Show Friends List button below the leaderboard
+        // Show Friends List button below
         document.getElementById("friendsListBtn").classList.remove("hidden");
 
       } catch(err) {
@@ -307,19 +337,44 @@
     function renderList(users,myIdx) {
       const maxXP=users[0]?.xp||1;
       const list=document.getElementById("leaderList");
-      list.classList.remove("hidden");
-      list.innerHTML="";
+      list.classList.remove("hidden"); list.innerHTML="";
+
+      // Detect dark mode for inline colour decisions
+      const isDark = document.documentElement.classList.contains("dark");
 
       users.forEach((user,i)=>{
-        const isMe=user.uid===currentUser.uid;
-        const rankClass=i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"rank-other";
-        const medal=i<3?RANK_MEDALS[i]:`<span class="font-black text-sm" style="color:#6b7280">${i+1}</span>`;
-        const lv=getLevel(user.xp||0);
-        const xpPct=Math.round(((user.xp||0)/maxXP)*100);
-        const color=AVATAR_COLORS[i%AVATAR_COLORS.length];
-        const name=user.displayName||`User ${i+1}`;
-        const initial=name.charAt(0).toUpperCase();
-        const delay=(i*0.04).toFixed(2);
+        const isMe      = user.uid===currentUser.uid;
+        const rankClass = i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"rank-other";
+        const medal     = i<3?RANK_MEDALS[i]:`<span style="font-weight:900;font-size:.875rem;color:#6b7280">${i+1}</span>`;
+        const lv        = getLevel(user.xp||0);
+        const xpPct     = Math.round(((user.xp||0)/maxXP)*100);
+        const color     = AVATAR_COLORS[i%AVATAR_COLORS.length];
+        const initial   = (user.displayName||"?").charAt(0).toUpperCase();
+        const delay     = (i*0.04).toFixed(2);
+
+        // ── Colour logic ──────────────────────────────────────
+        // For rank-1/2/3 in dark mode: cards are darkened with filter,
+        // so we need LIGHT text. For rank-other/rank-me in dark mode: dark bg, LIGHT text.
+        // In light mode: all cards have light backgrounds → DARK text.
+        let nameColour, subColour;
+        if (!isDark) {
+          // Light mode — all cards have light/pastel bg → dark text
+          nameColour = "#1e293b";
+          subColour  = "#374151";
+        } else if (i < 3) {
+          // Dark mode rank 1/2/3 — filtered darker, use light text
+          nameColour = "#f1f5f9";
+          subColour  = "#e2e8f0";
+        } else {
+          // Dark mode rank-other / rank-me — dark card bg (#1e293b) → light text
+          nameColour = "#f1f5f9";
+          subColour  = "#94a3b8";
+        }
+
+        // Name: show nickname as primary, real name in parentheses if different
+        const displayLabel = (user.nickname && user.realName && user.nickname !== user.realName)
+          ? `${user.nickname} <span style="font-weight:600;font-size:.75rem;color:${subColour};opacity:.75">(${user.realName})</span>`
+          : user.displayName||`User ${i+1}`;
 
         const div=document.createElement("div");
         div.className=`border-2 ${rankClass} ${isMe?"rank-me":""} rounded-2xl px-4 py-3 flex items-center gap-3 fade-up`;
@@ -329,14 +384,16 @@
           <div class="avatar-sm" style="background:${color}">${initial}</div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
-              <p class="font-black text-sm truncate rank-card-name">${name}${isMe?" <span style='color:#6366f1'>(You)</span>":""}</p>
-              ${i===0?'<span class="text-xs px-2 rounded-full font-black" style="background:#fef08a;color:#713f12">👑</span>':""}
+              <p class="font-black text-sm truncate" style="color:${nameColour}">
+                ${displayLabel}${isMe?` <span style="color:#6366f1">(You)</span>`:""}
+              </p>
+              ${i===0?`<span style="background:#fef08a;color:#713f12;font-size:.75rem;font-weight:900;padding:0 .5rem;border-radius:99px">👑</span>`:""}
             </div>
             <div class="flex items-center gap-2 mt-1">
               <div class="bar-track"><div class="bar-fill" style="width:${xpPct}%"></div></div>
-              <span class="text-xs font-bold whitespace-nowrap rank-card-sub">${user.xp||0} XP</span>
+              <span class="text-xs font-bold whitespace-nowrap" style="color:${subColour}">${user.xp||0} XP</span>
             </div>
-            <p class="text-xs font-semibold mt-0.5 rank-card-sub">${lv.title} · 🔥 ${user.streak||0}</p>
+            <p class="text-xs font-semibold mt-0.5" style="color:${subColour}">${lv.title} · 🔥 ${user.streak||0}</p>
           </div>`;
         list.appendChild(div);
       });
