@@ -186,6 +186,7 @@
         </div>
         <div class="flex flex-col gap-3">
           <button onclick="restartQuiz()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 rounded-2xl shadow">🔁 Try Again</button>
+          <button id="shareBtn" onclick="shareScore()" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-2xl shadow">↗️ Share Score</button>
           <a href="study.html" id="studyLink" class="block bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-2xl shadow text-center">📚 Back to Flashcards</a>
           <a href="home.html" class="block bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3 rounded-2xl text-center">🏠 Home</a>
         </div>
@@ -228,6 +229,38 @@
     const params=new URLSearchParams(window.location.search);
     const packId=params.get("pack")||"";
     document.getElementById("studyLink").href=`study.html?pack=${packId}`;
+
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playSound(type) {
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      if (type === 'correct') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.1); // C6
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'wrong') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+      }
+    }
 
     onAuthStateChanged(auth, async (user) => {
       if (!user){window.location.href="index.html";return;}
@@ -328,11 +361,13 @@
       if (answered)return; clearTimer(); answered=true;
       document.querySelectorAll(".option-btn").forEach(b=>{b.disabled=true; if(b.textContent===correctAns)b.classList.add("option-correct");});
       if (chosen===correctAns){
+        playSound('correct');
         btn.classList.add("bounce-in");
         const xp=mode==="speed"?Math.round(diff.xpPerCorrect*1.5):diff.xpPerCorrect;
         score+=xp; sessionXP+=xp; correct++;
         showFeedback(true,correctAns); floatXP(`+${xp} XP`);
       } else {
+        playSound('wrong');
         btn.classList.add("option-wrong","shake"); lives--; wrong++; missedWords.push(quizWords[currentIndex]);
         showFeedback(false,correctAns);
       }
@@ -354,10 +389,12 @@
       document.getElementById("submitBtn").classList.add("hidden");
       document.getElementById("nextBtn").classList.remove("hidden");
       if (multiWordMatch(typed,correctAns)){
+        playSound('correct');
         score+=diff.xpPerCorrect; sessionXP+=diff.xpPerCorrect; correct++;
         input.className="w-full border-2 border-green-400 bg-green-50 rounded-2xl px-5 py-4 text-lg font-bold text-gray-700 mb-3";
         showFeedback(true,correctAns); floatXP(`+${diff.xpPerCorrect} XP`);
       } else {
+        playSound('wrong');
         lives--; wrong++; missedWords.push(word);
         input.className="w-full border-2 border-red-400 bg-red-50 rounded-2xl px-5 py-4 text-lg font-bold text-gray-700 mb-3";
         showFeedback(false,correctAns);
@@ -402,6 +439,11 @@
         document.getElementById("missedSection").classList.remove("hidden");
         document.getElementById("missedList").innerHTML=missedWords.map(w=>`<div class="flex justify-between bg-red-50 rounded-xl px-4 py-2 text-sm"><span class="font-bold text-red-700">${w.bm}</span><span class="text-gray-500">${w.en}</span></div>`).join("");
       }
+
+      if (navigator.share) {
+        document.getElementById("shareBtn").classList.remove("hidden");
+      }
+
       if (currentUser&&!currentUser.isAnonymous&&sessionXP>0){
         try {
           const result=await recordStudySession(currentUser.uid,sessionXP);
@@ -409,6 +451,20 @@
         } catch(e){console.warn(e);}
       }
     }
+
+    window.shareScore = async function() {
+      if (!navigator.share) return;
+      const total=correct+wrong, pct=total?Math.round((correct/total)*100):0;
+      try {
+        await navigator.share({
+          title: 'BM Vocab Quiz',
+          text: `I just scored ${pct}% on a BM Vocab quiz! Can you beat me?`,
+          url: window.location.origin
+        });
+      } catch (err) {
+        console.warn('Share failed:', err);
+      }
+    };
 
     window.restartQuiz=function(){
       document.getElementById("resultsScreen").classList.add("hidden");
@@ -438,7 +494,7 @@
         bar.style.background=pct>50?"#4f46e5":pct>25?"#f59e0b":"#ef4444";
         if (elapsed>=diff.speedSeconds*1000){
           clearTimer();
-          if (!answered){ answered=true; const w=quizWords[currentIndex]; showFeedback(false,w._bmToEn?w.en:w.bm); lives--; wrong++; missedWords.push(w); document.querySelectorAll(".option-btn").forEach(b=>b.disabled=true); updateHUD(); document.getElementById("nextBtn").classList.remove("hidden"); }
+          if (!answered){ answered=true; playSound('wrong'); const w=quizWords[currentIndex]; showFeedback(false,w._bmToEn?w.en:w.bm); lives--; wrong++; missedWords.push(w); document.querySelectorAll(".option-btn").forEach(b=>b.disabled=true); updateHUD(); document.getElementById("nextBtn").classList.remove("hidden"); }
         }
       },100);
     }
