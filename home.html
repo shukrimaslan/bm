@@ -51,7 +51,6 @@
     /* WOTD */
     html.dark .guest-banner     { background:#1a1200 !important; border-color:#854d0e !important; }
     html.dark .offline-banner   { background:#1a1200 !important; border-color:#854d0e !important; color:#fcd34d !important; }
-    html.dark .streak-reminder  { background:#431407 !important; border-color:#ea580c !important; }
 
     /* Level badges in navbar */
     html.dark .level-badge-primary   { background:#052e16 !important; color:#4ade80 !important; border-color:#166534 !important; }
@@ -66,7 +65,6 @@
     .stats-card { background:linear-gradient(135deg,#16a34a,#4ade80);color:white; }
     .guest-banner   { background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #fcd34d; }
     .offline-banner { background:#fef3c7;border:2px solid #fcd34d; }
-    .streak-reminder { background:linear-gradient(135deg,#ffedd5,#fdba74);border:2px solid #f97316; }
 
     /* WOTD */
     .wotd-card { background:linear-gradient(135deg,#1e1b4b,#4338ca,#6366f1);color:white; }
@@ -190,6 +188,20 @@
       📶 Offline — showing cached data
     </div>
 
+    <!-- Streak reminder banner -->
+    <div id="streakBanner" class="hidden rounded-2xl px-5 py-4 mb-5 flex items-center gap-3 fade-up"
+      style="background:linear-gradient(135deg,#fff7ed,#ffedd5);border:2px solid #fdba74;">
+      <span class="text-2xl">🔥</span>
+      <div class="flex-1">
+        <p class="font-black text-orange-800 text-sm" id="streakBannerTitle">Don't break your streak!</p>
+        <p class="text-orange-600 text-xs mt-0.5" id="streakBannerMsg">Study today to keep it going.</p>
+      </div>
+      <a href="home.html#packs" onclick="document.getElementById('streakBanner').classList.add('hidden')"
+        class="bg-orange-500 hover:bg-orange-600 text-white font-black text-xs px-3 py-2 rounded-xl transition-colors whitespace-nowrap">
+        Study Now
+      </a>
+    </div>
+
     <div id="guestBanner" class="guest-banner hidden rounded-2xl px-5 py-4 mb-5 flex items-start gap-3 fade-up">
       <span class="text-2xl">👤</span>
       <div>
@@ -197,14 +209,6 @@
         <p class="text-yellow-700 text-xs mt-0.5">Progress won't be saved.
           <button onclick="showModal()" class="underline font-bold">Sign in</button>
         </p>
-      </div>
-    </div>
-
-    <div id="streakReminderBanner" class="streak-reminder hidden rounded-2xl px-5 py-4 mb-5 flex items-start gap-3 fade-up">
-      <span class="text-2xl">🔥</span>
-      <div>
-        <p class="font-black text-orange-900 text-sm">You're about to lose your streak!</p>
-        <p class="text-orange-800 text-xs mt-0.5">Do a quiz or study a pack today to keep it.</p>
       </div>
     </div>
 
@@ -300,6 +304,7 @@
     import { initLang, applyTranslations } from "./js/i18n.js";
     import { showSignInModal } from "./js/guest.js";
     import { isOnline, getCachedPacks, cachePacks, getCachedAllWords, cacheAllWords } from "./js/cache.js";
+    import { playStreakMilestone } from "./js/sounds.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -351,8 +356,29 @@
         const streak=profile.streak||0;
         document.getElementById("statStreak").textContent=streak>0?`🔥 ${streak}`:"0";
 
-        if (streak > 0 && profile.lastStudyDate !== new Date().toDateString()) {
-          document.getElementById("streakReminderBanner").classList.remove("hidden");
+        // ── Streak reminder ───────────────────────────────────────
+        // Show if: has a streak AND hasn't studied today
+        const today      = new Date().toDateString();
+        const lastStudy  = profile.lastStudyDate; // stored as date string e.g. "Mon May 12 2025"
+        const studiedToday = lastStudy === today;
+
+        if (streak > 0 && !studiedToday) {
+          const banner = document.getElementById("streakBanner");
+          const title  = document.getElementById("streakBannerTitle");
+          const msg    = document.getElementById("streakBannerMsg");
+
+          if (streak >= 7) {
+            title.textContent = `⚠️ Don't lose your ${streak}-day streak!`;
+            msg.textContent   = "You haven't studied today — it resets at midnight!";
+          } else if (streak >= 3) {
+            title.textContent = `🔥 You're on a ${streak}-day streak!`;
+            msg.textContent   = "Study something today to keep it going.";
+          } else {
+            title.textContent = `🔥 ${streak}-day streak going!`;
+            msg.textContent   = "Quick study session today to keep the streak alive.";
+          }
+          banner.classList.remove("hidden");
+          setTimeout(()=>playStreakMilestone(), 500);
         }
       } catch { document.getElementById("statWords").textContent="0"; }
     }

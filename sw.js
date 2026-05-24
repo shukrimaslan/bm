@@ -19,6 +19,8 @@ const APP_SHELL = [
   '/js/i18n.js',
   '/js/cache.js',
   '/js/guest.js',
+  '/js/sounds.js',
+  '/icons/icon.svg',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap',
 ];

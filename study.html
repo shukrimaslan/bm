@@ -68,13 +68,16 @@
     <div class="max-w-md mx-auto px-5 py-4 flex items-center justify-between">
       <a href="home.html" class="text-green-600 font-bold text-lg">← Back</a>
       <h1 class="font-extrabold text-green-700 text-lg" id="packTitle">Loading...</h1>
-      <span class="text-sm text-gray-400" id="cardCounter">0 / 0</span>
+      <button id="studySoundBtn" onclick="handleSoundToggle()" class="text-xl" title="Toggle sound">🔊</button>
     </div>
   </nav>
 
   <div class="max-w-md mx-auto px-4 py-5">
     <div id="offlineBanner" class="offline-banner hidden rounded-2xl px-4 py-2 mb-3 text-yellow-800 text-xs font-bold text-center">📶 Offline — showing cached words</div>
     <div id="levelHint" class="hidden rounded-2xl px-4 py-2 mb-4 text-xs font-bold text-center"></div>
+    <div class="flex items-center justify-between mb-1">
+      <span class="text-xs text-gray-400 font-semibold" id="cardCounter">0 / 0</span>
+    </div>
     <div class="progress-bar mb-5"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
 
     <!-- Skeleton -->
@@ -152,6 +155,10 @@
         <div class="flex flex-col gap-3">
           <button onclick="restartStudy()" class="btn-know text-white font-bold py-3 rounded-2xl shadow">🔁 Study Again</button>
           <a href="quiz.html" id="quizLink" class="block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-2xl shadow text-center">🎯 Take a Quiz</a>
+          <button onclick="shareStudyResult()"
+            class="bg-white border-2 border-green-200 text-green-600 font-bold py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-green-50 transition-colors">
+            📤 Share Progress
+          </button>
           <a href="home.html" class="block bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3 rounded-2xl text-center">🏠 Back to Home</a>
         </div>
       </div>
@@ -172,12 +179,21 @@
     import { recordStudySession } from "./js/streak.js";
     import { initTheme } from "./js/theme.js";
     import { isOnline, getCachedWords, cacheWords } from "./js/cache.js";
+    import { playCorrect, playWrong, playFlip, playPackComplete, playLevelUp, isSoundEnabled, toggleSound } from "./js/sounds.js";
     import { onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     initTheme();
+
+    // Sound toggle
+    function syncSoundBtn() {
+      const btn = document.getElementById("studySoundBtn");
+      if (btn) btn.textContent = isSoundEnabled() ? "🔊" : "🔇";
+    }
+    window.handleSoundToggle = function() { toggleSound(); syncSoundBtn(); };
+    syncSoundBtn();
 
     let words=[], currentIndex=0, isFlipped=false, known=0, skipped=0;
     let currentUser=null, userLevel=null;
@@ -259,15 +275,19 @@
       updateProgress();
     }
 
-    window.flipCard=function(){ if(isFlipped)return; isFlipped=true; document.getElementById("flipCard").classList.add("flipped"); setTimeout(()=>document.getElementById("actionButtons").classList.remove("hidden"),300); };
+    window.flipCard=function(){ if(isFlipped)return; isFlipped=true; playFlip(); document.getElementById("flipCard").classList.add("flipped"); setTimeout(()=>document.getElementById("actionButtons").classList.remove("hidden"),300); };
     window.speakBM=function(){ const w=words[currentIndex]; if(!w)return; const u=new SpeechSynthesisUtterance(w.bm); u.lang="ms-MY"; u.rate=0.85; speechSynthesis.speak(u); };
 
     window.markWord=async function(result){
       if (result==="know"){
         known++; document.getElementById("knownCount").textContent=known;
+        playCorrect();
         if (currentUser&&!currentUser.isAnonymous)
           await setDoc(doc(db,"users",currentUser.uid,"progress",words[currentIndex].id),{status:"known",updatedAt:serverTimestamp()},{merge:true});
-      } else { skipped++; document.getElementById("skipCount").textContent=skipped; }
+      } else {
+        skipped++; document.getElementById("skipCount").textContent=skipped;
+        playWrong();
+      }
       currentIndex++; showCard();
     };
 
@@ -279,17 +299,32 @@
       document.getElementById("finalKnown").textContent=known;
       document.getElementById("finalSkip").textContent=skipped;
       document.getElementById("progressFill").style.width="100%";
+      playPackComplete();
       if (currentUser&&!currentUser.isAnonymous){
         const xpGained=known*5;
         try {
           const result=await recordStudySession(currentUser.uid,xpGained);
           if (xpGained>0){ document.getElementById("xpEarnedText").textContent=`+${xpGained} XP earned!`; document.getElementById("xpEarned").classList.remove("hidden"); }
-          if (result.leveledUp){ document.getElementById("levelUpText").textContent=`You're now "${result.newLevel.title}"!`; document.getElementById("levelUpBanner").classList.remove("hidden"); }
+          if (result.leveledUp){ document.getElementById("levelUpText").textContent=`You're now "${result.newLevel.title}"!`; document.getElementById("levelUpBanner").classList.remove("hidden"); setTimeout(()=>playLevelUp(),400); }
         } catch(e){console.warn(e);}
       }
     }
 
     window.restartStudy=function(){ currentIndex=0; known=0; skipped=0; shuffle(words); document.getElementById("knownCount").textContent=0; document.getElementById("skipCount").textContent=0; document.getElementById("xpEarned").classList.add("hidden"); document.getElementById("levelUpBanner").classList.add("hidden"); document.getElementById("completeScreen").classList.add("hidden"); document.getElementById("studyScreen").classList.remove("hidden"); showCard(); };
+
+    window.shareStudyResult = async function() {
+      const packName = packId ? packId.charAt(0).toUpperCase()+packId.slice(1).replace(/_/g," ") : "BM Vocab";
+      const text = `I just studied ${known} words in the "${packName}" pack on BM Vocab! 🇲🇾\n\nLearn Bahasa Malaysia vocabulary at bm-vocab-app.web.app`;
+      if (navigator.share) {
+        try { await navigator.share({ title:"BM Vocab", text }); } catch(e) { if (e.name!=="AbortError") copyToClipboard(text); }
+      } else { copyToClipboard(text); }
+    };
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text)
+        .then(()=>alert("✅ Copied to clipboard! Paste it anywhere to share."))
+        .catch(()=>alert(text));
+    }
     function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} }
   </script>
 </body>
