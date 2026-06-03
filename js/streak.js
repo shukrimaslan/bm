@@ -3,7 +3,7 @@ import { db } from "./firebase.js";
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ── 12 Levels — easier early thresholds to keep students motivated
+// ── 16 Levels — progressive XP thresholds ──────────────────────
 export const LEVELS = [
   { title: "Pelajar Baru",       minXP: 0    },  // 1
   { title: "Pelajar Aktif",      minXP: 50   },  // 2
@@ -16,7 +16,11 @@ export const LEVELS = [
   { title: "Tokoh Bahasa",       minXP: 1450 },  // 9
   { title: "Sarjana Bahasa",     minXP: 2000 },  // 10
   { title: "Mahaguru Bahasa",    minXP: 2700 },  // 11
-  { title: "Legenda Bahasa",     minXP: 3500 },  // 12 (max)
+  { title: "Legenda Bahasa",     minXP: 3500 },  // 12
+  { title: "Pendeta Bahasa",     minXP: 4500 },  // 13
+  { title: "Wira Bahasa",        minXP: 5800 },  // 14
+  { title: "Pahlawan Bahasa",    minXP: 7500 },  // 15
+  { title: "Raja Bahasa",        minXP: 10000},  // 16 (max)
 ];
 
 export function getLevel(xp) {

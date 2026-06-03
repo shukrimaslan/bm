@@ -10,8 +10,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
     body { font-family:'Nunito',sans-serif; padding-bottom:80px; }
-
-    /* ── Dark mode ── */
     html.dark body            { background:#0f172a; color:#e2e8f0; }
     html.dark .bg-white       { background:#1e293b !important; }
     html.dark .bg-gray-50     { background:#0f172a !important; }
@@ -26,48 +24,47 @@
     html.dark .stat-card      { background:#1e293b !important; }
     html.dark .bar-track      { background:#334155 !important; }
     html.dark .bg-indigo-50   { background:#1e1b4b !important; }
-    /* Force indigo text visible in dark indigo bg */
     html.dark .text-indigo-700 { color:#a5b4fc !important; }
-    html.dark .text-indigo-400 { color:#818cf8 !important; }
     html.dark .text-indigo-600 { color:#a5b4fc !important; }
     html.dark .text-indigo-500 { color:#818cf8 !important; }
-    /* Gray bg in dark mode */
+    html.dark .text-indigo-400 { color:#818cf8 !important; }
     html.dark .bg-gray-50.rounded-2xl { background:#334155 !important; }
 
-    /* Collapsible toggle buttons — NO hover background in mobile
-       Use active state only (tap feedback) */
+    /* Collapsible */
     .collapse-btn { -webkit-tap-highlight-color:transparent; }
     .collapse-btn:active { background:rgba(0,0,0,.04); }
     html.dark .collapse-btn:active { background:rgba(255,255,255,.06) !important; }
-
-    /* Collapsible body */
-    .collapsible-body { overflow:hidden; transition:max-height .35s cubic-bezier(.4,0,.2,1), opacity .3s; max-height:3000px; opacity:1; }
+    .collapsible-body { overflow:hidden; transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .3s; max-height:6000px; opacity:1; }
     .collapsible-body.collapsed { max-height:0 !important; opacity:0; padding-bottom:0 !important; }
 
-    /* Badges — text always dark on their light coloured backgrounds */
+    /* Badges */
     .badge { border-radius:1.25rem; padding:10px; text-align:center; border:2px solid transparent; transition:transform .15s; }
     .badge:hover { transform:translateY(-2px); }
     .badge-earned { box-shadow:0 4px 12px rgba(0,0,0,.1); }
     .badge-locked { filter:grayscale(1); opacity:.35; }
-    /* Badge text always dark — badge backgrounds are pastel light colours */
     .badge p.badge-name { color:#1e293b !important; }
     .badge p.badge-desc { color:#374151 !important; }
-    /* In dark mode, slightly lighten the badge backgrounds for contrast */
-    html.dark .badge { filter: brightness(.75) saturate(.8); }
+    html.dark .badge { filter:brightness(.75) saturate(.8); }
     html.dark .badge.badge-locked { filter:grayscale(1) brightness(.5); opacity:.3; }
     html.dark .badge p.badge-name { color:#f1f5f9 !important; }
     html.dark .badge p.badge-desc { color:#cbd5e1 !important; }
 
-    /* Rank cards in leaderboard (shared style reference) */
     .stat-card { background:white; border-radius:1.25rem; padding:1rem; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.07); }
-    .bar-track { height:10px; background:#f3f4f6; border-radius:99px; overflow:hidden; }
-    .bar-fill  { height:100%; border-radius:99px; transition:width 1s cubic-bezier(.4,0,.2,1); }
+    .bar-track  { height:10px; background:#f3f4f6; border-radius:99px; overflow:hidden; }
+    .bar-fill   { height:100%; border-radius:99px; transition:width 1s cubic-bezier(.4,0,.2,1); }
+
+    /* Share card */
+    .progress-share-card {
+      background:linear-gradient(135deg,#16a34a,#0d9488);
+      border-radius:1.5rem; padding:1.25rem; color:white;
+      font-family:'Nunito',sans-serif;
+    }
+    html.dark .progress-share-card { background:linear-gradient(135deg,#052e16,#134e4a); }
 
     /* Offline banner */
     .offline-banner { background:#fef3c7; border:2px solid #fcd34d; }
     html.dark .offline-banner { background:#1a1200 !important; border-color:#854d0e !important; color:#fcd34d !important; }
 
-    /* Skeleton */
     .skeleton { border-radius:1.5rem; background:#e5e7eb; }
     html.dark .skeleton { background:#334155 !important; }
 
@@ -92,21 +89,16 @@
   </nav>
 
   <div class="max-w-lg mx-auto px-5 py-6">
-
-    <div id="offlineBanner" class="offline-banner hidden rounded-2xl px-4 py-3 mb-4 text-yellow-800 text-xs font-bold text-center">
-      📶 Offline — showing cached data
-    </div>
+    <div id="offlineBanner" class="offline-banner hidden rounded-2xl px-4 py-3 mb-4 text-yellow-800 text-xs font-bold text-center">📶 Offline — showing cached data</div>
 
     <!-- Skeletons -->
     <div id="loadingState" class="space-y-4">
       <div class="skeleton h-36 animate-pulse"></div>
       <div class="grid grid-cols-4 gap-2">
-        <div class="skeleton h-20 animate-pulse"></div>
-        <div class="skeleton h-20 animate-pulse"></div>
-        <div class="skeleton h-20 animate-pulse"></div>
-        <div class="skeleton h-20 animate-pulse"></div>
+        <div class="skeleton h-20 animate-pulse"></div><div class="skeleton h-20 animate-pulse"></div>
+        <div class="skeleton h-20 animate-pulse"></div><div class="skeleton h-20 animate-pulse"></div>
       </div>
-      <div class="skeleton h-64 animate-pulse"></div>
+      <div class="skeleton h-48 animate-pulse"></div>
     </div>
 
     <!-- Guest notice -->
@@ -114,15 +106,14 @@
       <div class="text-6xl mb-4">👤</div>
       <h3 class="font-black text-gray-700 text-xl mb-2">No Progress to Show</h3>
       <p class="text-gray-400 text-sm mb-5">Sign in to track your progress!</p>
-      <button onclick="showModal()" class="inline-block bg-green-500 text-white font-black py-3 px-6 rounded-2xl">🔐 Sign In</button>
+      <button onclick="showModal()" class="bg-green-500 text-white font-black py-3 px-6 rounded-2xl">🔐 Sign In</button>
     </div>
 
     <!-- Error -->
     <div id="errorState" class="hidden text-center py-16 fade-up">
       <div class="text-6xl mb-4">⚠️</div>
       <h3 class="font-black text-gray-700 mb-2">Failed to Load</h3>
-      <p class="text-gray-400 text-sm mb-4">Check your connection and try again.</p>
-      <button onclick="location.reload()" class="bg-gray-100 text-gray-600 font-bold py-2 px-5 rounded-full text-sm">Retry</button>
+      <button onclick="location.reload()" class="bg-gray-100 text-gray-600 font-bold py-2 px-5 rounded-full text-sm mt-2">Retry</button>
     </div>
 
     <div id="reportContent" class="hidden">
@@ -134,8 +125,7 @@
             <svg style="transform:rotate(-90deg)" width="100" height="100" viewBox="0 0 100 100">
               <circle fill="none" stroke="#f3f4f6" stroke-width="10" cx="50" cy="50" r="40"/>
               <circle fill="none" stroke-width="10" stroke-linecap="round" cx="50" cy="50" r="40"
-                id="ringProg" stroke="#16a34a"
-                stroke-dasharray="251.2" stroke-dashoffset="251.2"
+                id="ringProg" stroke="#16a34a" stroke-dasharray="251.2" stroke-dashoffset="251.2"
                 style="transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)"/>
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center">
@@ -154,6 +144,12 @@
           </div>
         </div>
       </div>
+
+      <!-- Share progress card button -->
+      <button onclick="shareProgressCard()" id="shareProgressBtn"
+        class="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-black py-3 rounded-2xl mb-4 flex items-center justify-center gap-2 shadow-md transition-all fade-up" style="animation-delay:.04s">
+        📤 Share My Progress Card
+      </button>
 
       <!-- 4 stat cards -->
       <div class="grid grid-cols-4 gap-2 mb-4 fade-up" style="animation-delay:.07s">
@@ -202,22 +198,13 @@
           </div>
         </button>
         <div id="levelSection" class="collapsible-body px-6 pb-5">
-          <div class="bar-track mb-2">
-            <div class="bar-fill bg-indigo-400" id="xpBar" style="width:0%"></div>
-          </div>
+          <div class="bar-track mb-2"><div class="bar-fill bg-indigo-400" id="xpBar" style="width:0%"></div></div>
           <div class="flex justify-between text-xs text-gray-400 font-semibold">
-            <span id="xpCurrent">0 XP</span>
-            <span id="xpNext">50 XP to next level</span>
+            <span id="xpCurrent">0 XP</span><span id="xpNext">50 XP to next level</span>
           </div>
           <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
-            <div class="bg-indigo-50 rounded-2xl p-3 text-center">
-              <p class="font-black text-indigo-700" id="levelTitle">Pelajar Baru</p>
-              <p class="text-indigo-400 text-xs">Current</p>
-            </div>
-            <div class="bg-gray-50 rounded-2xl p-3 text-center">
-              <p class="font-black text-gray-500" id="nextLevelTitle">Pelajar Aktif</p>
-              <p class="text-gray-400 text-xs">Next</p>
-            </div>
+            <div class="bg-indigo-50 rounded-2xl p-3 text-center"><p class="font-black text-indigo-700" id="levelTitle">Pelajar Baru</p><p class="text-indigo-400 text-xs">Current</p></div>
+            <div class="bg-gray-50 rounded-2xl p-3 text-center"><p class="font-black text-gray-500" id="nextLevelTitle">Pelajar Aktif</p><p class="text-gray-400 text-xs">Next</p></div>
           </div>
           <div class="mt-4" id="allLevelsList"></div>
         </div>
@@ -248,30 +235,50 @@
     initTheme();
     window.showModal = showSignInModal;
 
-    const PACK_COLORS=["#16a34a","#2563eb","#d97706","#db2777","#7c3aed","#ea580c","#0d9488","#dc2626","#65a30d","#0284c7","#e11d48","#b45309","#0891b2","#7c3aed","#059669","#c026d3"];
-    const BADGES=[
-      {emoji:"🌱",name:"First Word",     desc:"Know your 1st word",       check:s=>s.known>=1},
-      {emoji:"🔟",name:"Ten Words",      desc:"Know 10 words",            check:s=>s.known>=10},
-      {emoji:"⭐",name:"Star Student",   desc:"Know 50 words",            check:s=>s.known>=50},
-      {emoji:"💯",name:"Century!",       desc:"Know 100 words",           check:s=>s.known>=100},
-      {emoji:"🎯",name:"Halfway There",  desc:"Know 240 words",           check:s=>s.known>=240},
-      {emoji:"🏆",name:"Vocab Master",   desc:"Know all 480 words",       check:s=>s.known>=480},
-      {emoji:"📦",name:"Pack Complete",  desc:"Finish 1 pack",            check:s=>s.packsCompleted>=1},
-      {emoji:"🎒",name:"Pack Hunter",    desc:"Finish 5 packs",           check:s=>s.packsCompleted>=5},
-      {emoji:"🌟",name:"All Packs!",     desc:"Finish all 16 packs",      check:s=>s.packsCompleted>=16},
-      {emoji:"🔥",name:"On Fire!",       desc:"3-day streak",             check:s=>s.streak>=3},
-      {emoji:"🗓️",name:"Week Warrior",  desc:"7-day streak",             check:s=>s.streak>=7},
-      {emoji:"📅",name:"Fortnight",      desc:"14-day streak",            check:s=>s.streak>=14},
-      {emoji:"🌙",name:"Month Master",   desc:"30-day streak",            check:s=>s.streak>=30},
-      {emoji:"⚡",name:"XP Starter",     desc:"Earn 50 XP",               check:s=>s.xp>=50},
-      {emoji:"💎",name:"XP Legend",      desc:"Earn 1,000 XP",            check:s=>s.xp>=1000},
-      {emoji:"🎓",name:"Secondary Pro",  desc:"Know 30+ secondary words", check:s=>s.secondaryKnown>=30},
-      {emoji:"🏫",name:"Primary Hero",   desc:"Know all primary words",   check:s=>s.primaryKnown>=180},
-      {emoji:"⏱️",name:"Speed Demon",   desc:"Earn 500 XP total",        check:s=>s.xp>=500},
-      {emoji:"🦸",name:"Comeback Kid",   desc:"Study 3+ different packs", check:s=>s.packsStarted>=3},
-      {emoji:"🌈",name:"Rainbow Learner",desc:"Start 5+ packs",           check:s=>s.packsStarted>=5},
+    const PACK_COLORS=["#16a34a","#2563eb","#d97706","#db2777","#7c3aed","#ea580c","#0d9488","#dc2626","#65a30d","#0284c7","#e11d48","#b45309","#0891b2","#7c3aed","#059669","#c026d3","#0369a1","#a16207","#dc2626","#0f766e"];
+
+    // ── 30 Achievement Badges ─────────────────────────────────────
+    const BADGES = [
+      // Words known
+      { emoji:"🌱", name:"First Word",       desc:"Know your 1st word",         check:s=>s.known>=1       },
+      { emoji:"🔟", name:"Ten Words",         desc:"Know 10 words",              check:s=>s.known>=10      },
+      { emoji:"⭐", name:"Star Student",      desc:"Know 50 words",              check:s=>s.known>=50      },
+      { emoji:"💯", name:"Century!",          desc:"Know 100 words",             check:s=>s.known>=100     },
+      { emoji:"🎯", name:"Halfway There",     desc:"Know 300 words (50%)",       check:s=>s.known>=300     },
+      { emoji:"🏆", name:"Vocab Master",      desc:"Know all 600 words",         check:s=>s.known>=600     },
+      { emoji:"📚", name:"Bookworm",          desc:"Know 200 words",             check:s=>s.known>=200     },
+      { emoji:"🧠", name:"Memory Pro",        desc:"Know 400 words",             check:s=>s.known>=400     },
+      // Packs
+      { emoji:"📦", name:"Pack Complete",     desc:"Finish 1 pack",              check:s=>s.packsCompleted>=1  },
+      { emoji:"🎒", name:"Pack Hunter",       desc:"Finish 5 packs",             check:s=>s.packsCompleted>=5  },
+      { emoji:"🌟", name:"All Primary!",      desc:"Finish all primary packs",   check:s=>s.primaryPacksDone>=8},
+      { emoji:"🎓", name:"All Secondary!",    desc:"Finish all secondary packs", check:s=>s.secondaryPacksDone>=12},
+      { emoji:"👑", name:"Pack King",         desc:"Finish all 20 packs",        check:s=>s.packsCompleted>=20 },
+      // Streaks
+      { emoji:"🔥", name:"On Fire!",          desc:"3-day streak",               check:s=>s.streak>=3      },
+      { emoji:"🗓️", name:"Week Warrior",     desc:"7-day streak",               check:s=>s.streak>=7      },
+      { emoji:"📅", name:"Fortnight",         desc:"14-day streak",              check:s=>s.streak>=14     },
+      { emoji:"🌙", name:"Month Master",      desc:"30-day streak",              check:s=>s.streak>=30     },
+      { emoji:"☀️", name:"Streak Legend",    desc:"60-day streak",              check:s=>s.streak>=60     },
+      // XP milestones
+      { emoji:"⚡", name:"XP Starter",        desc:"Earn 50 XP",                 check:s=>s.xp>=50         },
+      { emoji:"💪", name:"XP Grinder",        desc:"Earn 250 XP",                check:s=>s.xp>=250        },
+      { emoji:"💎", name:"XP Legend",         desc:"Earn 1,000 XP",              check:s=>s.xp>=1000       },
+      { emoji:"🚀", name:"XP Rocket",         desc:"Earn 2,500 XP",              check:s=>s.xp>=2500       },
+      // Level milestones
+      { emoji:"🥇", name:"Juara BM",          desc:"Reach Juara BM rank",        check:s=>s.xp>=750        },
+      { emoji:"🏅", name:"Pakar Bahasa",      desc:"Reach Pakar Bahasa rank",    check:s=>s.xp>=1050       },
+      // School specific
+      { emoji:"🏫", name:"Primary Hero",      desc:"Know all 180 primary words", check:s=>s.primaryKnown>=180  },
+      { emoji:"🎓", name:"Secondary Pro",     desc:"Know 100+ secondary words",  check:s=>s.secondaryKnown>=100},
+      { emoji:"🇲🇾", name:"Malaysia Boleh",  desc:"Know 50 Peribahasa words",   check:s=>s.peribahasaKnown>=20},
+      // Fun
+      { emoji:"🤝", name:"Social Butterfly",  desc:"Add 3 friends",              check:s=>s.friendCount>=3  },
+      { emoji:"🌈", name:"Rainbow Learner",   desc:"Study from 5+ packs",        check:s=>s.packsStarted>=5 },
+      { emoji:"🦸", name:"Comeback Kid",      desc:"Study after a broken streak", check:s=>s.packsStarted>=3},
     ];
-    const BADGE_BG=["#dcfce7","#dbeafe","#fef9c3","#fce7f3","#ede9fe","#ffedd5","#ccfbf1","#fee2e2","#fef3c7","#e0f2fe","#f3e8ff","#ecfccb","#fdf4ff","#ecfdf5","#fff7ed","#f0fdf4","#dbeafe","#fef2f2","#f5f3ff","#ecfdf5"];
+
+    const BADGE_BG=["#dcfce7","#dbeafe","#fef9c3","#fce7f3","#ede9fe","#ffedd5","#ccfbf1","#fee2e2","#fef3c7","#e0f2fe","#f3e8ff","#ecfccb","#fdf4ff","#ecfdf5","#fff7ed","#f0fdf4","#dbeafe","#fef2f2","#f5f3ff","#ecfdf5","#fefce8","#f0fdf4","#ede9fe","#fff1f2","#dcfce7","#dbeafe","#fef9c3","#e0f2fe","#ecfccb","#fce7f3"];
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href="index.html"; return; }
@@ -282,6 +289,8 @@
       }
       await buildReport(user);
     });
+
+    let _reportStats = null; // store for share card
 
     async function buildReport(user) {
       try {
@@ -301,28 +310,45 @@
           getUserProfile(user.uid)
         ]);
 
-        const knownIds       =new Set(progSnap.docs.filter(d=>d.data().status==="known").map(d=>d.id));
-        const packStats      =packs.map(p=>{const pw=allWords.filter(w=>w.pack===p.id);return{...p,total:pw.length,known:pw.filter(w=>knownIds.has(w.id)).length};});
-        const totalKnown     =knownIds.size;
-        const totalWords     =allWords.length;
-        const packsCompleted =packStats.filter(p=>p.total>0&&p.known===p.total).length;
-        const packsStarted   =packStats.filter(p=>p.known>0).length;
-        const secondaryKnown =allWords.filter(w=>w.level==="secondary"&&knownIds.has(w.id)).length;
-        const primaryKnown   =allWords.filter(w=>w.level==="primary"&&knownIds.has(w.id)).length;
-        const overallPct     =totalWords?Math.round((totalKnown/totalWords)*100):0;
-        const xp             =profile.xp||0;
-        const streak         =profile.streak||0;
-        const stats          ={known:totalKnown,total:totalWords,packsCompleted,packsStarted,secondaryKnown,primaryKnown,streak,xp};
-        const earnedBadges   =BADGES.filter(b=>b.check(stats)).length;
-        const lv             =getLevel(xp);
-        const xpInLv         =xp-lv.minXP;
-        const xpNeeded       =lv.next.minXP-lv.minXP;
-        const lvPct          =xpNeeded?Math.min(100,Math.round((xpInLv/xpNeeded)*100)):100;
+        // Friend count
+        let friendCount=0;
+        try { const fs=await getDocs(collection(db,"users",user.uid,"friends")); friendCount=fs.size; } catch {}
+
+        const knownIds        = new Set(progSnap.docs.filter(d=>d.data().status==="known").map(d=>d.id));
+        const packStats       = packs.map(p=>{ const pw=allWords.filter(w=>w.pack===p.id); return{...p,total:pw.length,known:pw.filter(w=>knownIds.has(w.id)).length}; });
+        const totalKnown      = knownIds.size;
+        const totalWords      = allWords.length;
+        const packsCompleted  = packStats.filter(p=>p.total>0&&p.known===p.total).length;
+        const packsStarted    = packStats.filter(p=>p.known>0).length;
+        const secondaryKnown  = allWords.filter(w=>w.level==="secondary"&&knownIds.has(w.id)).length;
+        const primaryKnown    = allWords.filter(w=>w.level==="primary"&&knownIds.has(w.id)).length;
+        const peribahasaKnown = allWords.filter(w=>w.pack==="peribahasa"&&knownIds.has(w.id)).length;
+        const primaryPacks    = packs.filter(p=>p.level==="primary");
+        const secondaryPacks  = packs.filter(p=>p.level==="secondary");
+        const primaryPacksDone   = packStats.filter(p=>p.level==="primary"&&p.total>0&&p.known===p.total).length;
+        const secondaryPacksDone = packStats.filter(p=>p.level==="secondary"&&p.total>0&&p.known===p.total).length;
+        const overallPct      = totalWords?Math.round((totalKnown/totalWords)*100):0;
+        const xp              = profile.xp||0;
+        const streak          = profile.streak||0;
+
+        const stats = {
+          known:totalKnown, total:totalWords, packsCompleted, packsStarted,
+          secondaryKnown, primaryKnown, peribahasaKnown,
+          primaryPacksDone, secondaryPacksDone,
+          streak, xp, friendCount,
+        };
+        _reportStats = { ...stats, overallPct, name: user.displayName||"Student", lv: getLevel(xp) };
+
+        const earnedBadges = BADGES.filter(b=>b.check(stats)).length;
+        const lv           = getLevel(xp);
+        const xpInLv       = xp - lv.minXP;
+        const xpNeeded     = lv.next.minXP - lv.minXP;
+        const lvPct        = xpNeeded ? Math.min(100,Math.round((xpInLv/xpNeeded)*100)) : 100;
 
         document.getElementById("loadingState").classList.add("hidden");
         document.getElementById("reportContent").classList.remove("hidden");
 
-        const name=user.displayName||"Student";
+        const name = user.displayName||"Student";
         document.getElementById("greetingName").textContent=`Hi, ${name.split(" ")[0]}!`;
         document.getElementById("totalKnown").textContent=totalKnown;
         document.getElementById("totalWords").textContent=totalWords;
@@ -333,21 +359,23 @@
         document.getElementById("statPacksDone").textContent=packsCompleted;
         document.getElementById("summaryLine").textContent=
           overallPct===0?"Start studying to see your progress!":
-          overallPct<30?"Good start! Keep it up.":
-          overallPct<60?"You're making great progress!":
-          overallPct<90?"Almost there — nearly a master!":
-          "🎉 Incredible! You know almost everything!";
+          overallPct<25?"Good start! Keep it up.":
+          overallPct<50?"You're making great progress!":
+          overallPct<75?"More than halfway — keep going!":
+          overallPct<95?"Almost there — nearly a master!":
+          "🎉 Incredible! You've mastered BM Vocab!";
         document.getElementById("ringPct").textContent=overallPct+"%";
         document.getElementById("levelLabel").textContent=`Level ${lv.idx+1}`;
         document.getElementById("levelTitle").textContent=lv.title;
         document.getElementById("nextLevelTitle").textContent=lv.next.title;
         document.getElementById("xpCurrent").textContent=`${xp} XP`;
-        document.getElementById("xpNext").textContent=lv.idx===LEVELS.length-1?"Max level reached!":`${lv.next.minXP-xp} XP to next level`;
+        document.getElementById("xpNext").textContent=
+          lv.idx===LEVELS.length-1?"Max level reached!":`${lv.next.minXP-xp} XP to next level`;
 
-        setTimeout(()=>{const c=2*Math.PI*40;document.getElementById("ringProg").style.strokeDashoffset=c-(overallPct/100)*c;},200);
-        setTimeout(()=>{document.getElementById("xpBar").style.width=lvPct+"%";},300);
+        setTimeout(()=>{ const c=2*Math.PI*40; document.getElementById("ringProg").style.strokeDashoffset=c-(overallPct/100)*c; },200);
+        setTimeout(()=>{ document.getElementById("xpBar").style.width=lvPct+"%"; },300);
 
-        // Pack progress bars
+        // Pack bars
         const pl=document.getElementById("packProgressList");
         pl.innerHTML="";
         packStats.forEach((pack,i)=>{
@@ -361,7 +389,7 @@
             <div class="bar-track"><div class="bar-fill pack-bar" data-pct="${pct}" style="background:${color};width:0%"></div></div>
           </div>`;
         });
-        setTimeout(()=>document.querySelectorAll(".pack-bar").forEach((b,i)=>setTimeout(()=>b.style.width=b.dataset.pct+"%",i*50)),400);
+        setTimeout(()=>document.querySelectorAll(".pack-bar").forEach((b,i)=>setTimeout(()=>b.style.width=b.dataset.pct+"%",i*40)),400);
 
         // Badges
         const bg=document.getElementById("badgeGrid");
@@ -379,7 +407,7 @@
 
         // All levels list
         const ll=document.getElementById("allLevelsList");
-        ll.innerHTML=`<p class="text-xs font-bold text-gray-400 mb-2">All Levels:</p>`;
+        ll.innerHTML=`<p class="text-xs font-bold text-gray-400 mb-2">All Levels (${LEVELS.length} total):</p>`;
         LEVELS.forEach((lvl,i)=>{
           const isReached=xp>=lvl.minXP;
           const isCurrent=lv.idx===i;
@@ -400,28 +428,81 @@
       }
     }
 
-    // ── Collapsible ───────────────────────────────────────────────
+    // ── Share progress card ───────────────────────────────────────
+    window.shareProgressCard = async function() {
+      const s = _reportStats;
+      if (!s) return;
+
+      // Build shareable text card
+      const earnedBadges = BADGES.filter(b=>b.check(s)).length;
+      const lines = [
+        `📊 BM Vocab — My Progress Card 🇲🇾`,
+        `━━━━━━━━━━━━━━━━━━━━━━`,
+        `👤 ${s.name}`,
+        `⚡ ${s.lv.title} (Level ${s.lv.idx+1})`,
+        ``,
+        `📚 Words Known:  ${s.known} / ${s.total} (${s.overallPct}%)`,
+        `📦 Packs Done:   ${s.packsCompleted} / 20`,
+        `⭐ Total XP:     ${s.xp} XP`,
+        `🔥 Streak:       ${s.streak} days`,
+        `🏅 Badges:       ${earnedBadges} / ${BADGES.length}`,
+        ``,
+        `━━━━━━━━━━━━━━━━━━━━━━`,
+        `Belajar Bahasa Malaysia dengan seronok!`,
+        `bm-vocab-app.web.app`,
+      ].join("\n");
+
+      // Try Web Share API (mobile)
+      if (navigator.share) {
+        try {
+          await navigator.share({ title:"BM Vocab — My Progress", text: lines });
+          return;
+        } catch(e) { if (e.name === "AbortError") return; }
+      }
+
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(lines);
+        // Show toast
+        showShareToast("✅ Progress card copied! Paste it anywhere to share.");
+      } catch {
+        alert(lines);
+      }
+    };
+
+    function showShareToast(msg) {
+      const existing = document.getElementById("shareToast");
+      if (existing) existing.remove();
+      const t = document.createElement("div");
+      t.id = "shareToast";
+      t.textContent = msg;
+      t.style.cssText = "position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#166534;color:white;font-weight:800;font-size:13px;padding:12px 20px;border-radius:99px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:99;white-space:nowrap;max-width:90vw;text-align:center;font-family:'Nunito',sans-serif;";
+      document.body.appendChild(t);
+      setTimeout(()=>t.remove(), 3500);
+    }
+
+    // ── Collapsible sections ──────────────────────────────────────
     const COLLAPSE_KEY = 'bmvocab_progress_collapsed';
     function getCollapsed() { try{return JSON.parse(localStorage.getItem(COLLAPSE_KEY))||{};}catch{return{};} }
     function saveCollapsed(s) { try{localStorage.setItem(COLLAPSE_KEY,JSON.stringify(s));}catch{} }
 
     window.toggleSection = function(sectionId, chevronId) {
-      const section=document.getElementById(sectionId);
-      const chevron=document.getElementById(chevronId);
-      const nowCollapsed=!section.classList.contains('collapsed');
-      section.classList.toggle('collapsed',nowCollapsed);
-      chevron.style.transform=nowCollapsed?'rotate(-90deg)':'rotate(0deg)';
-      const state=getCollapsed(); state[sectionId]=nowCollapsed; saveCollapsed(state);
+      const section  = document.getElementById(sectionId);
+      const chevron  = document.getElementById(chevronId);
+      const nowCollapsed = !section.classList.contains('collapsed');
+      section.classList.toggle('collapsed', nowCollapsed);
+      chevron.style.transform = nowCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+      const state = getCollapsed(); state[sectionId] = nowCollapsed; saveCollapsed(state);
     };
 
     function restoreCollapsed() {
-      const state=getCollapsed();
-      const map={packSection:'packChevron',badgeSection:'badgeChevron',levelSection:'levelChevron'};
+      const state = getCollapsed();
+      const map = { packSection:'packChevron', badgeSection:'badgeChevron', levelSection:'levelChevron' };
       Object.entries(map).forEach(([sid,cid])=>{
         if (state[sid]) {
           document.getElementById(sid)?.classList.add('collapsed');
-          const ch=document.getElementById(cid);
-          if (ch) ch.style.transform='rotate(-90deg)';
+          const ch = document.getElementById(cid);
+          if (ch) ch.style.transform = 'rotate(-90deg)';
         }
       });
     }
