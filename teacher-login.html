@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#4f46e5"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <title>BM Vocab — Teacher Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family:'Nunito',sans-serif; }
+    html.dark body            { background:#0f172a !important; }
+    html.dark .card           { background:#1e293b !important; }
+    html.dark h1,html.dark h2 { color:#f1f5f9 !important; }
+    html.dark p               { color:#94a3b8 !important; }
+    html.dark input           { background:#0f172a !important; color:#f1f5f9 !important; border-color:#334155 !important; }
+    html.dark .btn-google     { background:#1e293b !important; border-color:#334155 !important; color:#e2e8f0 !important; }
+    html.dark .text-gray-500  { color:#94a3b8 !important; }
+    html.dark .text-gray-400  { color:#64748b !important; }
+    html.dark .bg-indigo-50   { background:#1e1b4b !important; }
+    html.dark .text-indigo-700 { color:#a5b4fc !important; }
+
+    .bg-pattern {
+      background-color:#eef2ff;
+      background-image:
+        radial-gradient(circle at 20% 20%,#c7d2fe 0%,transparent 50%),
+        radial-gradient(circle at 80% 80%,#ddd6fe 0%,transparent 50%),
+        radial-gradient(circle at 60% 15%,#e0e7ff 0%,transparent 40%);
+    }
+    html.dark .bg-pattern { background-color:#0f172a; background-image:none; }
+
+    .card { background:white; border-radius:1.5rem; box-shadow:0 20px 60px rgba(0,0,0,.12); padding:2rem; }
+    @keyframes fade-up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up   { animation:fade-up .5s ease both; }
+    .fade-up-2 { animation:fade-up .5s .1s ease both; }
+    .fade-up-3 { animation:fade-up .5s .2s ease both; }
+
+    .btn-google { background:white; border:2px solid #e5e7eb; transition:transform .15s,box-shadow .15s; }
+    .btn-google:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.12); border-color:#6366f1; }
+
+    input:focus { outline:none; border-color:#6366f1 !important; box-shadow:0 0 0 3px #e0e7ff; }
+
+    /* Invite code input — special styling */
+    .invite-input { font-family:monospace; letter-spacing:.2em; text-transform:uppercase; text-align:center; font-size:1.25rem; font-weight:900; }
+
+    /* Step indicator */
+    .step { display:flex; align-items:center; gap:.75rem; padding:.75rem 0; }
+    .step-num { width:28px; height:28px; border-radius:99px; background:#6366f1; color:white; font-weight:900; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .step-done { background:#16a34a; }
+  </style>
+  <script>(function(){const t=localStorage.getItem('bmvocab_theme');if(t==='dark')document.documentElement.classList.add('dark');})();</script>
+</head>
+<body class="bg-pattern min-h-screen flex items-center justify-center p-5">
+<div class="w-full max-w-sm">
+
+  <!-- Header -->
+  <div class="text-center mb-8 fade-up">
+    <div class="text-6xl mb-3">👩‍🏫</div>
+    <h1 class="text-3xl font-black text-indigo-700">Teacher Portal</h1>
+    <p class="text-gray-500 font-semibold mt-1">BM Vocab — Educator Access</p>
+  </div>
+
+  <!-- Already a teacher — redirect notice (hidden by default) -->
+  <div id="alreadyTeacher" class="hidden card fade-up text-center">
+    <div class="text-5xl mb-3">✅</div>
+    <h2 class="text-xl font-black text-gray-800 mb-2">You're already registered as a teacher!</h2>
+    <p class="text-gray-500 text-sm mb-5">Redirecting to your dashboard...</p>
+    <a href="teacher-dashboard.html" class="block w-full bg-indigo-500 hover:bg-indigo-600 text-white font-black py-3 rounded-2xl transition-colors">
+      Go to Dashboard →
+    </a>
+  </div>
+
+  <!-- Main login card -->
+  <div id="loginCard" class="card fade-up-2">
+    <h2 class="text-xl font-black text-gray-800 mb-1">Teacher Registration</h2>
+    <p class="text-gray-400 text-sm mb-5">You need a teacher invite code to register. Contact your school administrator if you don't have one.</p>
+
+    <!-- How it works steps -->
+    <div class="bg-indigo-50 rounded-2xl p-4 mb-5">
+      <p class="text-xs font-black text-indigo-700 uppercase tracking-widest mb-3">How it works</p>
+      <div class="step">
+        <div class="step-num">1</div>
+        <p class="text-sm font-semibold text-gray-600">Enter your teacher invite code</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <p class="text-sm font-semibold text-gray-600">Sign in with Google or email</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <p class="text-sm font-semibold text-gray-600">Your account is upgraded to teacher</p>
+      </div>
+    </div>
+
+    <!-- Step 1: Invite code -->
+    <div id="codeSection">
+      <label class="text-xs font-black text-gray-500 uppercase tracking-widest block mb-2">Teacher Invite Code</label>
+      <input type="text" id="inviteCodeInput"
+        class="invite-input w-full border-2 border-gray-200 rounded-2xl px-4 py-3 mb-1"
+        placeholder="••••••" maxlength="10" autocomplete="off" autocorrect="off" autocapitalize="characters"/>
+      <p class="text-xs text-gray-400 mb-4 text-center">Case-insensitive. Contact admin if you don't have a code.</p>
+      <button id="verifyCodeBtn" onclick="verifyCode()"
+        class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-black py-3 rounded-2xl mb-3 transition-colors">
+        Verify Code →
+      </button>
+      <p id="codeError" class="text-sm text-center text-red-500 font-semibold hidden"></p>
+    </div>
+
+    <!-- Step 2: Sign in (shown after code verified) -->
+    <div id="signInSection" class="hidden">
+      <div class="flex items-center gap-2 bg-green-50 border border-green-200 rounded-2xl px-4 py-3 mb-5">
+        <span class="text-green-500 text-xl">✅</span>
+        <p class="text-green-700 font-black text-sm">Invite code verified! Now sign in.</p>
+      </div>
+
+      <button id="googleSignInBtn"
+        class="btn-google w-full flex items-center justify-center gap-3 py-3 px-5 rounded-2xl font-bold text-gray-700 mb-3">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5"/>
+        Continue with Google
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="flex-1 h-px bg-gray-100"></div>
+        <span class="text-xs text-gray-400 font-semibold">or email</span>
+        <div class="flex-1 h-px bg-gray-100"></div>
+      </div>
+
+      <input type="email"    id="emailInput"    placeholder="Email address"
+        class="w-full border-2 border-gray-200 rounded-2xl px-4 py-3 text-sm font-semibold text-gray-700 mb-3" autocomplete="email"/>
+      <input type="password" id="passwordInput" placeholder="Password (min 6 chars)"
+        class="w-full border-2 border-gray-200 rounded-2xl px-4 py-3 text-sm font-semibold text-gray-700 mb-3" autocomplete="current-password"/>
+      <button id="emailSignInBtn"
+        class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-black py-3 rounded-2xl mb-2 transition-colors">
+        Sign In / Register
+      </button>
+      <button onclick="resetToCodeStep()" class="w-full text-gray-400 font-semibold text-sm py-2">
+        ← Change invite code
+      </button>
+    </div>
+
+    <p id="statusMsg" class="text-sm text-center mt-3 font-semibold hidden"></p>
+  </div>
+
+  <!-- Student link -->
+  <p class="text-center text-xs text-gray-400 mt-5 fade-up-3">
+    Are you a student? <a href="index.html" class="text-indigo-500 font-bold">Go to student login →</a>
+  </p>
+
+</div>
+
+<script type="module">
+  import { auth } from "./js/firebase.js";
+  import {
+    GoogleAuthProvider, signInWithPopup,
+    signInWithEmailAndPassword, createUserWithEmailAndPassword,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const db = getFirestore();
+
+  // ── Invite codes — store in Firebase or hardcode here ─────────
+  // For production: store in Firestore /config/teacherInviteCodes
+  // For now: hardcoded. Change this to rotate the code.
+  const VALID_INVITE_CODES = ["GURU2024", "CIKGU123", "TEACHER1"];
+
+  let verifiedCode = null;
+
+  // ── Auth state — redirect if already teacher ──────────────────
+  onAuthStateChanged(auth, async (user) => {
+    if (!user || user.isAnonymous) return;
+    try {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (snap.exists() && snap.data().role === "teacher") {
+        document.getElementById("loginCard").classList.add("hidden");
+        document.getElementById("alreadyTeacher").classList.remove("hidden");
+        setTimeout(() => window.location.href = "teacher-dashboard.html", 2000);
+      }
+    } catch(e) { console.warn(e); }
+  });
+
+  // ── Step 1: Verify invite code ────────────────────────────────
+  window.verifyCode = function() {
+    const input = document.getElementById("inviteCodeInput").value.trim().toUpperCase();
+    const errEl = document.getElementById("codeError");
+
+    if (!input) {
+      errEl.textContent = "Please enter an invite code.";
+      errEl.classList.remove("hidden"); return;
+    }
+
+    if (!VALID_INVITE_CODES.includes(input)) {
+      errEl.textContent = "Invalid invite code. Please check with your administrator.";
+      errEl.classList.remove("hidden");
+      document.getElementById("inviteCodeInput").style.borderColor = "#ef4444";
+      return;
+    }
+
+    // Code valid
+    verifiedCode = input;
+    errEl.classList.add("hidden");
+    document.getElementById("codeSection").classList.add("hidden");
+    document.getElementById("signInSection").classList.remove("hidden");
+  };
+
+  // Enter key on invite code input
+  document.getElementById("inviteCodeInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") window.verifyCode();
+  });
+
+  window.resetToCodeStep = function() {
+    verifiedCode = null;
+    document.getElementById("codeSection").classList.remove("hidden");
+    document.getElementById("signInSection").classList.add("hidden");
+    document.getElementById("inviteCodeInput").value = "";
+    document.getElementById("inviteCodeInput").style.borderColor = "";
+  };
+
+  // ── Step 2: Sign in and assign teacher role ───────────────────
+  async function assignTeacherRole(user) {
+    showStatus("Setting up your teacher account...");
+    try {
+      const userRef  = doc(db, "users", user.uid);
+      const existing = await getDoc(userRef);
+      const data     = existing.exists() ? existing.data() : {};
+
+      await setDoc(userRef, {
+        ...data,
+        role:            "teacher",
+        teacherInviteCode: verifiedCode,
+        displayName:     user.displayName || data.displayName || "",
+        email:           user.email || "",
+        teacherClassIds: data.teacherClassIds || [],
+        friendCode:      user.uid.slice(0,6).toUpperCase(),
+        onboardingDone:  true,      // skip student onboarding
+        createdAt:       data.createdAt || serverTimestamp(),
+        teacherSince:    serverTimestamp(),
+      }, { merge: true });
+
+      showStatus("✅ Teacher account ready! Redirecting...", false);
+      setTimeout(() => window.location.href = "teacher-dashboard.html", 1500);
+    } catch(err) {
+      console.error(err);
+      showStatus("Failed to set up account. Try again.", true);
+    }
+  }
+
+  // Google sign-in
+  document.getElementById("googleSignInBtn").onclick = async () => {
+    if (!verifiedCode) return;
+    try {
+      showStatus("Signing in with Google...");
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      await assignTeacherRole(result.user);
+    } catch(e) {
+      if (e.code !== "auth/popup-closed-by-user")
+        showStatus("Google sign-in failed. Try again.", true);
+    }
+  };
+
+  // Email sign-in / register
+  document.getElementById("emailSignInBtn").onclick = async () => {
+    if (!verifiedCode) return;
+    const email = document.getElementById("emailInput").value.trim();
+    const pass  = document.getElementById("passwordInput").value;
+    if (!email || !pass) { showStatus("Please enter email and password.", true); return; }
+    if (pass.length < 6) { showStatus("Password must be at least 6 characters.", true); return; }
+
+    showStatus("Signing in...");
+    try {
+      // Try sign in first, then register if user doesn't exist
+      let result;
+      try {
+        result = await signInWithEmailAndPassword(auth, email, pass);
+      } catch(e) {
+        if (e.code === "auth/user-not-found" || e.code === "auth/invalid-credential") {
+          result = await createUserWithEmailAndPassword(auth, email, pass);
+        } else throw e;
+      }
+      await assignTeacherRole(result.user);
+    } catch(e) {
+      const msg = e.code === "auth/wrong-password" ? "Incorrect password." :
+                  e.code === "auth/email-already-in-use" ? "Email already registered. Try signing in." :
+                  "Sign-in failed. Check your details.";
+      showStatus(msg, true);
+    }
+  };
+
+  document.getElementById("passwordInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("emailSignInBtn").click();
+  });
+
+  function showStatus(msg, isError = false) {
+    const el = document.getElementById("statusMsg");
+    el.textContent = msg;
+    el.className = `text-sm text-center mt-3 font-semibold ${isError ? "text-red-500" : "text-indigo-600"}`;
+    el.classList.remove("hidden");
+  }
+</script>
+</body>
+</html>
