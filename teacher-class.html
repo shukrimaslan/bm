@@ -84,6 +84,24 @@
     .pack-row input[type=checkbox] { width:18px; height:18px; cursor:pointer; accent-color:#6366f1; flex-shrink:0; }
     .pack-row.assigned { background:#eef2ff; }
     html.dark .pack-row.assigned { background:#1e1b4b !important; }
+    /* Leaderboard cards */
+    .lb-rank-1  { background:linear-gradient(135deg,#fef9c3,#fde68a); border-color:#fcd34d; }
+    .lb-rank-2  { background:linear-gradient(135deg,#f1f5f9,#e2e8f0); border-color:#cbd5e1; }
+    .lb-rank-3  { background:linear-gradient(135deg,#ffedd5,#fed7aa); border-color:#fdba74; }
+    .lb-other   { background:white; border-color:#f3f4f6; }
+    html.dark .lb-rank-1 { filter:brightness(.75); }
+    html.dark .lb-rank-2 { filter:brightness(.55); }
+    html.dark .lb-rank-3 { filter:brightness(.7); }
+    html.dark .lb-other  { background:#1e293b !important; border-color:#334155 !important; filter:none; }
+    .lb-card { border-radius:1.25rem; border:2px solid; padding:.875rem 1.25rem; }
+    .lb-name { color:#1e293b; }
+    html.dark .lb-rank-1 .lb-name,
+    html.dark .lb-rank-2 .lb-name,
+    html.dark .lb-rank-3 .lb-name { color:#f1f5f9 !important; }
+    html.dark .lb-other .lb-name  { color:#f1f5f9 !important; }
+    .lb-sub  { color:#374151; }
+    html.dark .lb-sub { color:#94a3b8 !important; }
+
     .toggle-sm { position:relative; width:40px; height:22px; flex-shrink:0; }
     .toggle-sm input { opacity:0; width:0; height:0; }
     .toggle-sm-slider { position:absolute; inset:0; background:#d1d5db; border-radius:99px; cursor:pointer; transition:.3s; }
@@ -195,37 +213,42 @@
         <span class="text-indigo-500 font-black text-sm">Edit →</span>
       </button>
 
-      <!-- Controls row: filter + sort -->
-      <div class="flex items-center gap-3 mb-4 fade-up" style="animation-delay:.08s">
-        <!-- Active / All tabs -->
-        <div class="flex bg-white rounded-xl p-1 shadow-sm gap-1 flex-1">
-          <button class="filter-tab active" id="tabActive" onclick="setFilter('active')">🟢 Active</button>
-          <button class="filter-tab"        id="tabAll"    onclick="setFilter('all')">👥 All</button>
+      <!-- Controls row: view + filter + sort -->
+      <div class="space-y-2 mb-4 fade-up" style="animation-delay:.08s">
+        <!-- View mode: List / Leaderboard -->
+        <div class="flex bg-white rounded-xl p-1 shadow-sm gap-1">
+          <button class="filter-tab active" id="tabList"        onclick="setViewMode('list')">📋 Student List</button>
+          <button class="filter-tab"        id="tabLeaderboard" onclick="setViewMode('leaderboard')">🏆 Leaderboard</button>
         </div>
-        <!-- Sort -->
-        <select id="sortSelect" onchange="sortAndRender()" class="flex-shrink-0">
-          <option value="xp">Sort: XP</option>
-          <option value="words">Sort: Words</option>
-          <option value="streak">Sort: Streak</option>
-          <option value="name">Sort: Name</option>
-          <option value="joined">Sort: Joined</option>
-        </select>
+        <!-- Active/All filter + sort + export -->
+        <div class="flex items-center gap-2">
+          <div class="flex bg-white rounded-xl p-1 shadow-sm gap-1 flex-1">
+            <button class="filter-tab active text-xs" id="tabActive" onclick="setFilter('active')">🟢 Active</button>
+            <button class="filter-tab text-xs"        id="tabAll"    onclick="setFilter('all')">👥 All</button>
+          </div>
+          <select id="sortSelect" onchange="sortAndRender()" class="flex-shrink-0">
+            <option value="xp">Sort: XP</option>
+            <option value="words">Sort: Words</option>
+            <option value="streak">Sort: Streak</option>
+            <option value="name">Sort: Name</option>
+            <option value="joined">Sort: Joined</option>
+          </select>
+          <button onclick="exportText()" title="Copy as text"
+            class="flex-shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold px-3 py-2 rounded-xl text-sm transition-colors">
+            📋
+          </button>
+        </div>
       </div>
 
-      <!-- Student list -->
-      <div class="bg-white rounded-3xl shadow-sm px-5 fade-up" style="animation-delay:.1s">
-
+      <!-- Student list view -->
+      <div id="listView" class="bg-white rounded-3xl shadow-sm px-5 fade-up" style="animation-delay:.1s">
         <!-- Skeleton -->
         <div id="studentsLoading" class="py-4 space-y-4">
           <div class="skeleton h-14 animate-pulse"></div>
           <div class="skeleton h-14 animate-pulse"></div>
           <div class="skeleton h-14 animate-pulse"></div>
         </div>
-
-        <!-- List -->
         <div id="studentList"></div>
-
-        <!-- Empty states -->
         <div id="emptyActive" class="hidden text-center py-10">
           <div class="text-4xl mb-2">😴</div>
           <p class="font-black text-gray-600 mb-1">No active students today</p>
@@ -239,6 +262,9 @@
           <button onclick="copyJoinCode()" class="mt-3 bg-indigo-50 text-indigo-600 font-black px-4 py-2 rounded-full text-sm">📋 Copy Join Code</button>
         </div>
       </div>
+
+      <!-- Leaderboard view -->
+      <div id="leaderboardView" class="hidden space-y-3 fade-up" style="animation-delay:.1s"></div>
 
     </div>
   </div>
@@ -394,7 +420,103 @@
       document.getElementById("statAvgWords").textContent= avgWords;
     }
 
-    // ── Filter & sort ─────────────────────────────────────────────
+    // ── View mode: List / Leaderboard ────────────────────────────
+    let viewMode = "list";
+
+    window.setViewMode = function(mode) {
+      viewMode = mode;
+      document.getElementById("tabList").classList.toggle("active", mode==="list");
+      document.getElementById("tabLeaderboard").classList.toggle("active", mode==="leaderboard");
+      document.getElementById("listView").classList.toggle("hidden", mode!=="list");
+      document.getElementById("leaderboardView").classList.toggle("hidden", mode!=="leaderboard");
+      if (mode==="leaderboard") renderLeaderboard();
+    };
+
+    function renderLeaderboard() {
+      const container  = document.getElementById("leaderboardView");
+      const filtered   = activeFilter==="active" ? allStudents.filter(s=>s.isActive) : allStudents;
+      const sortBy     = document.getElementById("sortSelect").value;
+      const sorted     = [...filtered].sort((a,b) => {
+        switch(sortBy) {
+          case "xp":     return b.xp - a.xp;
+          case "words":  return b.wordsKnown - a.wordsKnown;
+          case "streak": return b.streak - a.streak;
+          default:       return b.xp - a.xp;
+        }
+      });
+
+      container.innerHTML = "";
+      if (!sorted.length) {
+        container.innerHTML = `<div class="text-center py-10 bg-white rounded-3xl shadow-sm"><div class="text-4xl mb-2">🏆</div><p class="font-black text-gray-600">No students to rank yet.</p></div>`;
+        return;
+      }
+
+      const maxXP = Math.max(...sorted.map(s=>s.xp), 1);
+      const MEDALS = ["🥇","🥈","🥉"];
+
+      sorted.forEach((student, i) => {
+        const rankClass = i===0?"lb-rank-1":i===1?"lb-rank-2":i===2?"lb-rank-3":"lb-other";
+        const medal     = i < 3 ? MEDALS[i] : `<span class="font-black text-gray-400 text-sm">${i+1}</span>`;
+        const color     = AVATAR_COLORS[i % AVATAR_COLORS.length];
+        const display   = student.showOnLeaderboard ? student.displayName : `Student ${i+1}`;
+        const initial   = display.charAt(0).toUpperCase();
+        const xpPct     = Math.round((student.xp/maxXP)*100);
+        const actDot    = student.isActive
+          ? `<span class="active-dot" title="Active"></span>`
+          : `<span class="inactive-dot" title="Inactive"></span>`;
+
+        const div = document.createElement("div");
+        div.className = `lb-card ${rankClass} flex items-center gap-3 pop`;
+        div.style.animationDelay = (i*0.04)+"s";
+        div.innerHTML = `
+          <div class="w-8 text-center text-xl flex-shrink-0">${medal}</div>
+          <div class="s-avatar" style="background:${color}">${initial}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              ${actDot}
+              <p class="font-black text-sm truncate lb-name">${display}</p>
+              ${i===0?'<span class="text-xs px-1.5 rounded-full font-black" style="background:#fef08a;color:#713f12">👑</span>':""}
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <div class="bar-track flex-1"><div class="bar-fill" style="width:${xpPct}%"></div></div>
+              <span class="text-xs font-bold whitespace-nowrap lb-sub">${student.xp} XP</span>
+            </div>
+            <p class="text-xs lb-sub mt-0.5">${student.level.title} · ${student.wordsKnown} words · 🔥 ${student.streak}</p>
+          </div>`;
+        container.appendChild(div);
+      });
+    }
+
+    // ── Export as text (copy to clipboard) ───────────────────────
+    window.exportText = function() {
+      const filtered = activeFilter==="active" ? allStudents.filter(s=>s.isActive) : allStudents;
+      const sorted   = [...filtered].sort((a,b)=>b.xp-a.xp);
+      const date     = new Date().toLocaleDateString("en-MY",{year:"numeric",month:"short",day:"numeric"});
+
+      const lines = [
+        `📊 Class Progress Report`,
+        `Class:  ${classData?.className||""}`,
+        `School: ${classData?.schoolName||""}`,
+        `Date:   ${date}`,
+        `Filter: ${activeFilter==="active"?"Active students only":"All students"}`,
+        ``,
+        `${"#".padEnd(3)} ${"Name".padEnd(22)} ${"XP".padStart(6)} ${"Words".padStart(6)} ${"Streak".padStart(7)}`,
+        `${"—".repeat(50)}`,
+        ...sorted.map((s,i) => {
+          const display = s.showOnLeaderboard ? s.displayName : `Student ${i+1}`;
+          return `${String(i+1).padEnd(3)} ${display.slice(0,22).padEnd(22)} ${String(s.xp).padStart(6)} ${String(s.wordsKnown).padStart(6)} ${("🔥 "+s.streak).padStart(7)}`;
+        }),
+        ``,
+        `Avg XP: ${sorted.length?Math.round(sorted.reduce((a,s)=>a+s.xp,0)/sorted.length):0}  |  Avg Words: ${sorted.length?Math.round(sorted.reduce((a,s)=>a+s.wordsKnown,0)/sorted.length):0}`,
+        `Total students: ${sorted.length}`,
+      ].join("\n");
+
+      navigator.clipboard.writeText(lines)
+        .then(()=>showToast("📋 Progress report copied! Paste into any document."))
+        .catch(()=>alert(lines));
+    };
+
+    // ── Filter ────────────────────────────────────────────────────
     window.setFilter = function(filter) {
       activeFilter = filter;
       ["active","all"].forEach(f =>
@@ -420,6 +542,7 @@
       });
 
       renderStudents(sorted);
+      if (viewMode==="leaderboard") renderLeaderboard();
     };
 
     function renderStudents(students) {

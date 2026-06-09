@@ -257,8 +257,20 @@
       </div>
     </div>
 
-    <!-- Filter tabs -->
-    <div class="flex items-center justify-between mb-3 fade-up" style="animation-delay:.08s">
+    <!-- My Class leaderboard (shown when student is in a class) -->
+    <div id="myClassSection" class="hidden mb-5 fade-up" style="animation-delay:.06s">
+      <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-5 text-white shadow-md">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <p class="text-indigo-200 text-xs font-bold uppercase tracking-widest">My Class</p>
+            <h3 class="font-black text-lg" id="myClassName">—</h3>
+          </div>
+          <span class="text-xs font-black bg-white/20 px-3 py-1 rounded-full" id="myClassRank">—</span>
+        </div>
+        <div id="myClassLeaderboard" class="space-y-2"></div>
+        <p class="text-indigo-200 text-xs text-center mt-3" id="myClassMeta">Top 5 classmates by XP</p>
+      </div>
+    </div>
       <h3 class="text-lg font-black text-gray-700">📚 Word Packs</h3>
       <div class="flex bg-white rounded-2xl p-1 shadow-sm gap-1">
         <button class="filter-tab text-xs font-black px-3 py-1.5 rounded-xl text-gray-500" id="tabAll"       onclick="setFilter('all')">All</button>
@@ -355,6 +367,7 @@
         document.getElementById("userName").textContent=name.split(" ")[0];
         document.getElementById("userAvatar").textContent=name.charAt(0).toUpperCase();
         loadUserStats(user.uid);
+        loadClassLeaderboard(user.uid);  // C5: class leaderboard card
       }
       await Promise.all([loadPacksAndWords(user), loadWordOfTheDay(userLevel)]);
     });
@@ -511,7 +524,73 @@
     document.getElementById("bottomSheet").addEventListener("touchstart",e=>{ty=e.touches[0].clientY;});
     document.getElementById("bottomSheet").addEventListener("touchend",e=>{if(e.changedTouches[0].clientY-ty>60)closeSheet();});
 
-    async function loadWordOfTheDay(level) {
+    async function loadClassLeaderboard(uid) {
+      try {
+        const userSnap = await getDoc(doc(db,"users",uid));
+        if (!userSnap.exists()) return;
+        const classIds = userSnap.data().classIds||[];
+        if (classIds.length === 0) return;
+
+        // Use the first class for display
+        const classSnap = await getDoc(doc(db,"classes",classIds[0]));
+        if (!classSnap.exists()) return;
+        const cls = classSnap.data();
+
+        document.getElementById("myClassName").textContent = cls.className;
+
+        // Get all members
+        const membersSnap = await getDocs(collection(db,"classes",classIds[0],"members"));
+        const members = membersSnap.docs.map(d=>({uid:d.id,...d.data()}));
+        if (members.length === 0) return;
+
+        // Fetch their XP
+        const profiles = await Promise.allSettled(members.map(m=>getDoc(doc(db,"users",m.uid))));
+        let students = members.map((m,i)=>{
+          const p = profiles[i];
+          const data = p.status==="fulfilled"&&p.value.exists() ? p.value.data() : {};
+          return {
+            uid:     m.uid,
+            name:    m.showOnLeaderboard!==false ? (data.displayName||m.displayName||"Student") : null,
+            xp:      data.xp||0,
+            isMe:    m.uid === uid,
+          };
+        }).sort((a,b)=>b.xp-a.xp);
+
+        // Find my rank
+        const myRank = students.findIndex(s=>s.isMe)+1;
+        document.getElementById("myClassRank").textContent =
+          myRank > 0 ? `#${myRank} of ${students.length}` : `${students.length} students`;
+
+        // Show top 5
+        const top5 = students.slice(0,5);
+        const lb = document.getElementById("myClassLeaderboard");
+        lb.innerHTML = "";
+        const MEDALS = ["🥇","🥈","🥉"];
+        top5.forEach((s,i)=>{
+          const medal = i<3 ? MEDALS[i] : `${i+1}.`;
+          const name  = s.name || `Student ${i+1}`;
+          const isMe  = s.isMe;
+          const div = document.createElement("div");
+          div.className = `flex items-center gap-2 ${isMe?"bg-white/20 rounded-xl px-2 py-1":""}`;
+          div.innerHTML = `
+            <span class="text-sm w-6 text-center">${medal}</span>
+            <span class="font-bold text-sm flex-1 truncate ${isMe?"text-white":"text-indigo-100"}">${name}${isMe?" (You)":""}</span>
+            <span class="text-xs font-black text-indigo-200">${s.xp} XP</span>`;
+          lb.appendChild(div);
+        });
+
+        // Show "you're not in top 5" hint
+        if (myRank > 5) {
+          document.getElementById("myClassMeta").textContent =
+            `You're #${myRank} · Keep studying to move up! 🚀`;
+        } else if (myRank > 0) {
+          document.getElementById("myClassMeta").textContent =
+            `You're #${myRank} in ${cls.className} 🎓`;
+        }
+
+        document.getElementById("myClassSection").classList.remove("hidden");
+      } catch(e) { console.warn("Class leaderboard:", e); }
+    }
       try {
         const today=new Date();
         let pool=allWords.length?allWords:(getCachedAllWords()||[]);
