@@ -313,6 +313,7 @@
 
     const COLORS=["pack-green","pack-blue","pack-yellow","pack-pink","pack-purple","pack-orange","pack-teal","pack-red","pack-lime","pack-sky","pack-rose","pack-amber","pack-cyan","pack-violet","pack-emerald","pack-fuchsia"];
     let allPacks=[],allWords=[],knownIds=new Set(),userLevel=null,activeFilter="all",wotdWord=null;
+    let classAssignedPackIds = []; // packs assigned by teacher (empty = show all)
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href="index.html"; return; }
@@ -334,6 +335,20 @@
             badge.textContent=userLevel==="primary"?"🏫 Primary":"🎓 Secondary";
             badge.className=`text-xs font-black px-3 py-1 rounded-full level-badge-${userLevel}`;
             badge.classList.remove("hidden");
+          }
+          // Load assigned packs from any class the student has joined
+          const classIds = data.classIds||[];
+          if (classIds.length > 0) {
+            try {
+              const classSnaps = await Promise.allSettled(
+                classIds.map(id => getDoc(doc(db,"classes",id)))
+              );
+              const allAssigned = classSnaps
+                .filter(r=>r.status==="fulfilled"&&r.value.exists())
+                .flatMap(r=>r.value.data().packIds||[]);
+              // Deduplicate
+              classAssignedPackIds = [...new Set(allAssigned)];
+            } catch(e) { console.warn("Class packs:", e); }
           }
         } catch {}
         const name=user.displayName||user.email||"Student";
@@ -411,29 +426,55 @@
       const grid=document.getElementById("packsGrid");
       grid.classList.remove("hidden"); grid.innerHTML="";
       document.getElementById("emptyState").classList.add("hidden");
-      const visible=activeFilter==="all"?allPacks:allPacks.filter(p=>p.level===activeFilter);
-      document.getElementById("packCount").textContent=`${visible.length} pack${visible.length!==1?"s":""}${activeFilter!=="all"?" · "+activeFilter:""}`;
+
+      let visible=activeFilter==="all"?allPacks:allPacks.filter(p=>p.level===activeFilter);
+
+      // Sort assigned packs first if teacher has assigned any
+      const hasAssigned=classAssignedPackIds.length>0;
+      if (hasAssigned) {
+        const assigned  =visible.filter(p=>classAssignedPackIds.includes(p.id));
+        const unassigned=visible.filter(p=>!classAssignedPackIds.includes(p.id));
+        visible=[...assigned,...unassigned];
+      }
+
+      const assignedLabel=hasAssigned?` · 📌 ${classAssignedPackIds.length} assigned by teacher`:"";
+      document.getElementById("packCount").textContent=`${visible.length} pack${visible.length!==1?"s":""}${activeFilter!=="all"?" · "+activeFilter:""}${assignedLabel}`;
       if (!visible.length) { document.getElementById("emptyState").classList.remove("hidden"); grid.classList.add("hidden"); return; }
+
+      // "Assigned by Teacher" section label
+      if (hasAssigned && visible.some(p=>classAssignedPackIds.includes(p.id))) {
+        const sep=document.createElement("div");
+        sep.className="col-span-2 flex items-center gap-2 pt-1 pb-0";
+        sep.innerHTML=`<span class="text-xs font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">📌 Assigned by Teacher</span>`;
+        grid.appendChild(sep);
+      }
 
       visible.forEach((pack,i) => {
         const color=COLORS[allPacks.indexOf(pack)%COLORS.length];
         const delay=(i*0.05).toFixed(2);
         const isLocked=userLevel==="primary"&&pack.level==="secondary";
+        const isAssigned=classAssignedPackIds.includes(pack.id);
         const packWords=allWords.filter(w=>w.pack===pack.id);
         const packKnown=packWords.filter(w=>knownIds.has(w.id)).length;
         const packPct=packWords.length?Math.round((packKnown/packWords.length)*100):0;
-        // Level tag with explicit class for dark mode override
         const tagCls=pack.level==="secondary"?"level-tag-secondary":"level-tag-primary";
         const tagText=pack.level==="secondary"?"Secondary":"Primary";
         const tagEmoji=pack.level==="secondary"?"🎓":"🏫";
 
+        // Insert "All Other Packs" separator before first unassigned pack
+        if (hasAssigned && i>0 && !isAssigned && classAssignedPackIds.includes(visible[i-1]?.id)) {
+          const sep2=document.createElement("div");
+          sep2.className="col-span-2 flex items-center gap-2 pt-2 pb-0";
+          sep2.innerHTML=`<span class="text-xs font-black text-gray-400 bg-gray-100 px-3 py-1 rounded-full">All Other Packs</span>`;
+          grid.appendChild(sep2);
+        }
+
         const div=document.createElement("div");
-        div.className=`pack-card ${color} border-2 rounded-3xl p-5 shadow-sm fade-up ${isLocked?"pack-locked":""}`;
+        div.className=`pack-card ${color} border-2 rounded-3xl p-5 shadow-sm fade-up ${isLocked?"pack-locked":""} ${isAssigned?"ring-2 ring-indigo-400 ring-offset-1":""}`;
         div.style.animationDelay=delay+"s";
-        // Force text dark on pack cards always — not affected by dark mode text overrides
         div.innerHTML=`
           <div class="text-4xl mb-2">${pack.emoji||"📖"}</div>
-          <h4 class="font-black text-sm leading-tight mb-1" style="color:#1e293b">${pack.name}</h4>
+          <h4 class="font-black text-sm leading-tight mb-1" style="color:#1e293b">${pack.name}${isAssigned?' <span style="color:#6366f1;font-size:10px">📌</span>':""}</h4>
           <div class="mb-2">
             <span class="${tagCls} text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(255,255,255,.55)">${tagEmoji} ${tagText}</span>
           </div>
