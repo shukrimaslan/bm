@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#4f46e5"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <title>BM Vocab — Class View</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family:'Nunito',sans-serif; padding-bottom:40px; }
+    html.dark body              { background:#0f172a; color:#e2e8f0; }
+    html.dark .bg-white         { background:#1e293b !important; }
+    html.dark .bg-gray-50       { background:#0f172a !important; }
+    html.dark .bg-gray-100      { background:#334155 !important; }
+    html.dark nav.bg-white      { background:#1e293b !important; }
+    html.dark .text-gray-800    { color:#f1f5f9 !important; }
+    html.dark .text-gray-700    { color:#e2e8f0 !important; }
+    html.dark .text-gray-600    { color:#cbd5e1 !important; }
+    html.dark .text-gray-500    { color:#94a3b8 !important; }
+    html.dark .text-gray-400    { color:#64748b !important; }
+    html.dark .student-row      { border-color:#334155 !important; }
+    html.dark .student-row:hover{ background:#253048 !important; }
+    html.dark .bg-indigo-50     { background:#1e1b4b !important; }
+    html.dark .bg-green-50      { background:#052e16 !important; }
+    html.dark .text-indigo-600  { color:#a5b4fc !important; }
+    html.dark .text-green-700   { color:#4ade80 !important; }
+    html.dark .bar-track        { background:#334155 !important; }
+    html.dark input             { background:#0f172a !important; color:#f1f5f9 !important; border-color:#334155 !important; }
+    html.dark .filter-tab       { color:#94a3b8; }
+    html.dark .code-badge       { background:#312e81 !important; color:#a5b4fc !important; }
+    html.dark .stat-mini        { background:#1e293b !important; }
+    html.dark .skeleton         { background:#334155 !important; }
+
+    @keyframes fade-up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up  { animation:fade-up .4s ease both; }
+    @keyframes pop { 0%{transform:scale(.92);opacity:0} 80%{transform:scale(1.01)} 100%{transform:scale(1);opacity:1} }
+    .pop { animation:pop .25s forwards; }
+
+    /* Student row */
+    .student-row { border-bottom:1px solid #f3f4f6; padding:.875rem 0; transition:background .15s; cursor:default; }
+    .student-row:last-child { border-bottom:none; }
+
+    /* Avatar */
+    .s-avatar { width:40px; height:40px; border-radius:99px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; color:white; flex-shrink:0; }
+
+    /* XP bar */
+    .bar-track { height:6px; background:#f3f4f6; border-radius:99px; overflow:hidden; }
+    .bar-fill  { height:100%; border-radius:99px; background:linear-gradient(90deg,#6366f1,#818cf8); }
+
+    /* Filter tabs */
+    .filter-tab { flex:1; padding:.5rem; font-weight:800; font-size:.8rem; border-radius:.75rem; transition:background .2s,color .2s; color:#6b7280; cursor:pointer; }
+    .filter-tab.active { background:#6366f1; color:white; }
+
+    /* Active indicator */
+    .active-dot   { width:8px; height:8px; border-radius:99px; background:#16a34a; display:inline-block; }
+    .inactive-dot { width:8px; height:8px; border-radius:99px; background:#d1d5db; display:inline-block; }
+
+    /* Code badge */
+    .code-badge { font-family:monospace; font-size:.95rem; font-weight:900; letter-spacing:.15em; background:#eef2ff; color:#4338ca; padding:4px 12px; border-radius:99px; }
+
+    /* Stat mini cards */
+    .stat-mini { background:white; border-radius:1rem; padding:.75rem; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+
+    /* Sort select */
+    select { border:2px solid #e5e7eb; border-radius:.875rem; padding:.5rem .75rem; font-weight:700; font-size:.8rem; cursor:pointer; background:white; color:#374151; }
+
+    .skeleton { border-radius:1rem; background:#e5e7eb; }
+
+    /* Modal */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:80; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s; }
+    .modal-overlay.open { opacity:1; pointer-events:auto; }
+    .modal-sheet { background:white; border-radius:1.5rem 1.5rem 0 0; padding:1.5rem; width:100%; max-width:520px; transform:translateY(100%); transition:transform .3s cubic-bezier(.4,0,.2,1); }
+    .modal-overlay.open .modal-sheet { transform:translateY(0); }
+    html.dark .modal-sheet { background:#1e293b !important; }
+    .sheet-handle { width:40px; height:4px; background:#e5e7eb; border-radius:99px; margin:0 auto 1.25rem; }
+    html.dark .sheet-handle { background:#334155; }
+
+    /* Pack checkbox row */
+    .pack-row { display:flex; align-items:center; gap:.75rem; padding:.625rem .875rem; border-radius:1rem; cursor:pointer; transition:background .15s; }
+    .pack-row:hover { background:#f8fafc; }
+    html.dark .pack-row:hover { background:#253048 !important; }
+    .pack-row input[type=checkbox] { width:18px; height:18px; cursor:pointer; accent-color:#6366f1; flex-shrink:0; }
+    .pack-row.assigned { background:#eef2ff; }
+    html.dark .pack-row.assigned { background:#1e1b4b !important; }
+    .toggle-sm { position:relative; width:40px; height:22px; flex-shrink:0; }
+    .toggle-sm input { opacity:0; width:0; height:0; }
+    .toggle-sm-slider { position:absolute; inset:0; background:#d1d5db; border-radius:99px; cursor:pointer; transition:.3s; }
+    .toggle-sm-slider:before { content:''; position:absolute; width:16px; height:16px; left:3px; top:3px; background:white; border-radius:99px; transition:.3s; }
+    input:checked + .toggle-sm-slider { background:#16a34a; }
+    input:checked + .toggle-sm-slider:before { transform:translateX(18px); }
+
+    /* Toast */
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#166534; color:white; font-weight:800; font-size:13px; padding:10px 20px; border-radius:99px; box-shadow:0 8px 24px rgba(0,0,0,.2); opacity:0; transition:opacity .3s; pointer-events:none; white-space:nowrap; z-index:99; }
+    .toast.show { opacity:1; }
+  </style>
+  <script>(function(){const t=localStorage.getItem('bmvocab_theme');if(t==='dark')document.documentElement.classList.add('dark');})();</script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Loading screen -->
+  <div id="loadingScreen" class="fixed inset-0 bg-gray-50 flex items-center justify-center z-50">
+    <div class="text-center"><div class="text-5xl mb-3 animate-bounce">📋</div><p class="font-black text-gray-500">Loading class...</p></div>
+  </div>
+
+  <div id="mainContent" class="hidden">
+
+    <nav class="bg-white shadow-sm sticky top-0 z-10">
+      <div class="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
+        <a href="teacher-dashboard.html" class="text-indigo-600 font-bold text-lg">← Dashboard</a>
+        <div class="text-center">
+          <p class="font-black text-gray-800 text-sm leading-none" id="navClassName">Class</p>
+          <p class="text-xs text-indigo-400 font-semibold" id="navSchoolName">School</p>
+        </div>
+        <button onclick="copyJoinCode()" class="text-xs font-black bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-full">Share Code</button>
+      </div>
+    </nav>
+
+    <!-- Pack Assignment Modal -->
+    <div class="modal-overlay" id="packModal">
+      <div class="modal-sheet" style="max-height:85vh;overflow-y:auto">
+        <div class="sheet-handle"></div>
+        <div class="flex items-center justify-between mb-1">
+          <h3 class="font-black text-gray-800 text-xl">📦 Assign Packs</h3>
+          <span class="text-xs font-black text-gray-400 bg-gray-100 px-2 py-1 rounded-full" id="assignedCount">0 assigned</span>
+        </div>
+        <p class="text-gray-400 text-sm mb-4">Select which packs students in this class should focus on. Students will see assigned packs first on their home screen.</p>
+
+        <!-- Select all / none -->
+        <div class="flex gap-2 mb-4">
+          <button onclick="selectAllPacks()" class="flex-1 text-xs font-bold bg-indigo-50 text-indigo-600 py-2 rounded-xl hover:bg-indigo-100 transition-colors">✅ Select All</button>
+          <button onclick="selectNonePacks()" class="flex-1 text-xs font-bold bg-gray-100 text-gray-600 py-2 rounded-xl hover:bg-gray-200 transition-colors">☐ Select None</button>
+        </div>
+
+        <!-- Primary packs -->
+        <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">🏫 Primary Packs</p>
+        <div id="primaryPackList" class="space-y-2 mb-4"></div>
+
+        <!-- Secondary packs -->
+        <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">🎓 Secondary Packs</p>
+        <div id="secondaryPackList" class="space-y-2 mb-5"></div>
+
+        <p id="packSaveMsg" class="text-sm text-center font-semibold mb-3 hidden"></p>
+        <div class="flex gap-3">
+          <button onclick="closePackModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3 rounded-2xl transition-colors">Cancel</button>
+          <button onclick="savePackAssignment()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-black py-3 rounded-2xl transition-colors">Save Packs</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-2xl mx-auto px-5 py-5">
+
+      <!-- Class info banner -->
+      <div id="classBanner" class="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl p-5 mb-5 text-white fade-up shadow-md">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-indigo-200 text-xs font-bold uppercase tracking-widest mb-1" id="bannerSchool">School</p>
+            <h2 class="text-2xl font-black mb-1" id="bannerClass">Class Name</h2>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-indigo-200 text-sm font-semibold" id="bannerLevel"></span>
+              <span class="text-indigo-300">·</span>
+              <span class="text-indigo-200 text-sm font-semibold" id="bannerYear"></span>
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0 ml-4">
+            <p class="text-indigo-200 text-xs font-bold mb-1">Join Code</p>
+            <div class="flex items-center gap-2">
+              <span class="code-badge bg-white/20 text-white" id="bannerCode">——</span>
+              <button onclick="copyJoinCode()" class="text-white/70 hover:text-white text-sm transition-colors">📋</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="grid grid-cols-4 gap-2 mb-3 fade-up" style="animation-delay:.05s">
+        <div class="stat-mini"><p class="text-xl font-black text-indigo-600" id="statTotal">0</p><p class="text-xs text-gray-400 font-semibold">Students</p></div>
+        <div class="stat-mini"><p class="text-xl font-black text-green-600" id="statActive">0</p><p class="text-xs text-gray-400 font-semibold">Active</p></div>
+        <div class="stat-mini"><p class="text-xl font-black text-orange-500" id="statAvgXP">0</p><p class="text-xs text-gray-400 font-semibold">Avg XP</p></div>
+        <div class="stat-mini"><p class="text-xl font-black text-purple-600" id="statAvgWords">0</p><p class="text-xs text-gray-400 font-semibold">Avg Words</p></div>
+      </div>
+
+      <!-- Assign packs button -->
+      <button onclick="openPackModal()"
+        class="w-full flex items-center justify-between bg-white rounded-2xl shadow-sm px-5 py-3 mb-4 fade-up hover:shadow-md transition-shadow"
+        style="animation-delay:.07s">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">📦</span>
+          <div class="text-left">
+            <p class="font-black text-gray-700 text-sm">Assigned Word Packs</p>
+            <p class="text-xs text-gray-400" id="assignedPacksSummary">Loading...</p>
+          </div>
+        </div>
+        <span class="text-indigo-500 font-black text-sm">Edit →</span>
+      </button>
+
+      <!-- Controls row: filter + sort -->
+      <div class="flex items-center gap-3 mb-4 fade-up" style="animation-delay:.08s">
+        <!-- Active / All tabs -->
+        <div class="flex bg-white rounded-xl p-1 shadow-sm gap-1 flex-1">
+          <button class="filter-tab active" id="tabActive" onclick="setFilter('active')">🟢 Active</button>
+          <button class="filter-tab"        id="tabAll"    onclick="setFilter('all')">👥 All</button>
+        </div>
+        <!-- Sort -->
+        <select id="sortSelect" onchange="sortAndRender()" class="flex-shrink-0">
+          <option value="xp">Sort: XP</option>
+          <option value="words">Sort: Words</option>
+          <option value="streak">Sort: Streak</option>
+          <option value="name">Sort: Name</option>
+          <option value="joined">Sort: Joined</option>
+        </select>
+      </div>
+
+      <!-- Student list -->
+      <div class="bg-white rounded-3xl shadow-sm px-5 fade-up" style="animation-delay:.1s">
+
+        <!-- Skeleton -->
+        <div id="studentsLoading" class="py-4 space-y-4">
+          <div class="skeleton h-14 animate-pulse"></div>
+          <div class="skeleton h-14 animate-pulse"></div>
+          <div class="skeleton h-14 animate-pulse"></div>
+        </div>
+
+        <!-- List -->
+        <div id="studentList"></div>
+
+        <!-- Empty states -->
+        <div id="emptyActive" class="hidden text-center py-10">
+          <div class="text-4xl mb-2">😴</div>
+          <p class="font-black text-gray-600 mb-1">No active students today</p>
+          <p class="text-gray-400 text-sm">Switch to "All" to see everyone.</p>
+          <button onclick="setFilter('all')" class="mt-3 text-indigo-500 font-bold text-sm">Show all students →</button>
+        </div>
+        <div id="emptyAll" class="hidden text-center py-10">
+          <div class="text-4xl mb-2">🎓</div>
+          <p class="font-black text-gray-600 mb-1">No students yet</p>
+          <p class="text-gray-400 text-sm">Share the join code with your students.</p>
+          <button onclick="copyJoinCode()" class="mt-3 bg-indigo-50 text-indigo-600 font-black px-4 py-2 rounded-full text-sm">📋 Copy Join Code</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { auth } from "./js/firebase.js";
+    import { getLevel } from "./js/streak.js";
+    import { initTheme } from "./js/theme.js";
+    import { onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, getDocs,
+      collection, updateDoc, deleteDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    initTheme();
+    const db = getFirestore();
+
+    const params  = new URLSearchParams(window.location.search);
+    const classId = params.get("id");
+    if (!classId) window.location.href = "teacher-dashboard.html";
+
+    const AVATAR_COLORS = ["#6366f1","#16a34a","#d97706","#db2777","#7c3aed","#ea580c","#0d9488","#dc2626","#2563eb","#65a30d"];
+    const ACTIVE_DAYS   = 7; // "active" = studied in last N days
+
+    let currentUser  = null;
+    let classData    = null;
+    let allStudents  = [];   // enriched student objects
+    let activeFilter = "active";
+    let joinCode     = "";
+
+    // ── Auth guard ────────────────────────────────────────────────
+    onAuthStateChanged(auth, async (user) => {
+      if (!user || user.isAnonymous) { window.location.href="teacher-login.html"; return; }
+      try {
+        const userSnap = await getDoc(doc(db,"users",user.uid));
+        if (!userSnap.exists() || userSnap.data().role !== "teacher") {
+          window.location.href="home.html"; return;
+        }
+        currentUser = user;
+        await loadClass();
+      } catch(e) { console.error(e); window.location.href="teacher-dashboard.html"; }
+    });
+
+    // ── Load class data + students ────────────────────────────────
+    async function loadClass() {
+      try {
+        const classSnap = await getDoc(doc(db,"classes",classId));
+        if (!classSnap.exists()) { window.location.href="teacher-dashboard.html"; return; }
+
+        classData = classSnap.data();
+        joinCode  = classData.joinCode || "——";
+
+        // Security: only the class teacher can view this page
+        if (classData.teacherUid !== currentUser.uid) {
+          window.location.href="teacher-dashboard.html"; return;
+        }
+
+        // Populate header
+        document.getElementById("navClassName").textContent  = classData.className;
+        document.getElementById("navSchoolName").textContent = classData.schoolName||"";
+        document.getElementById("bannerSchool").textContent  = classData.schoolName||"School";
+        document.getElementById("bannerClass").textContent   = classData.className;
+        document.getElementById("bannerLevel").textContent   = classData.level==="primary"?"🏫 Primary":"🎓 Secondary";
+        document.getElementById("bannerYear").textContent    = classData.year||"";
+        document.getElementById("bannerCode").textContent    = joinCode;
+
+        document.getElementById("loadingScreen").classList.add("hidden");
+        document.getElementById("mainContent").classList.remove("hidden");
+
+        // Load packs for summary (non-blocking)
+        loadPacksForModal().then(()=>updateAssignedSummary());
+
+        await loadStudents();
+      } catch(e) { console.error(e); window.location.href="teacher-dashboard.html"; }
+    }
+
+    async function loadStudents() {
+      try {
+        // Get member list
+        const membersSnap = await getDocs(collection(db,"classes",classId,"members"));
+        const members     = membersSnap.docs.map(d=>({ uid:d.id, ...d.data() }));
+
+        if (members.length === 0) {
+          document.getElementById("studentsLoading").classList.add("hidden");
+          document.getElementById("emptyAll").classList.remove("hidden");
+          updateStats([]);
+          return;
+        }
+
+        // Fetch each student's profile + progress count
+        const profileFetches  = members.map(m => getDoc(doc(db,"users",m.uid)));
+        const progressFetches = members.map(m => getDocs(collection(db,"users",m.uid,"progress")));
+
+        const [profiles, progresses] = await Promise.all([
+          Promise.allSettled(profileFetches),
+          Promise.allSettled(progressFetches),
+        ]);
+
+        const now = Date.now();
+        allStudents = members.map((member, i) => {
+          const profileRes  = profiles[i];
+          const progressRes = progresses[i];
+
+          const profile  = profileRes.status==="fulfilled" && profileRes.value.exists()
+            ? profileRes.value.data() : {};
+          const progress = progressRes.status==="fulfilled"
+            ? progressRes.value.docs : [];
+
+          const wordsKnown  = progress.filter(d=>d.data().status==="known").length;
+          const lastStudied = profile.lastStudyDate
+            ? new Date(profile.lastStudyDate).getTime() : 0;
+          const daysSince   = lastStudied
+            ? Math.floor((now - lastStudied) / 86400000) : 999;
+          const isActive    = daysSince <= ACTIVE_DAYS;
+
+          return {
+            uid:              member.uid,
+            displayName:      profile.displayName || member.displayName || "Student",
+            showOnLeaderboard:member.showOnLeaderboard !== false,
+            joinedAt:         member.joinedAt?.toDate?.() || new Date(),
+            xp:               profile.xp      || 0,
+            streak:           profile.streak   || 0,
+            wordsKnown,
+            schoolYear:       profile.schoolYearNum || null,
+            schoolLevel:      profile.schoolLevel   || null,
+            daysSince,
+            isActive,
+            level:            getLevel(profile.xp||0),
+          };
+        });
+
+        document.getElementById("studentsLoading").classList.add("hidden");
+        updateStats(allStudents);
+        sortAndRender();
+
+      } catch(e) {
+        document.getElementById("studentsLoading").innerHTML =
+          `<p class="text-red-400 text-sm text-center py-6">Failed to load students.</p>`;
+        console.error(e);
+      }
+    }
+
+    function updateStats(students) {
+      const activeCount = students.filter(s=>s.isActive).length;
+      const avgXP    = students.length ? Math.round(students.reduce((s,x)=>s+x.xp,0)/students.length) : 0;
+      const avgWords = students.length ? Math.round(students.reduce((s,x)=>s+x.wordsKnown,0)/students.length) : 0;
+      document.getElementById("statTotal").textContent   = students.length;
+      document.getElementById("statActive").textContent  = activeCount;
+      document.getElementById("statAvgXP").textContent   = avgXP;
+      document.getElementById("statAvgWords").textContent= avgWords;
+    }
+
+    // ── Filter & sort ─────────────────────────────────────────────
+    window.setFilter = function(filter) {
+      activeFilter = filter;
+      ["active","all"].forEach(f =>
+        document.getElementById(`tab${f.charAt(0).toUpperCase()+f.slice(1)}`).classList.toggle("active", f===filter)
+      );
+      sortAndRender();
+    };
+
+    window.sortAndRender = function() {
+      const sortBy   = document.getElementById("sortSelect").value;
+      const filtered = activeFilter==="active"
+        ? allStudents.filter(s=>s.isActive) : allStudents;
+
+      const sorted = [...filtered].sort((a,b) => {
+        switch(sortBy) {
+          case "xp":     return b.xp - a.xp;
+          case "words":  return b.wordsKnown - a.wordsKnown;
+          case "streak": return b.streak - a.streak;
+          case "name":   return (a.displayName||"").localeCompare(b.displayName||"");
+          case "joined": return (b.joinedAt||0) - (a.joinedAt||0);
+          default:       return b.xp - a.xp;
+        }
+      });
+
+      renderStudents(sorted);
+    };
+
+    function renderStudents(students) {
+      const list = document.getElementById("studentList");
+      list.innerHTML = "";
+
+      // Hide empty states
+      document.getElementById("emptyActive").classList.add("hidden");
+      document.getElementById("emptyAll").classList.add("hidden");
+
+      if (students.length === 0) {
+        document.getElementById(activeFilter==="active" ? "emptyActive" : "emptyAll")
+          .classList.remove("hidden");
+        return;
+      }
+
+      // Max XP for bar scaling
+      const maxXP = Math.max(...students.map(s=>s.xp), 1);
+
+      students.forEach((student, i) => {
+        const color   = AVATAR_COLORS[i % AVATAR_COLORS.length];
+        // Respect privacy toggle — show initials or "Student N"
+        const display = student.showOnLeaderboard
+          ? student.displayName
+          : `Student ${i+1}`;
+        const initial = display.charAt(0).toUpperCase();
+        const xpPct   = Math.round((student.xp / maxXP) * 100);
+
+        const activityDot = student.isActive
+          ? `<span class="active-dot" title="Active in last ${ACTIVE_DAYS} days"></span>`
+          : `<span class="inactive-dot" title="Inactive ${student.daysSince===999?"":"("+student.daysSince+"d ago)"}"></span>`;
+
+        const levelTag = student.level
+          ? `<span class="text-xs text-gray-400 font-semibold">${student.level.title}</span>`
+          : "";
+
+        const row = document.createElement("div");
+        row.className = "student-row flex items-center gap-3";
+        row.innerHTML = `
+          <div class="font-black text-gray-400 text-sm w-5 text-center flex-shrink-0">${i+1}</div>
+          <div class="s-avatar" style="background:${color}">${initial}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              ${activityDot}
+              <p class="font-black text-gray-800 text-sm truncate">${display}</p>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              ${levelTag}
+              ${student.schoolYear ? `<span class="text-xs text-gray-400">· Year ${student.schoolYear}</span>` : ""}
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <div class="bar-track flex-1"><div class="bar-fill" style="width:${xpPct}%"></div></div>
+              <span class="text-xs text-gray-500 font-bold whitespace-nowrap">${student.xp} XP</span>
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="font-black text-gray-700 text-sm">${student.wordsKnown}</p>
+            <p class="text-xs text-gray-400">words</p>
+            <p class="text-xs text-orange-500 font-bold">🔥 ${student.streak}</p>
+          </div>
+          <div class="flex-shrink-0 ml-1">
+            <label class="toggle-sm" title="Show name on class leaderboard">
+              <input type="checkbox" ${student.showOnLeaderboard?"checked":""} onchange="togglePrivacy('${student.uid}', this.checked)"/>
+              <span class="toggle-sm-slider"></span>
+            </label>
+          </div>`;
+        list.appendChild(row);
+      });
+    }
+
+    // ── Privacy toggle ────────────────────────────────────────────
+    window.togglePrivacy = async function(studentUid, show) {
+      try {
+        await updateDoc(doc(db,"classes",classId,"members",studentUid), {
+          showOnLeaderboard: show
+        });
+        // Update local state
+        const s = allStudents.find(x=>x.uid===studentUid);
+        if (s) s.showOnLeaderboard = show;
+        showToast(show ? "👁️ Name visible on leaderboard" : "🔒 Name hidden on leaderboard");
+      } catch(e) { alert("Failed to update privacy setting."); }
+    };
+
+    // ── Pack assignment ───────────────────────────────────────────
+    let allPacks     = [];   // all packs from Firestore
+    let selectedPacks= new Set(); // currently selected pack IDs
+
+    async function loadPacksForModal() {
+      if (allPacks.length > 0) return; // already loaded
+      try {
+        const snap = await getDocs(collection(db,"packs"));
+        allPacks = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||99)-(b.order||99));
+      } catch(e) { console.warn("Load packs:", e); }
+    }
+
+    window.openPackModal = async function() {
+      await loadPacksForModal();
+      // Seed selected from current class data
+      selectedPacks = new Set(classData.packIds||[]);
+      renderPackModal();
+      document.getElementById("packModal").classList.add("open");
+    };
+
+    window.closePackModal = function() {
+      document.getElementById("packModal").classList.remove("open");
+    };
+
+    function renderPackModal() {
+      const primary   = allPacks.filter(p=>p.level==="primary");
+      const secondary = allPacks.filter(p=>p.level==="secondary");
+
+      function buildList(packs, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        packs.forEach(pack => {
+          const isChecked = selectedPacks.has(pack.id);
+          const div = document.createElement("label");
+          div.className = `pack-row ${isChecked?"assigned":""}`;
+          div.innerHTML = `
+            <input type="checkbox" value="${pack.id}" ${isChecked?"checked":""}
+              onchange="togglePackSelection('${pack.id}', this.checked, this.closest('.pack-row'))"/>
+            <span class="text-xl">${pack.emoji||"📖"}</span>
+            <span class="font-bold text-gray-700 text-sm flex-1">${pack.name}</span>
+            <span class="text-xs text-gray-400">${pack.wordCount||30} words</span>`;
+          container.appendChild(div);
+        });
+      }
+
+      buildList(primary,   "primaryPackList");
+      buildList(secondary, "secondaryPackList");
+      updateAssignedCount();
+    }
+
+    window.togglePackSelection = function(packId, checked, rowEl) {
+      if (checked) selectedPacks.add(packId);
+      else         selectedPacks.delete(packId);
+      rowEl.classList.toggle("assigned", checked);
+      updateAssignedCount();
+    };
+
+    window.selectAllPacks  = function() { allPacks.forEach(p=>selectedPacks.add(p.id)); renderPackModal(); };
+    window.selectNonePacks = function() { selectedPacks.clear(); renderPackModal(); };
+
+    function updateAssignedCount() {
+      document.getElementById("assignedCount").textContent = `${selectedPacks.size} assigned`;
+    }
+
+    window.savePackAssignment = async function() {
+      try {
+        const packIds = [...selectedPacks];
+        await updateDoc(doc(db,"classes",classId), { packIds });
+        classData.packIds = packIds;
+        closePackModal();
+        updateAssignedSummary();
+        showToast(`✅ ${packIds.length} pack${packIds.length!==1?"s":""} assigned to class`);
+      } catch(e) {
+        document.getElementById("packSaveMsg").textContent = "Failed to save. Try again.";
+        document.getElementById("packSaveMsg").className = "text-sm text-center font-semibold mb-3 text-red-500";
+        document.getElementById("packSaveMsg").classList.remove("hidden");
+      }
+    };
+
+    function updateAssignedSummary() {
+      const assignedIds = classData.packIds||[];
+      const el = document.getElementById("assignedPacksSummary");
+      if (assignedIds.length === 0) {
+        el.textContent = "No packs assigned — all 20 packs shown to students";
+      } else {
+        const names = allPacks.filter(p=>assignedIds.includes(p.id)).map(p=>p.emoji||p.name.slice(0,8));
+        el.textContent = `${assignedIds.length} pack${assignedIds.length!==1?"s":""} assigned: ${names.join(" ")}`;
+      }
+    }
+
+    // Close pack modal on overlay tap
+    document.getElementById("packModal").addEventListener("click", function(e){ if(e.target===this) closePackModal(); });
+
+    // ── Copy join code ────────────────────────────────────────────
+    window.copyJoinCode = function() {
+      const text = `Join my BM Vocab class!\nClass: ${classData?.className||""}\nSchool: ${classData?.schoolName||""}\nJoin Code: ${joinCode}\n\nGo to bm-vocab-app.web.app → Profile → Join a Class`;
+      navigator.clipboard.writeText(text)
+        .then(()=>showToast(`📋 Join code "${joinCode}" copied with instructions!`))
+        .catch(()=>showToast(`Join code: ${joinCode}`));
+    };
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg; t.classList.add("show");
+      setTimeout(()=>t.classList.remove("show"), 3000);
+    }
+  </script>
+</body>
+</html>
