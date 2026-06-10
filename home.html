@@ -88,7 +88,7 @@
 
     /* Pack cards */
     .pack-card { cursor:pointer;transition:transform .18s,box-shadow .18s;-webkit-tap-highlight-color:transparent; }
-    .pack-card:hover  { transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.12); }
+    .pack-card:hover  { transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.12); }
     .pack-card:active { transform:scale(.97); }
     .pack-locked::after { content:'🔒';position:absolute;top:10px;right:12px;font-size:18px;opacity:.7; }
     .pack-locked { position:relative; }
@@ -182,7 +182,7 @@
     </div>
   </nav>
 
-  <div class="max-w-2xl mx-auto px-5 py-5">
+  <div class="max-w-5xl mx-auto px-5 py-5">
 
     <div id="offlineBanner" class="offline-banner hidden rounded-2xl px-4 py-2 mb-4 text-yellow-800 text-xs font-bold text-center">
       📶 Offline — showing cached data
@@ -280,13 +280,13 @@
     </div>
     <p class="text-xs text-gray-400 font-semibold mb-4" id="packCount"></p>
 
-    <div id="loadingState" class="grid grid-cols-2 gap-4">
+    <div id="loadingState" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
       <div class="skeleton h-40 animate-pulse"></div>
       <div class="skeleton h-40 animate-pulse"></div>
       <div class="skeleton h-40 animate-pulse"></div>
       <div class="skeleton h-40 animate-pulse"></div>
     </div>
-    <div id="packsGrid" class="grid grid-cols-2 gap-4 hidden"></div>
+    <div id="packsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 hidden"></div>
     <div id="emptyState" class="hidden text-center py-16">
       <div class="text-6xl mb-4">📭</div>
       <p class="font-black text-gray-600 mb-1">No packs found</p>
@@ -301,7 +301,7 @@
 
   <!-- Bottom Nav -->
   <nav class="bottom-nav">
-    <div class="max-w-2xl mx-auto flex">
+    <div class="max-w-5xl mx-auto flex">
       <a href="home.html"        class="nav-item active"><span class="nav-icon">🏠</span>Home</a>
       <a href="progress.html"    class="nav-item"><span class="nav-icon">📊</span>Progress</a>
       <a href="leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Ranking</a>
@@ -457,7 +457,7 @@
       // "Assigned by Teacher" section label
       if (hasAssigned && visible.some(p=>classAssignedPackIds.includes(p.id))) {
         const sep=document.createElement("div");
-        sep.className="col-span-2 flex items-center gap-2 pt-1 pb-0";
+        sep.className="col-span-full flex items-center gap-2 pt-1 pb-0";
         sep.innerHTML=`<span class="text-xs font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">📌 Assigned by Teacher</span>`;
         grid.appendChild(sep);
       }
@@ -477,25 +477,25 @@
         // Insert "All Other Packs" separator before first unassigned pack
         if (hasAssigned && i>0 && !isAssigned && classAssignedPackIds.includes(visible[i-1]?.id)) {
           const sep2=document.createElement("div");
-          sep2.className="col-span-2 flex items-center gap-2 pt-2 pb-0";
+          sep2.className="col-span-full flex items-center gap-2 pt-2 pb-0";
           sep2.innerHTML=`<span class="text-xs font-black text-gray-400 bg-gray-100 px-3 py-1 rounded-full">All Other Packs</span>`;
           grid.appendChild(sep2);
         }
 
         const div=document.createElement("div");
-        div.className=`pack-card ${color} border-2 rounded-3xl p-5 shadow-sm fade-up ${isLocked?"pack-locked":""} ${isAssigned?"ring-2 ring-indigo-400 ring-offset-1":""}`;
+        div.className=`pack-card ${color} border-2 rounded-2xl p-4 shadow-sm fade-up ${isLocked?"pack-locked":""} ${isAssigned?"ring-2 ring-indigo-400 ring-offset-1":""}`;
         div.style.animationDelay=delay+"s";
         div.innerHTML=`
-          <div class="text-4xl mb-2">${pack.emoji||"📖"}</div>
-          <h4 class="font-black text-sm leading-tight mb-1" style="color:#1e293b">${pack.name}${isAssigned ? ' 📌' : ''}</h4>
+          <div class="text-3xl mb-2">${pack.emoji||"📖"}</div>
+          <h4 class="font-black text-xs leading-tight mb-1" style="color:#1e293b">${pack.name}${isAssigned ? ' 📌' : ''}</h4>
           <div class="mb-2">
             <span class="${tagCls} text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(255,255,255,.55)">${tagEmoji} ${tagText}</span>
           </div>
-          <p class="text-xs font-semibold mb-2" style="color:#374151">${pack.wordCount||"?"} words</p>
+          <p class="text-xs font-semibold mb-1.5" style="color:#374151">${pack.wordCount||"?"} words</p>
           <div class="h-1.5 rounded-full overflow-hidden" style="background:rgba(0,0,0,.12)">
             <div class="h-full rounded-full" style="width:${packPct}%;background:rgba(0,0,0,.3)"></div>
           </div>
-          <p class="text-xs font-semibold mt-1" style="color:#374151">${packKnown}/${packWords.length} known</p>`;
+          <p class="text-xs font-semibold mt-1" style="color:#4b5563">${packKnown}/${packWords.length}</p>`;
 
         div.onclick=isLocked?null:()=>openSheet(pack,packWords.length,packKnown);
         if (isLocked) div.style.opacity=".6";
