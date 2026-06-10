@@ -249,7 +249,11 @@
     });
 
     // ── Load classes ──────────────────────────────────────────────
-    async function loadClasses() {
+    window.loadClasses = async function loadClasses() {
+      // Reset loading state
+      document.getElementById("classesLoading").classList.remove("hidden");
+      document.getElementById("classesList").classList.add("hidden");
+      document.getElementById("emptyClasses").classList.add("hidden");
       try {
         const q    = query(collection(db,"classes"), where("teacherUid","==",currentUser.uid), orderBy("createdAt","desc"));
         const snap = await getDocs(q);
@@ -273,9 +277,7 @@
 
         if (classes.length === 0) {
           document.getElementById("emptyClasses").classList.remove("hidden"); return;
-        }
-
-        const list = document.getElementById("classesList");
+        }        const list = document.getElementById("classesList");
         list.classList.remove("hidden");
         list.innerHTML = "";
 
@@ -329,8 +331,27 @@
           list.appendChild(div);
         });
       } catch(e) {
-        document.getElementById("classesLoading").innerHTML =
-          `<p class="text-red-400 text-sm text-center py-4">Failed to load classes. Check your connection.</p>`;
+        document.getElementById("classesLoading").classList.add("hidden");
+        // For new teachers, a "failed-precondition" means the Firestore index
+        // isn't ready yet. Show the empty state with a helpful message instead.
+        if (e.code === "failed-precondition" || e.code === "unavailable") {
+          const empty = document.getElementById("emptyClasses");
+          empty.classList.remove("hidden");
+          empty.querySelector("p.text-gray-400")?.insertAdjacentHTML("afterend",
+            `<p class="text-xs text-yellow-600 bg-yellow-50 rounded-xl px-3 py-2 mt-3 mx-4">
+              ⚠️ A Firestore index is being built. This takes 1–2 minutes on first use.
+              <button onclick="loadClasses()" class="font-bold underline ml-1">Retry</button>
+            </p>`
+          );
+        } else {
+          document.getElementById("classesLoading").innerHTML =
+            `<div class="text-center py-8 bg-white rounded-3xl shadow-sm">
+              <div class="text-4xl mb-3">⚠️</div>
+              <p class="font-black text-gray-600 mb-1">Couldn't load classes</p>
+              <p class="text-gray-400 text-sm mb-4">Check your connection and try again.</p>
+              <button onclick="loadClasses()" class="bg-indigo-50 text-indigo-600 font-black px-5 py-2 rounded-full text-sm">Retry</button>
+            </div>`;
+        }
         console.error(e);
       }
     }

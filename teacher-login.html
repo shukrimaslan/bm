@@ -146,6 +146,10 @@
   <p class="text-center text-xs text-gray-400 mt-5 fade-up-3">
     Are you a student? <a href="index.html" class="text-indigo-500 font-bold">Go to student login →</a>
   </p>
+  <p class="text-center text-xs text-gray-400 mt-2 fade-up-3">
+    Already a registered teacher?
+    <button onclick="showReturningTeacher()" class="text-indigo-500 font-bold underline">Sign in here →</button>
+  </p>
 
 </div>
 
@@ -174,9 +178,10 @@
     try {
       const snap = await getDoc(doc(db, "users", user.uid));
       if (snap.exists() && snap.data().role === "teacher") {
+        // Already a teacher and already signed in → go straight to dashboard
         document.getElementById("loginCard").classList.add("hidden");
         document.getElementById("alreadyTeacher").classList.remove("hidden");
-        setTimeout(() => window.location.href = "teacher-dashboard.html", 2000);
+        setTimeout(() => window.location.href = "teacher-dashboard.html", 1500);
       }
     } catch(e) { console.warn(e); }
   });
@@ -218,6 +223,16 @@
     document.getElementById("inviteCodeInput").style.borderColor = "";
   };
 
+  // Returning teacher: skip invite code, go straight to sign in
+  window.showReturningTeacher = function() {
+    verifiedCode = "RETURNING"; // sentinel — assignTeacherRole will detect existing role
+    document.getElementById("codeSection").classList.add("hidden");
+    document.getElementById("signInSection").classList.remove("hidden");
+    // Swap the verified badge to say "Returning teacher"
+    const badge = document.querySelector("#signInSection .bg-green-50");
+    if (badge) badge.innerHTML = `<span class="text-green-500 text-xl">👩‍🏫</span><p class="text-green-700 font-black text-sm">Returning teacher — sign in to continue.</p>`;
+  };
+
   // ── Step 2: Sign in and assign teacher role ───────────────────
   async function assignTeacherRole(user) {
     showStatus("Setting up your teacher account...");
@@ -226,17 +241,24 @@
       const existing = await getDoc(userRef);
       const data     = existing.exists() ? existing.data() : {};
 
+      // Already a teacher — just redirect, don't overwrite anything
+      if (data.role === "teacher") {
+        showStatus("✅ Welcome back! Redirecting...", false);
+        setTimeout(() => window.location.href = "teacher-dashboard.html", 1000);
+        return;
+      }
+
       await setDoc(userRef, {
         ...data,
-        role:            "teacher",
+        role:              "teacher",
         teacherInviteCode: verifiedCode,
-        displayName:     user.displayName || data.displayName || "",
-        email:           user.email || "",
-        teacherClassIds: data.teacherClassIds || [],
-        friendCode:      user.uid.slice(0,6).toUpperCase(),
-        onboardingDone:  true,      // skip student onboarding
-        createdAt:       data.createdAt || serverTimestamp(),
-        teacherSince:    serverTimestamp(),
+        displayName:       user.displayName || data.displayName || "",
+        email:             user.email || "",
+        teacherClassIds:   data.teacherClassIds || [],
+        friendCode:        user.uid.slice(0,6).toUpperCase(),
+        onboardingDone:    true,
+        createdAt:         data.createdAt || serverTimestamp(),
+        teacherSince:      serverTimestamp(),
       }, { merge: true });
 
       showStatus("✅ Teacher account ready! Redirecting...", false);
