@@ -196,18 +196,8 @@
       <!-- Class cards -->
       <div id="classesList" class="space-y-3 hidden"></div>
 
-      <!-- Empty state -->
-      <div id="emptyClasses" class="hidden bg-white rounded-3xl shadow-sm fade-up">
-        <div class="empty-state">
-          <div class="text-6xl mb-4">📋</div>
-          <h3 class="font-black text-gray-700 text-xl mb-2">No classes yet</h3>
-          <p class="text-gray-400 text-sm mb-5">Create your first class and share the join code with your students.</p>
-          <button onclick="openCreateModal()"
-            class="inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-black px-6 py-3 rounded-2xl transition-colors">
-            ➕ Create Your First Class
-          </button>
-        </div>
-      </div>
+      <!-- Empty state — content set dynamically by loadClasses() -->
+      <div id="emptyClasses" class="hidden bg-white rounded-3xl shadow-sm fade-up"></div>
 
     </div>
   </div>
@@ -250,10 +240,21 @@
 
     // ── Load classes ──────────────────────────────────────────────
     window.loadClasses = async function loadClasses() {
-      // Reset loading state
+      // Reset all states cleanly
       document.getElementById("classesLoading").classList.remove("hidden");
       document.getElementById("classesList").classList.add("hidden");
+      // Reset emptyClasses to its original content and hide it
       document.getElementById("emptyClasses").classList.add("hidden");
+      document.getElementById("emptyClasses").innerHTML = `
+        <div class="empty-state">
+          <div class="text-6xl mb-4">📋</div>
+          <h3 class="font-black text-gray-700 text-xl mb-2">No classes yet</h3>
+          <p class="text-gray-400 text-sm mb-5">Create your first class and share the join code with your students.</p>
+          <button onclick="openCreateModal()"
+            class="inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white font-black px-6 py-3 rounded-2xl transition-colors">
+            ➕ Create Your First Class
+          </button>
+        </div>`;
       try {
         const q    = query(collection(db,"classes"), where("teacherUid","==",currentUser.uid), orderBy("createdAt","desc"));
         const snap = await getDocs(q);
