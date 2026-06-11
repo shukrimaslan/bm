@@ -459,37 +459,50 @@
       const input = document.getElementById("classCodeInput");
       const code  = input.value.trim().toUpperCase();
       const msgEl = document.getElementById("joinClassMsg");
+      const btn   = input.nextElementSibling; // Join button
 
       if (code.length < 6) { showJoinMsg("Please enter a valid 6-character code.", true); return; }
 
+      // Show loading state
+      btn.disabled = true;
+      btn.textContent = "...";
       showJoinMsg("Searching for class...", false);
 
       try {
         const q    = query(collection(db,"classes"), where("joinCode","==",code), limit(1));
         const snap = await getDocs(q);
 
-        if (snap.empty) { showJoinMsg("Class not found. Check the code and try again.", true); return; }
+        if (snap.empty) {
+          showJoinMsg("Class not found. Check the code with your teacher.", true);
+          btn.disabled = false; btn.textContent = "Join";
+          return;
+        }
 
-        const classDoc = snap.docs[0];
-        const classId  = classDoc.id;
-        const classData= classDoc.data();
+        const classDoc  = snap.docs[0];
+        const classId   = classDoc.id;
+        const classData = classDoc.data();
 
         // Check already a member
         const memberSnap = await getDoc(doc(db,"classes",classId,"members",currentUser.uid));
-        if (memberSnap.exists()) { showJoinMsg("You're already in this class!", false); return; }
+        if (memberSnap.exists()) {
+          showJoinMsg("You're already in this class! ✅", false);
+          btn.disabled = false; btn.textContent = "Join";
+          return;
+        }
 
-        const name = currentUser.displayName||"Student";
+        showJoinMsg("Joining class...", false);
+        const name = currentUser.displayName || "Student";
 
         // Add to class members
         await setDoc(doc(db,"classes",classId,"members",currentUser.uid), {
-          displayName:      name,
-          joinedAt:         serverTimestamp(),
-          showOnLeaderboard:true,
+          displayName:       name,
+          joinedAt:          serverTimestamp(),
+          showOnLeaderboard: true,
         });
 
-        // Add classId to student's profile
-        const userSnap = await getDoc(doc(db,"users",currentUser.uid));
-        const existing = userSnap.exists() ? (userSnap.data().classIds||[]) : [];
+        // Add classId to student's profile (merge so we don't overwrite anything)
+        const userSnap  = await getDoc(doc(db,"users",currentUser.uid));
+        const existing  = userSnap.exists() ? (userSnap.data().classIds||[]) : [];
         if (!existing.includes(classId)) {
           await updateDoc(doc(db,"users",currentUser.uid), {
             classIds: [...existing, classId]
@@ -497,15 +510,23 @@
         }
 
         input.value = "";
+        btn.disabled = false; btn.textContent = "Join";
         showJoinMsg(`✅ Joined "${classData.className}"!`, false);
         await loadJoinedClasses(currentUser.uid);
-        showToast(`🎓 Joined ${classData.className} at ${classData.schoolName||"school"}!`);
+        showToast(`🎓 Joined ${classData.className}!`);
+
       } catch(e) {
-        console.error(e);
-        if (e.code==="failed-precondition") {
-          showJoinMsg("Index not ready — check Firebase Console.", true);
+        btn.disabled = false; btn.textContent = "Join";
+        console.error("joinClass error:", e);
+
+        if (e.code === "permission-denied") {
+          showJoinMsg("Permission denied. Make sure you're signed in (not guest).", true);
+        } else if (e.code === "unavailable" || e.message?.includes("network")) {
+          showJoinMsg("Slow connection — please try again.", true);
+        } else if (e.code === "failed-precondition") {
+          showJoinMsg("Index not ready — check Firebase Console for a link in browser console.", true);
         } else {
-          showJoinMsg("Failed to join. Try again.", true);
+          showJoinMsg("Failed to join. Please try again.", true);
         }
       }
     };
