@@ -114,6 +114,21 @@
       </button>
     </div>
 
+    <!-- Teacher dashboard link — only shown if role === "teacher" -->
+    <div id="teacherCard" class="hidden section-card fade-up border-2 border-indigo-100" style="animation-delay:.06s">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center text-2xl flex-shrink-0">👩‍🏫</div>
+        <div class="flex-1">
+          <p class="font-black text-indigo-700">Teacher Account</p>
+          <p class="text-xs text-gray-400 font-semibold">You have teacher access</p>
+        </div>
+        <a href="teacher-dashboard.html"
+          class="bg-indigo-500 hover:bg-indigo-600 text-white font-black px-4 py-2 rounded-xl text-sm transition-colors flex-shrink-0">
+          Dashboard →
+        </a>
+      </div>
+    </div>
+
     <!-- XP + Level -->
     <div id="levelCard" class="hidden section-card fade-up mb-4" style="animation-delay:.05s">
       <div class="flex items-center justify-between">
@@ -317,6 +332,16 @@
         try {
           const profile=await getUserProfile(user.uid);
           const lv=getLevel(profile.xp||0);
+
+          // ── Teacher role detection ──────────────────────────────
+          if (profile.role === "teacher") {
+            document.getElementById("teacherCard").classList.remove("hidden");
+            document.getElementById("accountType").textContent = "Teacher";
+            // Teachers don't need the school level picker or class join section
+            document.getElementById("schoolCard").classList.add("hidden");
+            document.getElementById("classCard").classList.add("hidden");
+          }
+
           document.getElementById("levelCard").classList.remove("hidden");
           document.getElementById("profileLevel").textContent=lv.title;
           document.getElementById("profileXP").textContent=(profile.xp||0)+" XP";
