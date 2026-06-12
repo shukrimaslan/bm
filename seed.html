@@ -66,21 +66,24 @@
 
   <!-- Progress repair tool — shown after seeding -->
   <div id="repairSection" class="hidden mt-6 border-t-2 border-dashed border-gray-200 pt-6">
-    <h3 class="font-black text-gray-700 mb-1">🔧 Repair Student Progress</h3>
-    <p class="text-gray-500 text-sm mb-4">
-      If students had progress before re-seeding, their pack bars may show 0%.
-      This tool remaps their old word IDs to the new deterministic ones.
-      <strong>Run once per affected student.</strong>
+    <h3 class="font-black text-gray-700 mb-1">🔧 Repair My Progress</h3>
+    <p class="text-gray-500 text-sm mb-3">
+      If your pack progress bars show 0% after a re-seed, run this to clean up your progress.
+      <strong>Each student runs this while signed in as themselves.</strong>
     </p>
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 mb-3 text-xs text-blue-800">
+      ℹ️ Your <strong>XP, streak, badges and level are safe</strong> — only the pack progress bars are affected.
+      This tool removes orphaned entries so the bars show correctly going forward.
+    </div>
     <div class="bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-3 mb-4 text-xs text-yellow-800">
-      ⚠️ This reads all user progress docs and rewrites them with correct IDs.
-      The total words known count will be preserved. This is safe to run multiple times.
+      ⚠️ <strong>How to use:</strong> Share this page URL with affected students.
+      Each student signs in (Google or email) and clicks the button below to fix their own progress.
     </div>
     <button id="repairBtn"
       class="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-3 rounded-2xl mb-3 transition-colors">
-      🔧 Repair All Student Progress
+      🔧 Repair My Progress
     </button>
-    <div id="repairLog" class="bg-gray-50 rounded-2xl p-4 text-gray-600 text-xs hidden font-mono space-y-1"></div>
+    <div id="repairLog" class="bg-gray-50 rounded-2xl p-4 text-gray-600 text-xs hidden font-mono space-y-1 max-h-64 overflow-y-auto"></div>
   </div>
 
   </div><!-- end seedSection -->
@@ -109,6 +112,7 @@
     if (user) {
       document.getElementById("loginSection").classList.add("hidden");
       document.getElementById("seedSection").classList.remove("hidden");
+      document.getElementById("repairSection").classList.remove("hidden"); // always available once signed in
       document.getElementById("loggedInAs").textContent = `Signed in as: ${user.email || user.displayName || "User"}`;
     } else {
       document.getElementById("loginSection").classList.remove("hidden");
@@ -871,17 +875,12 @@
   });
 
   // ── Progress repair tool ────────────────────────────────────────
-  // Remaps old random word IDs in student progress to new deterministic IDs.
-  // Strategy:
-  //   1. Load all current words from Firestore (new deterministic IDs)
-  //   2. Build a lookup map: bm_text+pack → new_word_id
-  //   3. For each user's progress docs, check if the doc ID exists in current words
-  //   4. If not (old random ID), find the matching word by bm text stored in the doc
-  //   5. Copy the progress entry to the new ID and delete the old one
+  // Each student signs into seed.html and repairs their own progress.
+  // No cross-user reads needed — avoids permission errors.
 
   document.getElementById("repairBtn").addEventListener("click", async () => {
-    const btn    = document.getElementById("repairBtn");
-    const logEl  = document.getElementById("repairLog");
+    const btn   = document.getElementById("repairBtn");
+    const logEl = document.getElementById("repairLog");
     btn.disabled = true;
     btn.textContent = "⏳ Repairing...";
     logEl.classList.remove("hidden");
@@ -895,98 +894,74 @@
     }
 
     try {
-      rlog("📥 Loading current words from Firestore...");
+      const user = auth.currentUser;
+      if (!user) { rlog("❌ Not signed in.", "text-red-500"); return; }
+
+      rlog(`👤 Repairing progress for: ${user.displayName || user.email}`);
+      rlog("📥 Loading current words...");
 
       // Step 1: Load all current word docs (new deterministic IDs)
       const wordsSnap = await getDocs(collection(db, "words"));
       const currentWordIds = new Set(wordsSnap.docs.map(d => d.id));
 
-      // Build two lookup maps:
-      // bmPackToId: "perasaan|gembira" → "perasaan_0"
-      // idToWord:   "perasaan_0"       → { bm, en, pack, ... }
-      const bmPackToId = {};
-      const idToWord   = {};
+      // Build bm+pack → new ID lookup
+      const bmPackToNewId = {};
       wordsSnap.docs.forEach(d => {
         const w = d.data();
-        bmPackToId[`${w.pack}|${w.bm}`] = d.id;
-        idToWord[d.id] = w;
+        bmPackToNewId[`${w.pack}|${w.bm}`] = d.id;
+      });
+      rlog(`✅ Loaded ${wordsSnap.size} current words.`);
+
+      // Step 2: Load this user's progress
+      rlog("📊 Loading your progress...");
+      const progressSnap = await getDocs(collection(db, "users", user.uid, "progress"));
+      rlog(`Found ${progressSnap.size} progress entries.`);
+
+      // Step 3: Separate valid IDs from orphaned (old random) IDs
+      const validDocs   = [];
+      const orphanDocs  = [];
+      progressSnap.docs.forEach(d => {
+        if (currentWordIds.has(d.id)) validDocs.push(d);
+        else orphanDocs.push(d);
       });
 
-      rlog(`✅ Loaded ${wordsSnap.size} current words.`);
-      rlog("👥 Loading all users...");
+      rlog(`✅ ${validDocs.length} entries already have correct IDs.`);
 
-      // Step 2: Get all user docs
-      const usersSnap = await getDocs(collection(db, "users"));
-      rlog(`Found ${usersSnap.size} user accounts. Checking progress...`);
-
-      let totalFixed = 0;
-      let totalUsers = 0;
-      let totalSkipped = 0;
-
-      for (const userDoc of usersSnap.docs) {
-        const uid = userDoc.id;
-        const userData = userDoc.data();
-
-        // Skip teacher accounts
-        if (userData.role === "teacher") continue;
-
-        const progressSnap = await getDocs(collection(db, "users", uid, "progress"));
-        if (progressSnap.empty) continue;
-
-        let userFixed = 0;
-        let userSkipped = 0;
-
-        for (const progDoc of progressSnap.docs) {
-          const oldId   = progDoc.id;
-          const progData = progDoc.data();
-
-          // If the progress doc ID already matches a current word ID, it's fine
-          if (currentWordIds.has(oldId)) continue;
-
-          // Old random ID — try to find the matching word by bm text
-          // The progress doc itself doesn't store bm text, so we need to
-          // find what word this was. Try pack+bm lookup if we stored it,
-          // otherwise skip (it may have been a word removed from the pack).
-          // Since we can't recover the bm text from just the old ID,
-          // we'll look for any current word not yet covered by this user's progress.
-          // Better approach: the old doc ID is random but we can look at
-          // all current words and see which ones this student hasn't marked yet
-          // that correspond to this status.
-
-          // Actually the cleanest fix: we stored bm+pack in the word doc.
-          // But the progress doc only stores { status, updatedAt }.
-          // We can't reverse-map old ID → bm text without the old word doc.
-          // The old word docs were DELETED by the clear step.
-          // So we must accept that pre-reseed progress cannot be perfectly remapped.
-          // What we CAN do: count these orphaned docs and report them.
-          userSkipped++;
-          totalSkipped++;
-        }
-
-        if (userFixed > 0) {
-          rlog(`  ✅ ${userData.displayName||uid.slice(0,8)}: fixed ${userFixed} word IDs`, "text-green-600");
-          totalFixed += userFixed;
-          totalUsers++;
-        }
-        if (userSkipped > 0) {
-          rlog(`  ⚠️  ${userData.displayName||uid.slice(0,8)}: ${userSkipped} orphaned IDs (old words deleted, cannot recover)`, "text-yellow-600");
-        }
+      if (orphanDocs.length === 0) {
+        rlog("🎉 Nothing to fix — your progress is already up to date!", "text-green-600 font-bold");
+        btn.disabled = false; btn.textContent = "🔧 Repair All Student Progress";
+        return;
       }
 
-      rlog("", "");
-      if (totalSkipped > 0) {
-        rlog(`⚠️  ${totalSkipped} progress entries reference deleted word IDs and cannot be recovered.`, "text-yellow-600");
-        rlog("This is expected if you cleared and re-seeded words. Future re-seeds will NOT cause this.", "text-yellow-600");
+      rlog(`⚠️  ${orphanDocs.length} entries have old IDs from before the re-seed.`, "text-yellow-600");
+      rlog("These cannot be remapped (old word docs were deleted).", "text-yellow-600");
+      rlog("");
+      rlog("Cleaning up orphaned entries...", "text-gray-500");
+
+      // Step 4: Delete orphaned progress docs (they're useless — point to deleted words)
+      let deleted = 0;
+      for (const d of orphanDocs) {
+        await deleteDoc(d.ref);
+        deleted++;
       }
-      rlog(`✅ Repair complete. ${totalFixed} entries fixed across ${totalUsers} users.`, "text-green-600 font-bold");
-      rlog("From now on, re-running seed will preserve all student progress.", "text-green-600");
+
+      rlog(`🗑️  Removed ${deleted} orphaned entries.`, "text-orange-500");
+      rlog("");
+      rlog("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "text-gray-300");
+      rlog(`✅ Repair complete!`, "text-green-600 font-bold");
+      rlog(`• ${validDocs.length} words known preserved`, "text-green-600");
+      rlog(`• ${deleted} orphaned entries cleaned up`, "text-orange-500");
+      rlog(`• Your XP, streak, badges and level are unchanged`, "text-green-600");
+      rlog("");
+      rlog("Pack progress bars will now show correctly.", "text-green-600");
+      rlog("Study the packs again to rebuild your progress. 💪", "text-indigo-600");
 
     } catch(e) {
       rlog(`❌ Error: ${e.message}`, "text-red-500");
       console.error(e);
     } finally {
       btn.disabled = false;
-      btn.textContent = "🔧 Repair All Student Progress";
+      btn.textContent = "🔧 Repair My Progress";
     }
   });
 </script>
