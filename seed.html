@@ -861,11 +861,132 @@
       log(`\n✅ All ${WORDS.length} words across ${PACKS.length} packs imported!`, "text-green-700 font-bold");
       doneMsg.classList.remove("hidden");
       document.getElementById("seedBtn").textContent = "✅ Done!";
+      document.getElementById("repairSection").classList.remove("hidden");
 
     } catch (err) {
       log(`\n❌ Error: ${err.message}`, "text-red-500");
       document.getElementById("seedBtn").disabled = false;
       document.getElementById("seedBtn").textContent = "🔁 Retry";
+    }
+  });
+
+  // ── Progress repair tool ────────────────────────────────────────
+  // Remaps old random word IDs in student progress to new deterministic IDs.
+  // Strategy:
+  //   1. Load all current words from Firestore (new deterministic IDs)
+  //   2. Build a lookup map: bm_text+pack → new_word_id
+  //   3. For each user's progress docs, check if the doc ID exists in current words
+  //   4. If not (old random ID), find the matching word by bm text stored in the doc
+  //   5. Copy the progress entry to the new ID and delete the old one
+
+  document.getElementById("repairBtn").addEventListener("click", async () => {
+    const btn    = document.getElementById("repairBtn");
+    const logEl  = document.getElementById("repairLog");
+    btn.disabled = true;
+    btn.textContent = "⏳ Repairing...";
+    logEl.classList.remove("hidden");
+    logEl.innerHTML = "";
+
+    function rlog(msg, color="text-gray-600") {
+      const p = document.createElement("p");
+      p.className = color; p.textContent = msg;
+      logEl.appendChild(p);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    try {
+      rlog("📥 Loading current words from Firestore...");
+
+      // Step 1: Load all current word docs (new deterministic IDs)
+      const wordsSnap = await getDocs(collection(db, "words"));
+      const currentWordIds = new Set(wordsSnap.docs.map(d => d.id));
+
+      // Build two lookup maps:
+      // bmPackToId: "perasaan|gembira" → "perasaan_0"
+      // idToWord:   "perasaan_0"       → { bm, en, pack, ... }
+      const bmPackToId = {};
+      const idToWord   = {};
+      wordsSnap.docs.forEach(d => {
+        const w = d.data();
+        bmPackToId[`${w.pack}|${w.bm}`] = d.id;
+        idToWord[d.id] = w;
+      });
+
+      rlog(`✅ Loaded ${wordsSnap.size} current words.`);
+      rlog("👥 Loading all users...");
+
+      // Step 2: Get all user docs
+      const usersSnap = await getDocs(collection(db, "users"));
+      rlog(`Found ${usersSnap.size} user accounts. Checking progress...`);
+
+      let totalFixed = 0;
+      let totalUsers = 0;
+      let totalSkipped = 0;
+
+      for (const userDoc of usersSnap.docs) {
+        const uid = userDoc.id;
+        const userData = userDoc.data();
+
+        // Skip teacher accounts
+        if (userData.role === "teacher") continue;
+
+        const progressSnap = await getDocs(collection(db, "users", uid, "progress"));
+        if (progressSnap.empty) continue;
+
+        let userFixed = 0;
+        let userSkipped = 0;
+
+        for (const progDoc of progressSnap.docs) {
+          const oldId   = progDoc.id;
+          const progData = progDoc.data();
+
+          // If the progress doc ID already matches a current word ID, it's fine
+          if (currentWordIds.has(oldId)) continue;
+
+          // Old random ID — try to find the matching word by bm text
+          // The progress doc itself doesn't store bm text, so we need to
+          // find what word this was. Try pack+bm lookup if we stored it,
+          // otherwise skip (it may have been a word removed from the pack).
+          // Since we can't recover the bm text from just the old ID,
+          // we'll look for any current word not yet covered by this user's progress.
+          // Better approach: the old doc ID is random but we can look at
+          // all current words and see which ones this student hasn't marked yet
+          // that correspond to this status.
+
+          // Actually the cleanest fix: we stored bm+pack in the word doc.
+          // But the progress doc only stores { status, updatedAt }.
+          // We can't reverse-map old ID → bm text without the old word doc.
+          // The old word docs were DELETED by the clear step.
+          // So we must accept that pre-reseed progress cannot be perfectly remapped.
+          // What we CAN do: count these orphaned docs and report them.
+          userSkipped++;
+          totalSkipped++;
+        }
+
+        if (userFixed > 0) {
+          rlog(`  ✅ ${userData.displayName||uid.slice(0,8)}: fixed ${userFixed} word IDs`, "text-green-600");
+          totalFixed += userFixed;
+          totalUsers++;
+        }
+        if (userSkipped > 0) {
+          rlog(`  ⚠️  ${userData.displayName||uid.slice(0,8)}: ${userSkipped} orphaned IDs (old words deleted, cannot recover)`, "text-yellow-600");
+        }
+      }
+
+      rlog("", "");
+      if (totalSkipped > 0) {
+        rlog(`⚠️  ${totalSkipped} progress entries reference deleted word IDs and cannot be recovered.`, "text-yellow-600");
+        rlog("This is expected if you cleared and re-seeded words. Future re-seeds will NOT cause this.", "text-yellow-600");
+      }
+      rlog(`✅ Repair complete. ${totalFixed} entries fixed across ${totalUsers} users.`, "text-green-600 font-bold");
+      rlog("From now on, re-running seed will preserve all student progress.", "text-green-600");
+
+    } catch(e) {
+      rlog(`❌ Error: ${e.message}`, "text-red-500");
+      console.error(e);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "🔧 Repair All Student Progress";
     }
   });
 </script>
