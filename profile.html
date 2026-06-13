@@ -337,9 +337,8 @@
           if (profile.role === "teacher") {
             document.getElementById("teacherCard").classList.remove("hidden");
             document.getElementById("accountType").textContent = "Teacher";
-            // Teachers don't need the school level picker or class join section
+            // Teachers don't need the school level picker
             document.getElementById("schoolCard").classList.add("hidden");
-            document.getElementById("classCard").classList.add("hidden");
           }
 
           document.getElementById("levelCard").classList.remove("hidden");
