@@ -36,12 +36,13 @@
     .rank-other { background:white; border-color:#f3f4f6; }
     .rank-me    { border-color:#6366f1 !important; box-shadow:0 0 0 3px #c7d2fe; }
 
-    /* In dark mode, darken rank card backgrounds so the forced dark text stays readable */
-    html.dark .rank-1     { filter:brightness(.75); }
-    html.dark .rank-2     { filter:brightness(.55); }
-    html.dark .rank-3     { filter:brightness(.7); }
-    html.dark .rank-other { background:#1e293b !important; border-color:#334155 !important; filter:none; }
-    html.dark .rank-me    { border-color:#6366f1 !important; filter:none; }
+    /* Dark mode: set explicit dark backgrounds instead of filter:brightness()
+       so the text colour overrides are not dimmed along with the card */
+    html.dark .rank-1     { background:linear-gradient(135deg,#3b3010,#4a3c0a) !important; border-color:#ca8a04 !important; }
+    html.dark .rank-2     { background:linear-gradient(135deg,#1e293b,#334155) !important; border-color:#475569 !important; }
+    html.dark .rank-3     { background:linear-gradient(135deg,#3b1f0a,#4a2d10) !important; border-color:#c2410c !important; }
+    html.dark .rank-other { background:#1e293b !important; border-color:#334155 !important; }
+    html.dark .rank-me    { border-color:#6366f1 !important; box-shadow:0 0 0 3px #3730a3; }
 
     /* rank-card text colours are now handled via inline styles in renderList()
        to guarantee correct colours in both light and dark mode regardless of
@@ -50,6 +51,9 @@
     .avatar-sm  { width:42px;height:42px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:white;flex-shrink:0; }
     .bar-track  { height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden;flex:1; }
     html.dark .bar-track { background:#334155; }
+    html.dark .rank-1 .bar-track,
+    html.dark .rank-2 .bar-track,
+    html.dark .rank-3 .bar-track { background:rgba(255,255,255,.15) !important; }
     .bar-fill   { height:100%;border-radius:99px;background:linear-gradient(90deg,#6366f1,#818cf8); }
 
     /* Tab bar */
@@ -353,22 +357,17 @@
         const delay     = (i*0.04).toFixed(2);
 
         // ── Colour logic ──────────────────────────────────────
-        // For rank-1/2/3 in dark mode: cards are darkened with filter,
-        // so we need LIGHT text. For rank-other/rank-me in dark mode: dark bg, LIGHT text.
-        // In light mode: all cards have light backgrounds → DARK text.
+        // Light mode: pastel bg → dark text
+        // Dark mode rank 1/2/3: explicit dark bg → light text (no filter dimming)
+        // Dark mode rank-other/me: dark card bg → light text
         let nameColour, subColour;
         if (!isDark) {
-          // Light mode — all cards have light/pastel bg → dark text
           nameColour = "#1e293b";
           subColour  = "#374151";
-        } else if (i < 3) {
-          // Dark mode rank 1/2/3 — filtered darker, use light text
-          nameColour = "#f1f5f9";
-          subColour  = "#e2e8f0";
         } else {
-          // Dark mode rank-other / rank-me — dark card bg (#1e293b) → light text
+          // All cards in dark mode have a dark background → always use light text
           nameColour = "#f1f5f9";
-          subColour  = "#94a3b8";
+          subColour  = i < 3 ? "#fde68a" : "#94a3b8"; // gold tint for top 3 sub text
         }
 
         // Name: show nickname as primary, real name in parentheses if different
